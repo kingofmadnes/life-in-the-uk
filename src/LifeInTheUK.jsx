@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { getAdaptiveQuizBlueprint, getSmartQuizQuestions, normaliseTranslation } from './quizLogic.js';
 
 /* ============================================================
    LIFE IN THE UK — STUDY & MOCK TEST
@@ -1205,8 +1206,9 @@ function tr(lang, key, vars) {
 // api.anthropic.com: there is no key to send and CORS blocks the request. So the URL is a proxy of
 // your own that attaches `x-api-key` and `anthropic-version` server-side and forwards the body.
 // Unset — the default — turns the whole feature off: no request, no toggle, questions stay English.
-const SUB_ENDPOINT = import.meta.env.VITE_UK_TRANSLATE_URL || "";
-const SUBS_AVAILABLE = !!SUB_ENDPOINT;
+const CUSTOM_SUB_ENDPOINT = import.meta.env.VITE_UK_TRANSLATE_URL || "";
+const SUB_ENDPOINT = CUSTOM_SUB_ENDPOINT || "https://api.mymemory.translated.net/get";
+const SUBS_AVAILABLE = true;
 
 let SUBS = SUBS_AVAILABLE;
 const subCache = {};
@@ -1214,8 +1216,23 @@ const subPending = {};
 
 function subKey(lang, id) { return "uk2:s:" + lang + ":" + id; }
 
+function normaliseTargetLang(lang) {
+  const map = { tl: "fil", zh: "zh-CN" };
+  return map[lang] || lang;
+}
+
+async function fetchPublicTranslation(text, lang) {
+  if (!text || !String(text).trim()) return "";
+  const target = normaliseTargetLang(lang);
+  const url = `${SUB_ENDPOINT}?q=${encodeURIComponent(text)}&langpair=en|${target}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(`translation request failed: ${res.status}`);
+  const data = await res.json();
+  return data?.responseData?.translatedText || data?.matches?.[0]?.translation || text;
+}
+
 async function getSub(q, lang) {
-  if (lang === "en" || !SUB_ENDPOINT) return null;
+  if (lang === "en") return null;
   const key = subKey(lang, q.i);
   if (subCache[key] !== undefined) return subCache[key];
   if (subPending[key]) return subPending[key];
@@ -1225,43 +1242,72 @@ async function getSub(q, lang) {
       const stored = localStorage.getItem(key);
       if (stored) {
         const parsed = JSON.parse(stored);
-        subCache[key] = parsed;
-        return parsed;
+        const valid = normaliseTranslation(parsed, q, LANGS.find((l) => l.id === lang)?.name || "target language");
+        if (valid) {
+          subCache[key] = valid;
+          return valid;
+        }
       }
     } catch (e) {}
 
     const base = QUESTIONS.find((x) => x.i === q.i);
     const meta = LANGS.find((l) => l.id === lang) || { name: "English" };
     try {
-      const res = await fetch(SUB_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-opus-5",
-          max_tokens: 2000,
-          // A translation needs no reasoning, and thinking would eat the token budget before the
-          // JSON is written. Disabling it is only valid at effort `high` or below.
-          thinking: { type: "disabled" },
-          output_config: { effort: "low" },
-          messages: [{
-            role: "user",
-            content:
-              "Translate this UK citizenship test question and its answer options into " + meta.name + ".\n" +
-              "Rules: keep UK proper nouns, place names, institutions and official terms in English (for example Magna Carta, House of Commons, Hadrian's Wall). Keep dates and numbers as digits. Translate naturally, not word for word. Keep each option short.\n" +
-              "Reply with JSON only, no markdown fences, and no internal or system XML tags, in this exact shape: {\"q\":\"...\",\"o\":[\"...\"],\"e\":\"...\"}\n\n" +
-              "Question: " + base.q + "\n" +
-              "Options: " + JSON.stringify(base.o) + "\n" +
-              "Explanation: " + base.e,
-          }],
-        }),
-      });
-      const data = await res.json();
-      const text = (data.content || []).filter((c) => c.type === "text").map((c) => c.text).join("");
-      const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
-      if (!parsed || !parsed.q || !Array.isArray(parsed.o)) throw new Error("bad shape");
-      subCache[key] = parsed;
-      save(key, parsed);
-      return parsed;
+      let parsed = null;
+      if (CUSTOM_SUB_ENDPOINT) {
+        const res = await fetch(CUSTOM_SUB_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-opus-5",
+            max_tokens: 2000,
+            thinking: { type: "disabled" },
+            output_config: { effort: "low" },
+            messages: [{
+              role: "user",
+              content:
+                "Translate this UK citizenship test question and its answer options into " + meta.name + ".\n" +
+                "Rules: keep UK proper nouns, place names, institutions and official terms in English (for example Magna Carta, House of Commons, Hadrian's Wall). Keep dates and numbers as digits. Translate naturally, not word for word. Keep each option short.\n" +
+                "Reply with JSON only, no markdown fences, with no extra commentary, in this exact shape: {\"q\":\"...\",\"o\":[\"...\"],\"e\":\"...\"}\n\n" +
+                "Question: " + base.q + "\n" +
+                "Options: " + JSON.stringify(base.o) + "\n" +
+                "Explanation: " + base.e,
+            }],
+          }),
+        });
+
+        const data = await res.json();
+        const content = data?.content || data?.message?.content || data?.text || data?.output || "";
+        let text = "";
+        if (Array.isArray(content)) {
+          text = content.map((c) => typeof c === "string" ? c : c?.text || "").join("");
+        } else if (typeof content === "string") {
+          text = content;
+        } else if (content && typeof content === "object") {
+          text = typeof content.text === "string" ? content.text : JSON.stringify(content);
+        }
+
+        const trimmed = text.replace(/```(?:json)?/gi, "").trim();
+        try { parsed = JSON.parse(trimmed); }
+        catch (e) {
+          const matched = trimmed.match(/\{[\s\S]*\}/);
+          if (matched) parsed = JSON.parse(matched[0]);
+        }
+      } else {
+        const [qText, eText, ...optionTexts] = await Promise.all([
+          fetchPublicTranslation(base.q, lang),
+          fetchPublicTranslation(base.e, lang),
+          ...base.o.map((opt) => fetchPublicTranslation(opt, lang)),
+        ]);
+        parsed = { q: qText, e: eText, o: optionTexts.slice(0, base.o.length) };
+      }
+
+      const valid = normaliseTranslation(parsed, base, meta.name);
+      if (!valid) throw new Error("bad shape");
+
+      subCache[key] = valid;
+      save(key, valid);
+      return valid;
     } catch (e) {
       subCache[key] = null;
       return null;
@@ -2051,7 +2097,7 @@ function Results({ result, onHome, onAgain, onStudy }) {
    PRACTICE (chapter / quick / mistakes / bookmarks)
    ============================================================ */
 
-function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark }) {
+function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark, stats = {} }) {
   const [ch, setCh] = useState(chapter || null);
   const [deck, setDeck] = useState(null);
   const [at, setAt] = useState(0);
@@ -2059,12 +2105,16 @@ function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark 
   const [shown, setShown] = useState(false);
   const [tally, setTally] = useState({ r: 0, n: 0 });
 
+  const adaptiveNote = mode === "quick" ? getAdaptiveQuizBlueprint(QUESTIONS, stats).at(-1)?.message : null;
+
   useEffect(() => {
-    if (mode === "quick") setDeck(shuffle(QUESTIONS).slice(0, 10).map(randomise));
-    else if (mode === "mistakes") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
+    if (mode === "quick") {
+      const smartDeck = getSmartQuizQuestions(QUESTIONS, stats).slice(0, 10).map(randomise);
+      setDeck(smartDeck);
+    } else if (mode === "mistakes") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
     else if (mode === "saved") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
     else if (ch) setDeck(shuffle(QUESTIONS.filter((q) => q.c === ch)).map(randomise));
-  }, [ch, mode]);
+  }, [ch, mode, stats]);
 
   if (mode === "chapter" && !ch) {
     return (
@@ -2119,6 +2169,9 @@ function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark 
 
   return (
     <div className="page">
+      {mode === "quick" && adaptiveNote && (
+        <div className="note" style={{ marginTop: 6, marginBottom: 16 }}>{adaptiveNote}</div>
+      )}
       <div className="examtop" style={{ marginBottom: 12 }}>
         <span className="count mono">{at + 1} {t("ofWord")} {deck.length}</span>
         <span className="clock mono">{tally.n ? `${tally.r}/${tally.n}` : "—"}</span>
@@ -2627,22 +2680,22 @@ export default function App() {
 
       {view === "quick" && (
         <Practice key="quick" mode="quick" back={() => go("home")} record={record}
-          bookmarks={bookmarks} toggleBookmark={toggleBookmark} />
+          bookmarks={bookmarks} toggleBookmark={toggleBookmark} stats={stats} />
       )}
 
       {view === "practice" && (
         <Practice key={"ch" + practiceChapter} mode="chapter" chapter={practiceChapter} back={() => go(practiceChapter ? "study" : "home")}
-          record={record} bookmarks={bookmarks} toggleBookmark={toggleBookmark} />
+          record={record} bookmarks={bookmarks} toggleBookmark={toggleBookmark} stats={stats} />
       )}
 
       {view === "mistakes" && (
         <Practice key="mis" mode="mistakes" ids={mis} back={() => go("home")} record={record}
-          bookmarks={bookmarks} toggleBookmark={toggleBookmark} />
+          bookmarks={bookmarks} toggleBookmark={toggleBookmark} stats={stats} />
       )}
 
       {view === "saved" && (
         <Practice key="saved" mode="saved" ids={bookmarks} back={() => go("progress")} record={record}
-          bookmarks={bookmarks} toggleBookmark={toggleBookmark} />
+          bookmarks={bookmarks} toggleBookmark={toggleBookmark} stats={stats} />
       )}
 
       {view === "cards" && <Cards back={() => go("home")} />}
