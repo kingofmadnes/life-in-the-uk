@@ -2749,13 +2749,17 @@ function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark,
   const [tally, setTally] = useState({ r: 0, n: 0 });
 
   useEffect(() => {
-    // The quick quiz is weighted, not random: unseen questions and ones with an
-    // unresolved mistake against them come up more often.
+    // Build the deck once per quiz — when the chapter or mode changes, not on
+    // every render. `stats` and `ids` are read here as a snapshot: the quick
+    // quiz is weighted from what you've missed so far (unseen questions and
+    // unresolved mistakes come up more often), but recording an answer mid-quiz
+    // must not land back here and reshuffle the deck under you.
     if (mode === "quick") setDeck(getSmartQuizQuestions(QUESTIONS, stats, 10).map(randomise));
     else if (mode === "mistakes") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
     else if (mode === "saved") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
     else if (ch) setDeck(shuffle(QUESTIONS.filter((q) => q.c === ch)).map(randomise));
-  }, [ch, mode, stats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ch, mode]);
 
   if (mode === "chapter" && !ch) {
     return (
