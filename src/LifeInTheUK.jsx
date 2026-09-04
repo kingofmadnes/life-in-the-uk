@@ -1,5 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { getAdaptiveQuizBlueprint, getSmartQuizQuestions, normaliseTranslation } from './quizLogic.js';
+import React, { useState, useEffect, useRef, useMemo, useContext, createContext } from "react";
+import { hasBundle, loadBundle } from "./qtrans/index.js";
+import {
+  LEVELS, LAST_LEVEL, EXAM_MIX, levelByNumber, isUnlocked, currentLevel,
+  clearedCount, allCleared, buildLevelDeck, difficultyOf,
+  getSmartQuizQuestions, normaliseTranslation,
+} from './quizLogic.js';
 
 /* ============================================================
    LIFE IN THE UK — STUDY & MOCK TEST
@@ -511,6 +516,31 @@ T.en = {
   vMid: "Getting there. Focus on your weakest chapters.",
   vClose: "Close. Clear your mistakes list and you should be there.",
   vReady: "You are scoring well above the pass mark. You look ready to book.",
+  path: "Path", pathTitle: "Your path to the test",
+  pathSub: "Eight levels, each one harder than the last. Clear level 8 and you are ready to book.",
+  pathHome: "Your path to the test", pathHomeSub: "Level {a} of {b} · {n} cleared",
+  pathHomeStart: "Eight levels, from the basics to exam standard",
+  levelWord: "Level", levelOf: "Level {a} of {b}",
+  lockNote: "Clear level {n} to open this",
+  retryWord: "Try again",
+  needN: "{n} of {b} to pass", untimedWord: "Untimed", minsN: "{n} min",
+  lvl1: "Warm-up", lvl1s: "The plainest questions, one at a time",
+  lvl2: "Foundations", lvl2s: "Wider ground, still untimed",
+  lvl3: "Building up", lvl3s: "Standard questions, answers as you go",
+  lvl4: "Against the clock", lvl4s: "First timed level, answers at the end",
+  lvl5: "Mixed ground", lvl5s: "Harder questions and a tighter clock",
+  lvl6: "The hard set", lvl6s: "Only the questions people lose marks on",
+  lvl7: "Full mock", lvl7s: "24 questions, 45 minutes, 18 to pass",
+  lvl8: "Exam standard", lvl8s: "21 out of 24, built from your weak spots",
+  lvlCleared: "Level {n} cleared", lvlMissed: "Not quite",
+  lvlClearedBody: "Level {n} is now open.",
+  lvlMissedBody: "You needed {n} to pass this level. Look at what you missed, then go again.",
+  nextLevel: "Next level", backPath: "Back to the path", reviewAnswers: "Review answers",
+  quitLevel: "Leave this level",
+  readyTitle: "You are ready", bookNow: "Now you can book your test",
+  readyBody: "All eight levels cleared, including the last one at 21 out of 24 — three marks above what the real test asks of you.",
+  bookCta: "Book at gov.uk", pathDone: "All eight levels cleared",
+  bookNote: "gov.uk/life-in-the-uk-test is the only official booking site. £50 an attempt, book at least 3 days ahead, and bring the same photo ID you booked with.",
 };
 
 T.hi = {
@@ -559,6 +589,31 @@ T.hi = {
   vMid: "प्रगति हो रही है। कमज़ोर अध्यायों पर ध्यान दें।",
   vClose: "करीब हैं। गलतियों की सूची साफ़ करें।",
   vReady: "आप पास अंक से काफ़ी ऊपर हैं। बुकिंग के लिए तैयार लगते हैं।",
+  path: "पथ", pathTitle: "परीक्षा तक आपका रास्ता",
+  pathSub: "आठ स्तर, हर अगला पिछले से कठिन। स्तर 8 पार करें और आप बुकिंग के लिए तैयार हैं।",
+  pathHome: "परीक्षा तक आपका रास्ता", pathHomeSub: "स्तर {a} / {b} · {n} पूरे",
+  pathHomeStart: "आठ स्तर, बुनियादी बातों से परीक्षा स्तर तक",
+  levelWord: "स्तर", levelOf: "स्तर {a} / {b}",
+  lockNote: "यह खोलने के लिए स्तर {n} पार करें",
+  needN: "पास होने के लिए {b} में से {n}", untimedWord: "बिना समय", minsN: "{n} मिनट",
+  lvl1: "शुरुआत", lvl1s: "सबसे सरल प्रश्न, एक-एक करके",
+  lvl2: "बुनियाद", lvl2s: "ज़्यादा विषय, फिर भी बिना समय",
+  lvl3: "आगे बढ़ते हुए", lvl3s: "सामान्य प्रश्न, उत्तर साथ-साथ",
+  lvl4: "समय के विरुद्ध", lvl4s: "पहला समयबद्ध स्तर, उत्तर अंत में",
+  lvl5: "मिश्रित विषय", lvl5s: "कठिन प्रश्न और कम समय",
+  lvl6: "कठिन सेट", lvl6s: "केवल वे प्रश्न जिनमें लोग अंक गँवाते हैं",
+  lvl7: "पूरा मॉक", lvl7s: "24 प्रश्न, 45 मिनट, पास के लिए 18",
+  lvl8: "परीक्षा स्तर", lvl8s: "24 में से 21, आपकी कमज़ोरियों से बना",
+  retryWord: "फिर कोशिश करें",
+  lvlCleared: "स्तर {n} पार", lvlMissed: "बस थोड़ा और",
+  lvlClearedBody: "स्तर {n} अब खुल गया।",
+  lvlMissedBody: "इस स्तर को पास करने के लिए {n} चाहिए थे। जो छूटा उसे देखें, फिर दोबारा करें।",
+  nextLevel: "अगला स्तर", backPath: "पथ पर वापस", reviewAnswers: "उत्तर देखें",
+  quitLevel: "यह स्तर छोड़ें",
+  readyTitle: "आप तैयार हैं", bookNow: "अब आप अपनी परीक्षा बुक कर सकते हैं",
+  readyBody: "सभी आठ स्तर पार, आख़िरी भी 24 में से 21 पर — असली परीक्षा की माँग से तीन अंक ऊपर।",
+  bookCta: "gov.uk पर बुक करें", pathDone: "सभी आठ स्तर पार",
+  bookNote: "gov.uk/life-in-the-uk-test ही एकमात्र आधिकारिक बुकिंग साइट है। हर प्रयास £50, कम से कम 3 दिन पहले बुक करें, और वही फोटो पहचान लाएँ जिससे बुक किया।",
 };
 
 T.ur = {
@@ -607,6 +662,31 @@ T.ur = {
   vMid: "بہتری آ رہی ہے۔ کمزور ابواب پر توجہ دیں۔",
   vClose: "قریب ہیں۔ غلطیوں کی فہرست صاف کریں۔",
   vReady: "آپ پاس نمبر سے کافی اوپر ہیں۔ بکنگ کے لیے تیار لگتے ہیں۔",
+  path: "راستہ", pathTitle: "ٹیسٹ تک آپ کا راستہ",
+  pathSub: "آٹھ سطحیں، ہر اگلی پچھلی سے مشکل۔ سطح 8 مکمل کریں اور آپ بکنگ کے لیے تیار ہیں۔",
+  pathHome: "ٹیسٹ تک آپ کا راستہ", pathHomeSub: "سطح {a} / {b} · {n} مکمل",
+  pathHomeStart: "آٹھ سطحیں، بنیادی باتوں سے امتحانی معیار تک",
+  levelWord: "سطح", levelOf: "سطح {a} / {b}",
+  lockNote: "یہ کھولنے کے لیے سطح {n} مکمل کریں",
+  needN: "پاس ہونے کے لیے {b} میں سے {n}", untimedWord: "بغیر وقت", minsN: "{n} منٹ",
+  lvl1: "آغاز", lvl1s: "سب سے آسان سوالات، ایک ایک کر کے",
+  lvl2: "بنیاد", lvl2s: "وسیع موضوعات، پھر بھی بغیر وقت",
+  lvl3: "آگے بڑھتے ہوئے", lvl3s: "عام سوالات، جواب ساتھ ساتھ",
+  lvl4: "وقت کے خلاف", lvl4s: "پہلی وقت والی سطح، جواب آخر میں",
+  lvl5: "ملے جلے موضوعات", lvl5s: "مشکل سوالات اور کم وقت",
+  lvl6: "مشکل سیٹ", lvl6s: "صرف وہ سوالات جن میں لوگ نمبر گنواتے ہیں",
+  lvl7: "مکمل ماک", lvl7s: "24 سوالات، 45 منٹ، پاس کے لیے 18",
+  lvl8: "امتحانی معیار", lvl8s: "24 میں سے 21، آپ کی کمزوریوں سے بنایا گیا",
+  retryWord: "دوبارہ کوشش کریں",
+  lvlCleared: "سطح {n} مکمل", lvlMissed: "بس تھوڑا سا",
+  lvlClearedBody: "سطح {n} اب کھل گئی۔",
+  lvlMissedBody: "اس سطح کو پاس کرنے کے لیے {n} درکار تھے۔ جو چھوٹا اسے دیکھیں، پھر دوبارہ کریں۔",
+  nextLevel: "اگلی سطح", backPath: "راستے پر واپس", reviewAnswers: "جوابات دیکھیں",
+  quitLevel: "یہ سطح چھوڑیں",
+  readyTitle: "آپ تیار ہیں", bookNow: "اب آپ اپنا ٹیسٹ بک کر سکتے ہیں",
+  readyBody: "تمام آٹھ سطحیں مکمل، آخری بھی 24 میں سے 21 پر — اصل ٹیسٹ کے تقاضے سے تین نمبر اوپر۔",
+  bookCta: "gov.uk پر بک کریں", pathDone: "تمام آٹھ سطحیں مکمل",
+  bookNote: "gov.uk/life-in-the-uk-test ہی واحد سرکاری بکنگ سائٹ ہے۔ ہر کوشش £50، کم از کم 3 دن پہلے بک کریں، اور وہی تصویری شناخت لائیں جس سے بک کیا۔",
 };
 
 T.pa = {
@@ -655,6 +735,31 @@ T.pa = {
   vMid: "ਤਰੱਕੀ ਹੋ ਰਹੀ ਹੈ। ਕਮਜ਼ੋਰ ਅਧਿਆਇਆਂ ਤੇ ਧਿਆਨ ਦਿਓ।",
   vClose: "ਨੇੜੇ ਹੋ। ਗਲਤੀਆਂ ਦੀ ਸੂਚੀ ਸਾਫ਼ ਕਰੋ।",
   vReady: "ਤੁਸੀਂ ਪਾਸ ਅੰਕ ਤੋਂ ਕਾਫ਼ੀ ਉੱਪਰ ਹੋ। ਬੁਕਿੰਗ ਲਈ ਤਿਆਰ ਲੱਗਦੇ ਹੋ।",
+  path: "ਰਾਹ", pathTitle: "ਟੈਸਟ ਤੱਕ ਤੁਹਾਡਾ ਰਾਹ",
+  pathSub: "ਅੱਠ ਪੱਧਰ, ਹਰ ਅਗਲਾ ਪਿਛਲੇ ਤੋਂ ਔਖਾ। ਪੱਧਰ 8 ਪਾਸ ਕਰੋ ਅਤੇ ਤੁਸੀਂ ਬੁਕਿੰਗ ਲਈ ਤਿਆਰ ਹੋ।",
+  pathHome: "ਟੈਸਟ ਤੱਕ ਤੁਹਾਡਾ ਰਾਹ", pathHomeSub: "ਪੱਧਰ {a} / {b} · {n} ਪੂਰੇ",
+  pathHomeStart: "ਅੱਠ ਪੱਧਰ, ਮੁੱਢਲੀਆਂ ਗੱਲਾਂ ਤੋਂ ਪ੍ਰੀਖਿਆ ਦੇ ਪੱਧਰ ਤੱਕ",
+  levelWord: "ਪੱਧਰ", levelOf: "ਪੱਧਰ {a} / {b}",
+  lockNote: "ਇਹ ਖੋਲ੍ਹਣ ਲਈ ਪੱਧਰ {n} ਪਾਸ ਕਰੋ",
+  needN: "ਪਾਸ ਹੋਣ ਲਈ {b} ਵਿੱਚੋਂ {n}", untimedWord: "ਬਿਨਾਂ ਸਮੇਂ", minsN: "{n} ਮਿੰਟ",
+  lvl1: "ਸ਼ੁਰੂਆਤ", lvl1s: "ਸਭ ਤੋਂ ਸਧਾਰਨ ਸਵਾਲ, ਇੱਕ-ਇੱਕ ਕਰਕੇ",
+  lvl2: "ਨੀਂਹ", lvl2s: "ਵੱਧ ਵਿਸ਼ੇ, ਫਿਰ ਵੀ ਬਿਨਾਂ ਸਮੇਂ",
+  lvl3: "ਅੱਗੇ ਵਧਦੇ ਹੋਏ", lvl3s: "ਆਮ ਸਵਾਲ, ਜਵਾਬ ਨਾਲੋ-ਨਾਲ",
+  lvl4: "ਸਮੇਂ ਦੇ ਖ਼ਿਲਾਫ਼", lvl4s: "ਪਹਿਲਾ ਸਮਾਂ-ਬੱਧ ਪੱਧਰ, ਜਵਾਬ ਅੰਤ ਵਿੱਚ",
+  lvl5: "ਰਲੇ-ਮਿਲੇ ਵਿਸ਼ੇ", lvl5s: "ਔਖੇ ਸਵਾਲ ਅਤੇ ਘੱਟ ਸਮਾਂ",
+  lvl6: "ਔਖਾ ਸੈੱਟ", lvl6s: "ਸਿਰਫ਼ ਉਹ ਸਵਾਲ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਲੋਕ ਅੰਕ ਗੁਆਉਂਦੇ ਹਨ",
+  lvl7: "ਪੂਰਾ ਮੌਕ", lvl7s: "24 ਸਵਾਲ, 45 ਮਿੰਟ, ਪਾਸ ਲਈ 18",
+  lvl8: "ਪ੍ਰੀਖਿਆ ਪੱਧਰ", lvl8s: "24 ਵਿੱਚੋਂ 21, ਤੁਹਾਡੀਆਂ ਕਮਜ਼ੋਰੀਆਂ ਤੋਂ ਬਣਿਆ",
+  retryWord: "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+  lvlCleared: "ਪੱਧਰ {n} ਪਾਸ", lvlMissed: "ਬੱਸ ਥੋੜ੍ਹਾ ਹੋਰ",
+  lvlClearedBody: "ਪੱਧਰ {n} ਹੁਣ ਖੁੱਲ੍ਹ ਗਿਆ।",
+  lvlMissedBody: "ਇਸ ਪੱਧਰ ਨੂੰ ਪਾਸ ਕਰਨ ਲਈ {n} ਚਾਹੀਦੇ ਸਨ। ਜੋ ਖੁੰਝਿਆ ਉਹ ਵੇਖੋ, ਫਿਰ ਦੁਬਾਰਾ ਕਰੋ।",
+  nextLevel: "ਅਗਲਾ ਪੱਧਰ", backPath: "ਰਾਹ 'ਤੇ ਵਾਪਸ", reviewAnswers: "ਜਵਾਬ ਵੇਖੋ",
+  quitLevel: "ਇਹ ਪੱਧਰ ਛੱਡੋ",
+  readyTitle: "ਤੁਸੀਂ ਤਿਆਰ ਹੋ", bookNow: "ਹੁਣ ਤੁਸੀਂ ਆਪਣਾ ਟੈਸਟ ਬੁੱਕ ਕਰ ਸਕਦੇ ਹੋ",
+  readyBody: "ਸਾਰੇ ਅੱਠ ਪੱਧਰ ਪਾਸ, ਆਖ਼ਰੀ ਵੀ 24 ਵਿੱਚੋਂ 21 'ਤੇ — ਅਸਲ ਟੈਸਟ ਦੀ ਮੰਗ ਤੋਂ ਤਿੰਨ ਅੰਕ ਉੱਪਰ।",
+  bookCta: "gov.uk 'ਤੇ ਬੁੱਕ ਕਰੋ", pathDone: "ਸਾਰੇ ਅੱਠ ਪੱਧਰ ਪਾਸ",
+  bookNote: "gov.uk/life-in-the-uk-test ਹੀ ਇੱਕੋ-ਇੱਕ ਸਰਕਾਰੀ ਬੁਕਿੰਗ ਸਾਈਟ ਹੈ। ਹਰ ਕੋਸ਼ਿਸ਼ £50, ਘੱਟੋ-ਘੱਟ 3 ਦਿਨ ਪਹਿਲਾਂ ਬੁੱਕ ਕਰੋ, ਅਤੇ ਉਹੀ ਫੋਟੋ ਪਛਾਣ ਲਿਆਓ ਜਿਸ ਨਾਲ ਬੁੱਕ ਕੀਤਾ।",
 };
 
 T.bn = {
@@ -703,6 +808,31 @@ T.bn = {
   vMid: "এগোচ্ছেন। দুর্বল অধ্যায়ে মনোযোগ দিন।",
   vClose: "কাছাকাছি। ভুলের তালিকা পরিষ্কার করুন।",
   vReady: "আপনি পাস নম্বরের অনেক উপরে। বুকিংয়ের জন্য প্রস্তুত মনে হচ্ছে।",
+  path: "পথ", pathTitle: "পরীক্ষার দিকে আপনার পথ",
+  pathSub: "আটটি স্তর, প্রতিটি আগেরটির চেয়ে কঠিন। স্তর 8 পার করুন এবং আপনি বুকিংয়ের জন্য প্রস্তুত।",
+  pathHome: "পরীক্ষার দিকে আপনার পথ", pathHomeSub: "স্তর {a} / {b} · {n}টি সম্পন্ন",
+  pathHomeStart: "আটটি স্তর, মৌলিক বিষয় থেকে পরীক্ষার মান পর্যন্ত",
+  levelWord: "স্তর", levelOf: "স্তর {a} / {b}",
+  lockNote: "এটি খুলতে স্তর {n} পার করুন",
+  needN: "পাস করতে {b}-এর মধ্যে {n}", untimedWord: "সময়হীন", minsN: "{n} মিনিট",
+  lvl1: "শুরু", lvl1s: "সবচেয়ে সরল প্রশ্ন, একটি করে",
+  lvl2: "ভিত্তি", lvl2s: "বিস্তৃত বিষয়, তবু সময়হীন",
+  lvl3: "এগিয়ে চলা", lvl3s: "সাধারণ প্রশ্ন, উত্তর সঙ্গে সঙ্গে",
+  lvl4: "সময়ের বিরুদ্ধে", lvl4s: "প্রথম সময়বদ্ধ স্তর, উত্তর শেষে",
+  lvl5: "মিশ্র বিষয়", lvl5s: "কঠিন প্রশ্ন ও কম সময়",
+  lvl6: "কঠিন সেট", lvl6s: "শুধু যেসব প্রশ্নে মানুষ নম্বর হারায়",
+  lvl7: "পূর্ণ মক", lvl7s: "24টি প্রশ্ন, 45 মিনিট, পাসের জন্য 18",
+  lvl8: "পরীক্ষার মান", lvl8s: "24-এর মধ্যে 21, আপনার দুর্বলতা থেকে তৈরি",
+  retryWord: "আবার চেষ্টা করুন",
+  lvlCleared: "স্তর {n} পার", lvlMissed: "প্রায় হয়ে গিয়েছিল",
+  lvlClearedBody: "স্তর {n} এখন খোলা।",
+  lvlMissedBody: "এই স্তর পাস করতে {n} দরকার ছিল। যা মিস করেছেন দেখুন, তারপর আবার করুন।",
+  nextLevel: "পরবর্তী স্তর", backPath: "পথে ফিরুন", reviewAnswers: "উত্তর দেখুন",
+  quitLevel: "এই স্তর ছাড়ুন",
+  readyTitle: "আপনি প্রস্তুত", bookNow: "এখন আপনি আপনার পরীক্ষা বুক করতে পারেন",
+  readyBody: "সব আটটি স্তর পার, শেষটিও 24-এর মধ্যে 21-এ — আসল পরীক্ষার চাহিদার চেয়ে তিন নম্বর বেশি।",
+  bookCta: "gov.uk-এ বুক করুন", pathDone: "সব আটটি স্তর পার",
+  bookNote: "gov.uk/life-in-the-uk-test-ই একমাত্র সরকারি বুকিং সাইট। প্রতি চেষ্টায় £50, অন্তত 3 দিন আগে বুক করুন, এবং যে ছবিযুক্ত পরিচয়পত্র দিয়ে বুক করেছেন সেটিই আনুন।",
 };
 
 T.ar = {
@@ -751,6 +881,31 @@ T.ar = {
   vMid: "تتقدم. ركّز على أضعف الفصول لديك.",
   vClose: "اقتربت. صفِّ قائمة أخطائك.",
   vReady: "درجاتك أعلى بكثير من حد النجاح. تبدو جاهزاً للحجز.",
+  path: "المسار", pathTitle: "مسارك إلى الاختبار",
+  pathSub: "ثماني مستويات، كل واحد أصعب من سابقه. اجتز المستوى 8 وتكون جاهزًا للحجز.",
+  pathHome: "مسارك إلى الاختبار", pathHomeSub: "المستوى {a} من {b} · {n} مكتملة",
+  pathHomeStart: "ثماني مستويات، من الأساسيات إلى مستوى الاختبار",
+  levelWord: "المستوى", levelOf: "المستوى {a} من {b}",
+  lockNote: "اجتز المستوى {n} لفتح هذا",
+  needN: "{n} من {b} للنجاح", untimedWord: "بلا وقت", minsN: "{n} دقيقة",
+  lvl1: "الإحماء", lvl1s: "أبسط الأسئلة، واحدًا تلو الآخر",
+  lvl2: "الأساسيات", lvl2s: "نطاق أوسع، وما زال بلا وقت",
+  lvl3: "التقدّم", lvl3s: "أسئلة عادية، الإجابات أولًا بأول",
+  lvl4: "ضد الساعة", lvl4s: "أول مستوى موقوت، الإجابات في النهاية",
+  lvl5: "أرض مختلطة", lvl5s: "أسئلة أصعب ووقت أضيق",
+  lvl6: "المجموعة الصعبة", lvl6s: "الأسئلة التي يخسر فيها الناس الدرجات فقط",
+  lvl7: "اختبار كامل", lvl7s: "24 سؤالًا، 45 دقيقة، 18 للنجاح",
+  lvl8: "مستوى الاختبار", lvl8s: "21 من 24، مبني على نقاط ضعفك",
+  retryWord: "أعد المحاولة",
+  lvlCleared: "اجتزت المستوى {n}", lvlMissed: "لم يكتمل بعد",
+  lvlClearedBody: "المستوى {n} مفتوح الآن.",
+  lvlMissedBody: "كنت بحاجة إلى {n} لاجتياز هذا المستوى. راجع ما فاتك ثم أعد المحاولة.",
+  nextLevel: "المستوى التالي", backPath: "العودة إلى المسار", reviewAnswers: "مراجعة الإجابات",
+  quitLevel: "مغادرة هذا المستوى",
+  readyTitle: "أنت جاهز", bookNow: "يمكنك الآن حجز اختبارك",
+  readyBody: "اجتزت المستويات الثمانية كلها، والأخير بـ 21 من 24 — ثلاث درجات فوق ما يطلبه الاختبار الحقيقي.",
+  bookCta: "احجز على gov.uk", pathDone: "اجتزت المستويات الثمانية كلها",
+  bookNote: "gov.uk/life-in-the-uk-test هو موقع الحجز الرسمي الوحيد. الرسوم £50 لكل محاولة، احجز قبل 3 أيام على الأقل، وأحضر نفس بطاقة الهوية المصوّرة التي حجزت بها.",
 };
 
 T.ro = {
@@ -799,6 +954,31 @@ T.ro = {
   vMid: "Progresezi. Concentrează-te pe capitolele slabe.",
   vClose: "Aproape. Golește lista de greșeli.",
   vReady: "Ești mult peste pragul de promovare. Pari gata de programare.",
+  path: "Traseu", pathTitle: "Traseul tău către test",
+  pathSub: "Opt niveluri, fiecare mai greu decât cel dinainte. Treci nivelul 8 și ești gata de programare.",
+  pathHome: "Traseul tău către test", pathHomeSub: "Nivelul {a} din {b} · {n} trecute",
+  pathHomeStart: "Opt niveluri, de la bază la nivelul examenului",
+  levelWord: "Nivel", levelOf: "Nivelul {a} din {b}",
+  lockNote: "Treci nivelul {n} ca să-l deschizi",
+  needN: "{n} din {b} pentru promovare", untimedWord: "Fără timp", minsN: "{n} min",
+  lvl1: "Încălzire", lvl1s: "Cele mai simple întrebări, una câte una",
+  lvl2: "Fundamente", lvl2s: "Teren mai larg, tot fără timp",
+  lvl3: "Consolidare", lvl3s: "Întrebări standard, răspunsuri pe parcurs",
+  lvl4: "Contra cronometru", lvl4s: "Primul nivel cronometrat, răspunsuri la final",
+  lvl5: "Teren mixt", lvl5s: "Întrebări mai grele și timp mai strâns",
+  lvl6: "Setul greu", lvl6s: "Doar întrebările la care lumea pierde puncte",
+  lvl7: "Simulare completă", lvl7s: "24 de întrebări, 45 de minute, 18 pentru promovare",
+  lvl8: "Nivel de examen", lvl8s: "21 din 24, construit din punctele tale slabe",
+  retryWord: "Încearcă din nou",
+  lvlCleared: "Nivelul {n} trecut", lvlMissed: "Aproape",
+  lvlClearedBody: "Nivelul {n} este acum deschis.",
+  lvlMissedBody: "Îți trebuiau {n} ca să treci acest nivel. Uită-te la ce ai greșit, apoi mai încearcă.",
+  nextLevel: "Nivelul următor", backPath: "Înapoi la traseu", reviewAnswers: "Revezi răspunsurile",
+  quitLevel: "Părăsește acest nivel",
+  readyTitle: "Ești gata", bookNow: "Acum poți să-ți programezi testul",
+  readyBody: "Toate cele opt niveluri trecute, inclusiv ultimul la 21 din 24 — cu trei puncte peste ce cere testul real.",
+  bookCta: "Programează pe gov.uk", pathDone: "Toate cele opt niveluri trecute",
+  bookNote: "gov.uk/life-in-the-uk-test este singurul site oficial de programare. £50 pe încercare, programează cu cel puțin 3 zile înainte și adu același act de identitate cu fotografie cu care ai programat.",
 };
 
 T.pl = {
@@ -847,6 +1027,31 @@ T.pl = {
   vMid: "Idzie do przodu. Skup się na najsłabszych rozdziałach.",
   vClose: "Blisko. Wyczyść listę błędów.",
   vReady: "Jesteś znacznie powyżej progu. Wyglądasz na gotowego do rezerwacji.",
+  path: "Ścieżka", pathTitle: "Twoja ścieżka do egzaminu",
+  pathSub: "Osiem poziomów, każdy trudniejszy od poprzedniego. Zalicz poziom 8, a będziesz gotów, żeby się zapisać.",
+  pathHome: "Twoja ścieżka do egzaminu", pathHomeSub: "Poziom {a} z {b} · {n} zaliczonych",
+  pathHomeStart: "Osiem poziomów, od podstaw po poziom egzaminu",
+  levelWord: "Poziom", levelOf: "Poziom {a} z {b}",
+  lockNote: "Zalicz poziom {n}, aby go otworzyć",
+  needN: "{n} z {b}, aby zdać", untimedWord: "Bez czasu", minsN: "{n} min",
+  lvl1: "Rozgrzewka", lvl1s: "Najprostsze pytania, po jednym",
+  lvl2: "Podstawy", lvl2s: "Szerszy zakres, wciąż bez czasu",
+  lvl3: "Rozbudowa", lvl3s: "Standardowe pytania, odpowiedzi na bieżąco",
+  lvl4: "Z zegarem", lvl4s: "Pierwszy poziom na czas, odpowiedzi na końcu",
+  lvl5: "Mieszany grunt", lvl5s: "Trudniejsze pytania i mniej czasu",
+  lvl6: "Trudny zestaw", lvl6s: "Tylko pytania, na których traci się punkty",
+  lvl7: "Pełny egzamin próbny", lvl7s: "24 pytania, 45 minut, 18 do zdania",
+  lvl8: "Poziom egzaminu", lvl8s: "21 z 24, ułożony z twoich słabych punktów",
+  retryWord: "Spróbuj ponownie",
+  lvlCleared: "Poziom {n} zaliczony", lvlMissed: "Prawie",
+  lvlClearedBody: "Poziom {n} jest już otwarty.",
+  lvlMissedBody: "Potrzebowałeś {n}, aby zdać ten poziom. Zobacz, co ci umknęło, i spróbuj jeszcze raz.",
+  nextLevel: "Następny poziom", backPath: "Powrót do ścieżki", reviewAnswers: "Przejrzyj odpowiedzi",
+  quitLevel: "Opuść ten poziom",
+  readyTitle: "Jesteś gotów", bookNow: "Możesz już zapisać się na egzamin",
+  readyBody: "Wszystkie osiem poziomów zaliczone, w tym ostatni na 21 z 24 — trzy punkty powyżej tego, czego wymaga prawdziwy egzamin.",
+  bookCta: "Zapisz się na gov.uk", pathDone: "Wszystkie osiem poziomów zaliczone",
+  bookNote: "gov.uk/life-in-the-uk-test to jedyna oficjalna strona zapisów. £50 za podejście, zapisz się co najmniej 3 dni wcześniej i weź ten sam dokument ze zdjęciem, którym się zapisywałeś.",
 };
 
 T.it = {
@@ -895,6 +1100,31 @@ T.it = {
   vMid: "Stai migliorando. Concentrati sui capitoli più deboli.",
   vClose: "Ci sei quasi. Svuota la lista degli errori.",
   vReady: "Sei ben sopra la soglia. Sembri pronto a prenotare.",
+  path: "Percorso", pathTitle: "Il tuo percorso verso il test",
+  pathSub: "Otto livelli, ognuno più difficile del precedente. Supera il livello 8 e sei pronto a prenotare.",
+  pathHome: "Il tuo percorso verso il test", pathHomeSub: "Livello {a} di {b} · {n} superati",
+  pathHomeStart: "Otto livelli, dalle basi al livello dell'esame",
+  levelWord: "Livello", levelOf: "Livello {a} di {b}",
+  lockNote: "Supera il livello {n} per sbloccarlo",
+  needN: "{n} su {b} per superare", untimedWord: "Senza tempo", minsN: "{n} min",
+  lvl1: "Riscaldamento", lvl1s: "Le domande più semplici, una alla volta",
+  lvl2: "Fondamenta", lvl2s: "Campo più ampio, ancora senza tempo",
+  lvl3: "Si sale", lvl3s: "Domande standard, risposte man mano",
+  lvl4: "Contro il tempo", lvl4s: "Primo livello a tempo, risposte alla fine",
+  lvl5: "Terreno misto", lvl5s: "Domande più difficili e meno tempo",
+  lvl6: "Il set difficile", lvl6s: "Solo le domande su cui si perdono punti",
+  lvl7: "Simulazione completa", lvl7s: "24 domande, 45 minuti, 18 per superare",
+  lvl8: "Livello d'esame", lvl8s: "21 su 24, costruito sui tuoi punti deboli",
+  retryWord: "Riprova",
+  lvlCleared: "Livello {n} superato", lvlMissed: "Non proprio",
+  lvlClearedBody: "Il livello {n} è ora sbloccato.",
+  lvlMissedBody: "Ti servivano {n} per superare questo livello. Guarda cosa hai sbagliato, poi riprova.",
+  nextLevel: "Livello successivo", backPath: "Torna al percorso", reviewAnswers: "Rivedi le risposte",
+  quitLevel: "Esci da questo livello",
+  readyTitle: "Sei pronto", bookNow: "Ora puoi prenotare il tuo test",
+  readyBody: "Tutti e otto i livelli superati, compreso l'ultimo a 21 su 24 — tre punti sopra quello che chiede il test vero.",
+  bookCta: "Prenota su gov.uk", pathDone: "Tutti e otto i livelli superati",
+  bookNote: "gov.uk/life-in-the-uk-test è l'unico sito ufficiale per prenotare. £50 a tentativo, prenota con almeno 3 giorni di anticipo e porta lo stesso documento con foto con cui hai prenotato.",
 };
 
 T.pt = {
@@ -943,6 +1173,31 @@ T.pt = {
   vMid: "A melhorar. Foque-se nos capítulos mais fracos.",
   vClose: "Quase lá. Limpe a lista de erros.",
   vReady: "Está bem acima da nota mínima. Parece pronto para marcar.",
+  path: "Percurso", pathTitle: "O seu percurso até ao teste",
+  pathSub: "Oito níveis, cada um mais difícil que o anterior. Passe o nível 8 e está pronto para marcar.",
+  pathHome: "O seu percurso até ao teste", pathHomeSub: "Nível {a} de {b} · {n} concluídos",
+  pathHomeStart: "Oito níveis, do básico ao nível do exame",
+  levelWord: "Nível", levelOf: "Nível {a} de {b}",
+  lockNote: "Passe o nível {n} para o abrir",
+  needN: "{n} de {b} para passar", untimedWord: "Sem tempo", minsN: "{n} min",
+  lvl1: "Aquecimento", lvl1s: "As perguntas mais simples, uma de cada vez",
+  lvl2: "Fundações", lvl2s: "Terreno mais amplo, ainda sem tempo",
+  lvl3: "A subir", lvl3s: "Perguntas normais, respostas à medida",
+  lvl4: "Contra o relógio", lvl4s: "Primeiro nível cronometrado, respostas no fim",
+  lvl5: "Terreno misto", lvl5s: "Perguntas mais difíceis e menos tempo",
+  lvl6: "O conjunto difícil", lvl6s: "Só as perguntas em que se perdem pontos",
+  lvl7: "Simulação completa", lvl7s: "24 perguntas, 45 minutos, 18 para passar",
+  lvl8: "Nível de exame", lvl8s: "21 em 24, feito a partir dos seus pontos fracos",
+  retryWord: "Tentar de novo",
+  lvlCleared: "Nível {n} concluído", lvlMissed: "Quase",
+  lvlClearedBody: "O nível {n} está agora aberto.",
+  lvlMissedBody: "Precisava de {n} para passar este nível. Veja o que falhou e tente outra vez.",
+  nextLevel: "Nível seguinte", backPath: "Voltar ao percurso", reviewAnswers: "Rever respostas",
+  quitLevel: "Sair deste nível",
+  readyTitle: "Está pronto", bookNow: "Já pode marcar o seu teste",
+  readyBody: "Todos os oito níveis concluídos, incluindo o último com 21 em 24 — três pontos acima do que o teste real exige.",
+  bookCta: "Marcar em gov.uk", pathDone: "Todos os oito níveis concluídos",
+  bookNote: "gov.uk/life-in-the-uk-test é o único site oficial de marcação. £50 por tentativa, marque com pelo menos 3 dias de antecedência e leve o mesmo documento com fotografia com que marcou.",
 };
 
 T.gu = {
@@ -991,6 +1246,31 @@ T.gu = {
   vMid: "પ્રગતિ થાય છે. નબળા પ્રકરણો પર ધ્યાન આપો.",
   vClose: "નજીક છો. ભૂલોની યાદી સાફ કરો.",
   vReady: "તમે પાસ ગુણથી ઘણા ઉપર છો. બુકિંગ માટે તૈયાર લાગો છો.",
+  path: "માર્ગ", pathTitle: "પરીક્ષા સુધીનો તમારો માર્ગ",
+  pathSub: "આઠ સ્તર, દરેક આગલા કરતાં અઘરું. સ્તર 8 પાર કરો અને તમે બુકિંગ માટે તૈયાર છો.",
+  pathHome: "પરીક્ષા સુધીનો તમારો માર્ગ", pathHomeSub: "સ્તર {a} / {b} · {n} પૂર્ણ",
+  pathHomeStart: "આઠ સ્તર, મૂળભૂત બાબતોથી પરીક્ષાના સ્તર સુધી",
+  levelWord: "સ્તર", levelOf: "સ્તર {a} / {b}",
+  lockNote: "આ ખોલવા સ્તર {n} પાર કરો",
+  needN: "પાસ થવા {b} માંથી {n}", untimedWord: "સમય વગર", minsN: "{n} મિનિટ",
+  lvl1: "શરૂઆત", lvl1s: "સૌથી સરળ પ્રશ્નો, એક પછી એક",
+  lvl2: "પાયો", lvl2s: "વ્યાપક વિષય, છતાં સમય વગર",
+  lvl3: "આગળ વધતાં", lvl3s: "સામાન્ય પ્રશ્નો, જવાબ સાથે સાથે",
+  lvl4: "સમય સામે", lvl4s: "પહેલું સમયબદ્ધ સ્તર, જવાબ અંતે",
+  lvl5: "મિશ્ર વિષય", lvl5s: "અઘરા પ્રશ્નો અને ઓછો સમય",
+  lvl6: "અઘરો સેટ", lvl6s: "ફક્ત એ પ્રશ્નો જેમાં લોકો ગુણ ગુમાવે છે",
+  lvl7: "પૂર્ણ મૉક", lvl7s: "24 પ્રશ્નો, 45 મિનિટ, પાસ માટે 18",
+  lvl8: "પરીક્ષા સ્તર", lvl8s: "24 માંથી 21, તમારી નબળાઈઓ પરથી બનેલું",
+  retryWord: "ફરી પ્રયાસ કરો",
+  lvlCleared: "સ્તર {n} પાર", lvlMissed: "લગભગ થઈ ગયું",
+  lvlClearedBody: "સ્તર {n} હવે ખૂલી ગયું.",
+  lvlMissedBody: "આ સ્તર પાસ કરવા {n} જોઈતા હતા. જે ચૂક્યું તે જુઓ, પછી ફરી કરો.",
+  nextLevel: "આગલું સ્તર", backPath: "માર્ગ પર પાછા", reviewAnswers: "જવાબ જુઓ",
+  quitLevel: "આ સ્તર છોડો",
+  readyTitle: "તમે તૈયાર છો", bookNow: "હવે તમે તમારી પરીક્ષા બુક કરી શકો છો",
+  readyBody: "બધા આઠ સ્તર પાર, છેલ્લું પણ 24 માંથી 21 પર — અસલી પરીક્ષાની માંગ કરતાં ત્રણ ગુણ ઉપર.",
+  bookCta: "gov.uk પર બુક કરો", pathDone: "બધા આઠ સ્તર પાર",
+  bookNote: "gov.uk/life-in-the-uk-test એ જ એકમાત્ર સત્તાવાર બુકિંગ સાઇટ છે. દરેક પ્રયાસના £50, ઓછામાં ઓછા 3 દિવસ પહેલાં બુક કરો, અને જે ફોટો ઓળખપત્રથી બુક કર્યું તે જ લાવો.",
 };
 
 T.ta = {
@@ -1039,6 +1319,31 @@ T.ta = {
   vMid: "முன்னேறுகிறீர்கள். பலவீனமான அத்தியாயங்களில் கவனம் செலுத்துங்கள்.",
   vClose: "நெருங்கிவிட்டீர்கள். தவறுகள் பட்டியலை அழியுங்கள்.",
   vReady: "தேர்ச்சி மதிப்பெண்ணை விட மிக மேலே இருக்கிறீர்கள். பதிவு செய்யத் தயார்.",
+  path: "பாதை", pathTitle: "தேர்வுக்கான உங்கள் பாதை",
+  pathSub: "எட்டு நிலைகள், ஒவ்வொன்றும் முந்தையதை விட கடினம். நிலை 8-ஐ கடந்தால் பதிவு செய்யத் தயார்.",
+  pathHome: "தேர்வுக்கான உங்கள் பாதை", pathHomeSub: "நிலை {a} / {b} · {n} முடிந்தது",
+  pathHomeStart: "எட்டு நிலைகள், அடிப்படையிலிருந்து தேர்வு நிலை வரை",
+  levelWord: "நிலை", levelOf: "நிலை {a} / {b}",
+  lockNote: "இதைத் திறக்க நிலை {n}-ஐ கடக்கவும்",
+  needN: "தேர்ச்சிக்கு {b}-இல் {n}", untimedWord: "நேரமின்றி", minsN: "{n} நிமிடம்",
+  lvl1: "தொடக்கம்", lvl1s: "எளிமையான கேள்விகள், ஒவ்வொன்றாக",
+  lvl2: "அடித்தளம்", lvl2s: "விரிந்த தளம், இன்னும் நேரமின்றி",
+  lvl3: "மேலே ஏறுதல்", lvl3s: "வழக்கமான கேள்விகள், பதில்கள் உடனுக்குடன்",
+  lvl4: "நேரத்துக்கு எதிராக", lvl4s: "முதல் நேரக் கட்டுப்பாட்டு நிலை, பதில்கள் இறுதியில்",
+  lvl5: "கலப்புத் தளம்", lvl5s: "கடினமான கேள்விகள், இறுக்கமான நேரம்",
+  lvl6: "கடினத் தொகுப்பு", lvl6s: "மக்கள் மதிப்பெண் இழக்கும் கேள்விகள் மட்டும்",
+  lvl7: "முழு மாதிரித் தேர்வு", lvl7s: "24 கேள்விகள், 45 நிமிடம், தேர்ச்சிக்கு 18",
+  lvl8: "தேர்வு நிலை", lvl8s: "24-இல் 21, உங்கள் பலவீனங்களிலிருந்து உருவானது",
+  retryWord: "மீண்டும் முயற்சி",
+  lvlCleared: "நிலை {n} கடந்தது", lvlMissed: "கிட்டத்தட்ட",
+  lvlClearedBody: "நிலை {n} இப்போது திறந்தது.",
+  lvlMissedBody: "இந்த நிலையில் தேர்ச்சி பெற {n} தேவைப்பட்டது. தவறியதைப் பாருங்கள், பிறகு மீண்டும் முயற்சிக்கவும்.",
+  nextLevel: "அடுத்த நிலை", backPath: "பாதைக்குத் திரும்பு", reviewAnswers: "பதில்களைப் பார்",
+  quitLevel: "இந்த நிலையை விட்டு வெளியேறு",
+  readyTitle: "நீங்கள் தயார்", bookNow: "இப்போது உங்கள் தேர்வைப் பதிவு செய்யலாம்",
+  readyBody: "எட்டு நிலைகளும் கடந்தாயிற்று, கடைசியும் 24-இல் 21 — உண்மையான தேர்வு கேட்பதை விட மூன்று மதிப்பெண் அதிகம்.",
+  bookCta: "gov.uk-இல் பதிவு செய்", pathDone: "எட்டு நிலைகளும் கடந்தாயிற்று",
+  bookNote: "gov.uk/life-in-the-uk-test மட்டுமே அதிகாரப்பூர்வ பதிவுத் தளம். ஒவ்வொரு முயற்சிக்கும் £50, குறைந்தது 3 நாட்களுக்கு முன் பதிவு செய்யவும், பதிவு செய்த அதே புகைப்பட அடையாளத்தைக் கொண்டு வரவும்.",
 };
 
 T.fa = {
@@ -1087,6 +1392,31 @@ T.fa = {
   vMid: "در حال پیشرفت. روی فصل‌های ضعیف‌تر تمرکز کنید.",
   vClose: "نزدیک شده‌اید. فهرست اشتباهات را خالی کنید.",
   vReady: "نمرهٔ شما بسیار بالاتر از حد قبولی است. آمادهٔ رزرو به نظر می‌رسید.",
+  path: "مسیر", pathTitle: "مسیر شما تا آزمون",
+  pathSub: "هشت مرحله، هر کدام سخت‌تر از قبلی. مرحله 8 را رد کنید و آمادهٔ رزرو هستید.",
+  pathHome: "مسیر شما تا آزمون", pathHomeSub: "مرحلهٔ {a} از {b} · {n} گذرانده",
+  pathHomeStart: "هشت مرحله، از پایه تا سطح آزمون",
+  levelWord: "مرحله", levelOf: "مرحلهٔ {a} از {b}",
+  lockNote: "برای باز کردن این، مرحلهٔ {n} را رد کنید",
+  needN: "{n} از {b} برای قبولی", untimedWord: "بدون زمان", minsN: "{n} دقیقه",
+  lvl1: "گرم‌کردن", lvl1s: "ساده‌ترین سؤال‌ها، یکی‌یکی",
+  lvl2: "پایه‌ها", lvl2s: "دامنهٔ گسترده‌تر، هنوز بدون زمان",
+  lvl3: "پیشروی", lvl3s: "سؤال‌های معمول، پاسخ‌ها همان لحظه",
+  lvl4: "در برابر زمان", lvl4s: "اولین مرحلهٔ زمان‌دار، پاسخ‌ها در پایان",
+  lvl5: "زمین ترکیبی", lvl5s: "سؤال‌های سخت‌تر و زمان تنگ‌تر",
+  lvl6: "مجموعهٔ سخت", lvl6s: "فقط سؤال‌هایی که مردم در آن‌ها نمره از دست می‌دهند",
+  lvl7: "آزمون آزمایشی کامل", lvl7s: "24 سؤال، 45 دقیقه، 18 برای قبولی",
+  lvl8: "سطح آزمون", lvl8s: "21 از 24، ساخته‌شده از نقاط ضعف شما",
+  retryWord: "دوباره تلاش کنید",
+  lvlCleared: "مرحلهٔ {n} گذرانده شد", lvlMissed: "نزدیک بود",
+  lvlClearedBody: "مرحلهٔ {n} اکنون باز است.",
+  lvlMissedBody: "برای قبولی در این مرحله به {n} نیاز داشتید. آنچه را از دست دادید ببینید، سپس دوباره تلاش کنید.",
+  nextLevel: "مرحلهٔ بعد", backPath: "بازگشت به مسیر", reviewAnswers: "مرور پاسخ‌ها",
+  quitLevel: "خروج از این مرحله",
+  readyTitle: "شما آماده‌اید", bookNow: "اکنون می‌توانید آزمون خود را رزرو کنید",
+  readyBody: "هر هشت مرحله گذرانده شد، از جمله آخری با 21 از 24 — سه نمره بالاتر از چیزی که آزمون واقعی می‌خواهد.",
+  bookCta: "رزرو در gov.uk", pathDone: "هر هشت مرحله گذرانده شد",
+  bookNote: "تنها سایت رسمی رزرو gov.uk/life-in-the-uk-test است. هر تلاش £50، دست‌کم 3 روز زودتر رزرو کنید و همان کارت شناسایی عکس‌داری را که با آن رزرو کردید همراه بیاورید.",
 };
 
 T.zh = {
@@ -1135,6 +1465,31 @@ T.zh = {
   vMid: "有进步。集中攻克最弱的章节。",
   vClose: "快到了。把错题清单清空。",
   vReady: "你的分数远高于及格线，看起来可以预约考试了。",
+  path: "路径", pathTitle: "你的备考路径",
+  pathSub: "八个级别，一级比一级难。通过第 8 级，你就可以预约考试了。",
+  pathHome: "你的备考路径", pathHomeSub: "第 {a} 级，共 {b} 级 · 已通过 {n} 级",
+  pathHomeStart: "八个级别，从基础到考试水平",
+  levelWord: "级别", levelOf: "第 {a} 级，共 {b} 级",
+  lockNote: "通过第 {n} 级即可解锁",
+  needN: "{b} 题答对 {n} 题及格", untimedWord: "不限时", minsN: "{n} 分钟",
+  lvl1: "热身", lvl1s: "最简单的题目，一次一道",
+  lvl2: "打基础", lvl2s: "范围更广，仍不限时",
+  lvl3: "逐步提升", lvl3s: "标准题目，边做边看答案",
+  lvl4: "与时间赛跑", lvl4s: "首个限时级别，最后看答案",
+  lvl5: "综合地带", lvl5s: "题目更难，时间更紧",
+  lvl6: "难题集", lvl6s: "只考人们容易失分的题目",
+  lvl7: "完整模拟", lvl7s: "24 题，45 分钟，18 题及格",
+  lvl8: "考试水平", lvl8s: "24 题中 21 题，按你的薄弱点出题",
+  retryWord: "再试一次",
+  lvlCleared: "第 {n} 级已通过", lvlMissed: "还差一点",
+  lvlClearedBody: "第 {n} 级现已解锁。",
+  lvlMissedBody: "本级别需要答对 {n} 题才能通过。看看错在哪里，再试一次。",
+  nextLevel: "下一级", backPath: "返回路径", reviewAnswers: "查看答案",
+  quitLevel: "离开本级别",
+  readyTitle: "你准备好了", bookNow: "现在可以预约考试了",
+  readyBody: "八个级别全部通过，最后一级也拿到 24 题中的 21 题——比真实考试要求高出三分。",
+  bookCta: "在 gov.uk 预约", pathDone: "八个级别全部通过",
+  bookNote: "gov.uk/life-in-the-uk-test 是唯一的官方预约网站。每次 £50，至少提前 3 天预约，并携带与预约时相同的带照片证件。",
 };
 
 T.tl = {
@@ -1183,6 +1538,31 @@ T.tl = {
   vMid: "May progreso. Tutukan ang pinakamahinang kabanata.",
   vClose: "Malapit na. Linisin ang listahan ng mali.",
   vReady: "Mataas ka na sa passing mark. Mukhang handa ka nang mag-book.",
+  path: "Landas", pathTitle: "Ang iyong landas patungo sa test",
+  pathSub: "Walong antas, bawat isa'y mas mahirap kaysa nauna. Pasahan ang antas 8 at handa ka nang mag-book.",
+  pathHome: "Ang iyong landas patungo sa test", pathHomeSub: "Antas {a} ng {b} · {n} ang naipasa",
+  pathHomeStart: "Walong antas, mula sa batayan hanggang antas ng eksaminasyon",
+  levelWord: "Antas", levelOf: "Antas {a} ng {b}",
+  lockNote: "Pasahan ang antas {n} para mabuksan ito",
+  needN: "{n} sa {b} para makapasa", untimedWord: "Walang oras", minsN: "{n} min",
+  lvl1: "Pag-init", lvl1s: "Ang pinakasimpleng tanong, isa-isa",
+  lvl2: "Pundasyon", lvl2s: "Mas malawak na saklaw, wala pa ring oras",
+  lvl3: "Pataas", lvl3s: "Karaniwang tanong, sagot habang naglalaro",
+  lvl4: "Laban sa oras", lvl4s: "Unang may-oras na antas, sagot sa dulo",
+  lvl5: "Halo-halong lupa", lvl5s: "Mas mahihirap na tanong at mas maigsing oras",
+  lvl6: "Ang mahirap na set", lvl6s: "Ang mga tanong lang na pinagkukulangan ng marka",
+  lvl7: "Buong mock", lvl7s: "24 na tanong, 45 minuto, 18 para makapasa",
+  lvl8: "Antas ng eksaminasyon", lvl8s: "21 sa 24, batay sa iyong mga kahinaan",
+  retryWord: "Subukan ulit",
+  lvlCleared: "Naipasa ang antas {n}", lvlMissed: "Kulang pa",
+  lvlClearedBody: "Bukas na ang antas {n}.",
+  lvlMissedBody: "Kailangan mo ng {n} para maipasa ang antas na ito. Tingnan kung saan ka nagkamali, tapos subukan ulit.",
+  nextLevel: "Susunod na antas", backPath: "Bumalik sa landas", reviewAnswers: "Suriin ang mga sagot",
+  quitLevel: "Umalis sa antas na ito",
+  readyTitle: "Handa ka na", bookNow: "Puwede mo nang i-book ang iyong test",
+  readyBody: "Naipasa lahat ng walong antas, pati ang huli sa 21 sa 24 — tatlong marka higit sa hinihingi ng totoong test.",
+  bookCta: "Mag-book sa gov.uk", pathDone: "Naipasa lahat ng walong antas",
+  bookNote: "Ang gov.uk/life-in-the-uk-test lang ang opisyal na booking site. £50 kada pagsubok, mag-book nang hindi bababa sa 3 araw bago, at dalhin ang parehong ID na may litrato na ginamit mo sa pag-book.",
 };
 
 let LANG = "en";
@@ -1196,143 +1576,71 @@ function tr(lang, key, vars) {
 
 
 /* ------------------------------------------------------------
-   QUESTION SUBTITLES
-   Questions stay in English (the real test is in English) with a
-   translation shown underneath. Translations are fetched once,
-   then cached on the device forever.
+   QUESTION TRANSLATIONS
+
+   Questions are shown in English, because the real test is in
+   English and recognising the English wording is half the skill.
+   Underneath each one sits a translation in the chosen language.
+
+   Those translations ship with the app, in src/qtrans/<lang>.js:
+   one file per language, pulled in with a dynamic import the
+   first time that language is selected, so a student downloads
+   their own language and none of the other thirteen. They work
+   offline, cost nothing to show, and — unlike a machine
+   translation fetched per question — they are reviewed, so
+   "Magna Carta", "First past the post" and "the Ashes" survive
+   contact with the target language instead of being mangled
+   into something that no longer matches the English above it.
    ------------------------------------------------------------ */
 
-// The body below is the Anthropic Messages API shape, but the browser cannot post it to
-// api.anthropic.com: there is no key to send and CORS blocks the request. So the URL is a proxy of
-// your own that attaches `x-api-key` and `anthropic-version` server-side and forwards the body.
-// Unset — the default — turns the whole feature off: no request, no toggle, questions stay English.
-const CUSTOM_SUB_ENDPOINT = import.meta.env.VITE_UK_TRANSLATE_URL || "";
-const SUB_ENDPOINT = CUSTOM_SUB_ENDPOINT || "https://api.mymemory.translated.net/get";
-const SUBS_AVAILABLE = true;
+let SUBS = true;
 
-let SUBS = SUBS_AVAILABLE;
-const subCache = {};
-const subPending = {};
+/* Bundles are keyed by language and held for the life of the page. Only the
+   selected language is ever loaded, and switching back is instant. */
+const bundles = {};
+const bundleWaiters = new Set();
 
-function subKey(lang, id) { return "uk2:s:" + lang + ":" + id; }
-
-function normaliseTargetLang(lang) {
-  const map = { tl: "fil", zh: "zh-CN" };
-  return map[lang] || lang;
+function bundleFor(lang) {
+  return bundles[lang] || null;
 }
 
-async function fetchPublicTranslation(text, lang) {
-  if (!text || !String(text).trim()) return "";
-  const target = normaliseTargetLang(lang);
-  const url = `${SUB_ENDPOINT}?q=${encodeURIComponent(text)}&langpair=en|${target}`;
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`translation request failed: ${res.status}`);
-  const data = await res.json();
-  return data?.responseData?.translatedText || data?.matches?.[0]?.translation || text;
+async function ensureBundle(lang) {
+  if (lang === "en" || bundles[lang] || !hasBundle(lang)) return;
+  const data = await loadBundle(lang);
+  if (!data) return;
+  bundles[lang] = data;
+  bundleWaiters.forEach((fn) => fn(lang));
 }
 
-async function getSub(q, lang) {
-  if (lang === "en") return null;
-  const key = subKey(lang, q.i);
-  if (subCache[key] !== undefined) return subCache[key];
-  if (subPending[key]) return subPending[key];
-
-  subPending[key] = (async () => {
-    try {
-      const stored = localStorage.getItem(key);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const valid = normaliseTranslation(parsed, q, LANGS.find((l) => l.id === lang)?.name || "target language");
-        if (valid) {
-          subCache[key] = valid;
-          return valid;
-        }
-      }
-    } catch (e) {}
-
-    const base = QUESTIONS.find((x) => x.i === q.i);
-    const meta = LANGS.find((l) => l.id === lang) || { name: "English" };
-    try {
-      let parsed = null;
-      if (CUSTOM_SUB_ENDPOINT) {
-        const res = await fetch(CUSTOM_SUB_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "claude-opus-5",
-            max_tokens: 2000,
-            thinking: { type: "disabled" },
-            output_config: { effort: "low" },
-            messages: [{
-              role: "user",
-              content:
-                "Translate this UK citizenship test question and its answer options into " + meta.name + ".\n" +
-                "Rules: keep UK proper nouns, place names, institutions and official terms in English (for example Magna Carta, House of Commons, Hadrian's Wall). Keep dates and numbers as digits. Translate naturally, not word for word. Keep each option short.\n" +
-                "Reply with JSON only, no markdown fences, with no extra commentary, in this exact shape: {\"q\":\"...\",\"o\":[\"...\"],\"e\":\"...\"}\n\n" +
-                "Question: " + base.q + "\n" +
-                "Options: " + JSON.stringify(base.o) + "\n" +
-                "Explanation: " + base.e,
-            }],
-          }),
-        });
-
-        const data = await res.json();
-        const content = data?.content || data?.message?.content || data?.text || data?.output || "";
-        let text = "";
-        if (Array.isArray(content)) {
-          text = content.map((c) => typeof c === "string" ? c : c?.text || "").join("");
-        } else if (typeof content === "string") {
-          text = content;
-        } else if (content && typeof content === "object") {
-          text = typeof content.text === "string" ? content.text : JSON.stringify(content);
-        }
-
-        const trimmed = text.replace(/```(?:json)?/gi, "").trim();
-        try { parsed = JSON.parse(trimmed); }
-        catch (e) {
-          const matched = trimmed.match(/\{[\s\S]*\}/);
-          if (matched) parsed = JSON.parse(matched[0]);
-        }
-      } else {
-        const [qText, eText, ...optionTexts] = await Promise.all([
-          fetchPublicTranslation(base.q, lang),
-          fetchPublicTranslation(base.e, lang),
-          ...base.o.map((opt) => fetchPublicTranslation(opt, lang)),
-        ]);
-        parsed = { q: qText, e: eText, o: optionTexts.slice(0, base.o.length) };
-      }
-
-      const valid = normaliseTranslation(parsed, base, meta.name);
-      if (!valid) throw new Error("bad shape");
-
-      subCache[key] = valid;
-      save(key, valid);
-      return valid;
-    } catch (e) {
-      subCache[key] = null;
-      return null;
-    } finally {
-      delete subPending[key];
-    }
-  })();
-
-  return subPending[key];
+/* A bundle entry is ["question", "opt|opt|opt|opt", "explanation"] — the pipe
+   keeps the files readable and roughly a third smaller than nested JSON. */
+function expand(entry) {
+  if (!Array.isArray(entry) || entry.length < 3) return null;
+  return { q: entry[0], o: String(entry[1]).split("|"), e: entry[2] };
 }
 
 function useSub(q) {
-  const [sub, setSub] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [, bump] = useState(0);
+
+  // Re-render every mounted question once its language file lands.
   useEffect(() => {
-    let alive = true;
-    setSub(null);
-    if (LANG === "en" || !SUBS) return;
-    const key = subKey(LANG, q.i);
-    if (subCache[key] !== undefined) { setSub(subCache[key]); return; }
-    setBusy(true);
-    getSub(q, LANG).then((r) => { if (alive) { setSub(r); setBusy(false); } });
-    return () => { alive = false; };
-  }, [q.i, LANG, SUBS]);
-  return { sub, busy };
+    const fn = () => bump((n) => n + 1);
+    bundleWaiters.add(fn);
+    return () => { bundleWaiters.delete(fn); };
+  }, []);
+
+  if (LANG === "en" || !SUBS) return { sub: null, busy: false };
+
+  const bundle = bundleFor(LANG);
+  if (!bundle) return { sub: null, busy: hasBundle(LANG) };
+
+  const meta = LANGS.find((l) => l.id === LANG);
+  const base = QUESTIONS.find((x) => x.i === q.i);
+  // normaliseTranslation is the guard: an entry with the wrong number of
+  // options would print the wrong text under the wrong answer, so a bad
+  // one fails closed and the question simply stays in English.
+  const sub = normaliseTranslation(expand(bundle[q.i]), base, meta && meta.name);
+  return { sub, busy: false };
 }
 
 /* ============================================================
@@ -1342,7 +1650,7 @@ function useSub(q) {
 const EXAM_LEN = 24;
 const PASS_MARK = 18;
 const EXAM_SECONDS = 45 * 60;
-const MIX = { 1: 2, 2: 2, 3: 8, 4: 6, 5: 6 };
+const MIX = EXAM_MIX;   // the chapter mix a real paper uses, shared with the level builder
 const CH_COLOR = { 1: "#7C5CFF", 2: "#0EA5A5", 3: "#F0733F", 4: "#E0518A", 5: "#2F6BFF" };
 
 function shuffle(arr) {
@@ -1656,6 +1964,38 @@ const CSS = `
 .osub{display:block;font-size:13.5px;line-height:1.4;color:var(--ink2);margin-top:3px}
 .wsub{display:block;font-size:13.5px;line-height:1.5;color:var(--ink2);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .uk[dir="rtl"] .qsub,.uk[dir="rtl"] .osub,.uk[dir="rtl"] .wsub{text-align:right;direction:rtl}
+/* The level ladder. The rail is a pseudo-element behind the number badges,
+   so the run of levels reads as one climb rather than eight loose cards. */
+.ladder{display:grid;gap:9px;position:relative}
+.ladder::before{content:"";position:absolute;left:33px;top:26px;bottom:26px;width:2px;background:var(--line)}
+.uk[dir="rtl"] .ladder::before{left:auto;right:33px}
+.lvl{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
+  border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;position:relative;
+  transition:transform .1s,border-color .1s}
+.lvl:hover:not(:disabled){border-color:var(--brand);transform:translateY(-1px)}
+.lvl:disabled{cursor:not-allowed;opacity:.55}
+.lvl.at{border-color:var(--brand);border-width:2px;padding:13px}
+.lvl.ok{border-color:var(--go)}
+.lvl-n{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  font-size:15px;font-weight:800;background:var(--soft);color:var(--ink2);
+  box-shadow:0 0 0 4px var(--card)}
+.lvl.ok .lvl-n{background:var(--go);color:#fff}
+.lvl.at .lvl-n{background:var(--brand);color:#fff}
+.lvl-t{font-weight:700;font-size:15px;display:block;letter-spacing:-0.01em}
+.lvl-s{font-size:12.5px;color:var(--ink2);display:block;margin-top:2px}
+.lvl-m{font-size:11.5px;color:var(--ink3);display:block;margin-top:5px;font-weight:600}
+.lvl-go{margin-left:auto;flex:0 0 auto;font-size:12px;font-weight:800;color:var(--ink3);padding-left:8px}
+.uk[dir="rtl"] .lvl-go{margin-left:0;margin-right:auto;padding-left:0;padding-right:8px}
+.lvl.ok .lvl-go{color:var(--go)}
+.pathbar{display:flex;gap:4px;margin:2px 0 0}
+.pathbar i{flex:1;height:7px;border-radius:3px;background:var(--soft)}
+.pathbar i.ok{background:var(--go)}
+.pathbar i.at{background:var(--brand)}
+.ready{background:var(--go);border-radius:22px;padding:22px 20px;color:#fff;margin-top:14px}
+.ready h1{margin:0;font-size:25px;font-weight:800;letter-spacing:-0.03em;line-height:1.15}
+.ready p{margin:10px 0 0;font-size:14px;line-height:1.6;color:rgba(255,255,255,.9)}
+.ready a{display:block;text-align:center;margin-top:18px;background:#fff;color:#0E9F6E;text-decoration:none;
+  font-weight:800;font-size:15px;padding:14px 18px;border-radius:14px}
 .lang-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .lang{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px 12px;cursor:pointer;text-align:left}
 .lang.on{border-color:var(--brand);border-width:2px;background:var(--brand-soft)}
@@ -1687,10 +2027,18 @@ function Q({ q, chosen, onChoose, revealed, bookmarked, onBookmark }) {
   const keys = ["A", "B", "C", "D", "E"];
   const { sub, busy } = useSub(q);
   const base = QUESTIONS.find((x) => x.i === q.i);
+  // A translated string that comes back identical to the English — a proper noun
+  // like "Magna Carta" or "Alfred the Great" that the house rules keep in English —
+  // adds nothing under the English line, so it is not shown twice.
+  const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+  const subQ = sub && sub.q && norm(sub.q) !== norm(q.q) ? sub.q : null;
+  const subE = sub && sub.e && norm(sub.e) !== norm(q.e) ? sub.e : null;
   const optSub = (text) => {
     if (!sub || !sub.o) return null;
     const idx = base.o.indexOf(text);
-    return idx > -1 ? sub.o[idx] : null;
+    if (idx < 0) return null;
+    const tr = sub.o[idx];
+    return tr && norm(tr) !== norm(text) ? tr : null;
   };
   const pick = (i) => {
     if (revealed) return;
@@ -1824,12 +2172,15 @@ function Onboarding({ onDone, lang, setLang }) {
    HOME
    ============================================================ */
 
-function Home({ profile, stats, history, go, streak }) {
+function Home({ profile, stats, history, go, streak, levelProgress }) {
   const ready = readiness(stats);
   const mis = mistakeIds(stats);
   const days = daysUntil(profile.testDate);
   const seen = Object.keys(stats).length;
   const last = history[0];
+  const cleared = clearedCount(levelProgress);
+  const atLevel = currentLevel(levelProgress);
+  const pathDone = allCleared(levelProgress);
 
   let verdict = t("vNone");
   if (seen > 20) {
@@ -1861,9 +2212,31 @@ function Home({ profile, stats, history, go, streak }) {
         </div>
       </div>
 
+      {pathDone && <ReadyCard />}
+
       <div className="eyebrow">{t("practise")}</div>
       <div style={{ display: "grid", gap: 10 }}>
-        <button className="row big fill" onClick={() => go("exam")}>
+        <button className="row big fill" onClick={() => go("path")}
+          style={pathDone ? { background: "var(--go)", borderColor: "var(--go)" } : undefined}>
+          <span className="ic" style={{ background: "rgba(255,255,255,.2)" }}>◆</span>
+          <span>
+            <span className="row-t">{t("pathHome")}</span>
+            <span className="row-s">
+              {cleared === 0
+                ? t("pathHomeStart")
+                : pathDone
+                  ? t("pathDone")
+                  : t("pathHomeSub", { a: atLevel, b: LAST_LEVEL, n: cleared })}
+            </span>
+          </span>
+          <span className="row-go">›</span>
+        </button>
+        <div className="pathbar" style={{ marginBottom: 2 }}>
+          {LEVELS.map((l) => (
+            <i key={l.n} className={levelProgress[l.n] && levelProgress[l.n].passed ? "ok" : (!pathDone && l.n === atLevel ? "at" : "")} />
+          ))}
+        </div>
+        <button className="row big" onClick={() => go("exam")}>
           <span className="ic" style={{ background: "rgba(255,255,255,.2)" }}>▶</span>
           <span>
             <span className="row-t">{t("startMock")}</span>
@@ -2094,6 +2467,276 @@ function Results({ result, onHome, onAgain, onStudy }) {
 }
 
 /* ============================================================
+   THE PATH — eight levels, each harder than the last
+   ============================================================ */
+
+function levelMeta(l) {
+  return [
+    l.len + " " + t("questions"),
+    l.secs ? t("minsN", { n: Math.round(l.secs / 60) }) : t("untimedWord"),
+    t("needN", { n: l.need, b: l.len }),
+  ].join(" · ");
+}
+
+/* Only shown once every level, the final one included, has been passed. */
+function ReadyCard() {
+  return (
+    <div className="ready">
+      <h1>{t("bookNow")}</h1>
+      <p>{t("readyBody")}</p>
+      <a href="https://www.gov.uk/life-in-the-uk-test" target="_blank" rel="noreferrer noopener">
+        {t("bookCta")} ›
+      </a>
+      <p style={{ fontSize: 12.5 }}>{t("bookNote")}</p>
+    </div>
+  );
+}
+
+function Path({ progress, startLevel }) {
+  const at = currentLevel(progress);
+  const finished = allCleared(progress);
+
+  return (
+    <div className="page">
+      <div className="h2">{t("pathTitle")}</div>
+      <p className="lede">{t("pathSub")}</p>
+
+      <div className="pathbar">
+        {LEVELS.map((l) => (
+          <i key={l.n} className={progress[l.n] && progress[l.n].passed ? "ok" : (!finished && l.n === at ? "at" : "")} />
+        ))}
+      </div>
+
+      {finished && <ReadyCard />}
+
+      <div className="eyebrow">
+        {finished ? t("pathDone") : t("levelOf", { a: at, b: LAST_LEVEL })}
+      </div>
+
+      <div className="ladder">
+        {LEVELS.map((l) => {
+          const p = progress[l.n] || {};
+          const open = isUnlocked(l.n, progress);
+          const here = !finished && l.n === at;
+          return (
+            <button
+              key={l.n}
+              className={"lvl" + (p.passed ? " ok" : "") + (here ? " at" : "")}
+              disabled={!open}
+              onClick={() => startLevel(l.n)}
+            >
+              <span className="lvl-n">{p.passed ? "✓" : l.n}</span>
+              <span style={{ minWidth: 0 }}>
+                <span className="lvl-t">{t("lvl" + l.n)}</span>
+                <span className="lvl-s">{t("lvl" + l.n + "s")}</span>
+                <span className="lvl-m">
+                  {open ? levelMeta(l) : t("lockNote", { n: l.n - 1 })}
+                </span>
+              </span>
+              <span className="lvl-go mono">
+                {!open ? "🔒" : p.passed ? p.best + "/" + l.len : "›"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* One level being played. Two shapes in one component, because they differ
+   only in when the answer is revealed: the early levels mark each question
+   as you go, the later ones hold everything back to the end like the real
+   test does. */
+function LevelQuiz({ level, stats, onFinish, onQuit, bookmarks, toggleBookmark }) {
+  const [deck] = useState(() => buildLevelDeck(QUESTIONS, level, stats).map(randomise));
+  const [ans, setAns] = useState({});
+  const [at, setAt] = useState(0);
+  const [shown, setShown] = useState(false);
+  const [tally, setTally] = useState({ r: 0, n: 0 });
+  const [left, setLeft] = useState(level.secs || 0);
+  const [confirm, setConfirm] = useState(false);
+  const top = useRef(null);
+  const handed = useRef(false);
+  const timed = level.secs > 0;
+
+  const hand = (seconds) => {
+    if (handed.current) return;   // the clock and the button can both fire
+    handed.current = true;
+    onFinish(deck, ans, seconds);
+  };
+
+  useEffect(() => {
+    if (!timed) return;
+    const id = setInterval(() => setLeft((l) => (l > 0 ? l - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [timed]);
+
+  useEffect(() => { if (timed && left <= 0) hand(level.secs); }, [left, timed]);
+
+  const q = deck[at];
+  const answered = Object.keys(ans).length;
+  const used = timed ? level.secs - left : 0;
+  const jump = (i) => { setAt(i); if (top.current) top.current.scrollIntoView({ block: "start" }); };
+
+  if (confirm) {
+    const missing = level.len - answered;
+    return (
+      <div className="page" style={{ paddingTop: 20 }}>
+        <div className="h2">{t("handInTitle")}</div>
+        <p className="lede">
+          {missing === 0
+            ? t("outOf", { a: answered, b: level.len })
+            : t("unanswered", { n: missing })}
+        </p>
+        <div className="btnrow">
+          <button className="btn btn-g" onClick={() => setConfirm(false)}>{t("keepGoing")}</button>
+          <button className="btn btn-d" onClick={() => hand(used)}>{t("handIn")}</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* --- instant feedback: levels 1 to 3 --- */
+  if (level.instant) {
+    const chosen = ans[q.i] || [];
+    const right = sameSet(chosen, q.a);
+    return (
+      <div className="page">
+        <div className="examtop" style={{ marginBottom: 12 }}>
+          <span className="count mono">{t("levelWord")} {level.n} · {at + 1} {t("ofWord")} {level.len}</span>
+          <span className="clock mono">{tally.n ? `${tally.r}/${tally.n}` : "—"}</span>
+        </div>
+        <div className="bar" style={{ marginBottom: 16 }}><i style={{ width: `${(at / level.len) * 100}%` }} /></div>
+
+        <Q q={q} chosen={chosen} revealed={shown}
+          onChoose={(n) => setAns((a) => ({ ...a, [q.i]: n }))}
+          bookmarked={bookmarks.includes(q.i)} onBookmark={() => toggleBookmark(q.i)} />
+
+        <div className="btnrow">
+          {!shown ? (
+            <button className="btn btn-p" disabled={chosen.length !== q.a.length}
+              onClick={() => { setShown(true); setTally((v) => ({ r: v.r + (right ? 1 : 0), n: v.n + 1 })); }}>
+              {t("checkAnswer")}
+            </button>
+          ) : (
+            <button className="btn btn-d"
+              onClick={() => {
+                if (at === deck.length - 1) hand(0);
+                else { setAt(at + 1); setShown(false); }
+              }}>
+              {at === deck.length - 1 ? t("seeResult") : t("next")}
+            </button>
+          )}
+        </div>
+        <button className="linkbtn" onClick={onQuit} style={{ marginTop: 12 }}>{t("quitLevel")}</button>
+      </div>
+    );
+  }
+
+  /* --- answers at the end: levels 4 to 8 --- */
+  return (
+    <div className="page" style={{ paddingTop: 0 }}>
+      <div ref={top} />
+      <div className="examhead">
+        <div className="examtop">
+          <span className="count mono">{t("levelWord")} {level.n} · {t("questionN", { a: at + 1, b: level.len })}</span>
+          <span className={"clock mono" + (left < 300 ? " low" : "")}>{fmt(left)}</span>
+        </div>
+        <div className="bar"><i style={{ width: `${(answered / level.len) * 100}%` }} /></div>
+        <div className="strip">
+          {deck.map((item, i) => (
+            <button key={item.i} onClick={() => jump(i)} aria-label={`Question ${i + 1}`}
+              className={"tick mono" + (ans[item.i] ? " done" : "") + (i === at ? " at" : "")}>
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Q q={q} chosen={ans[q.i] || []} revealed={false}
+        onChoose={(n) => setAns((a) => ({ ...a, [q.i]: n }))}
+        bookmarked={bookmarks.includes(q.i)} onBookmark={() => toggleBookmark(q.i)} />
+
+      <div className="btnrow">
+        <button className="btn btn-g" disabled={at === 0} onClick={() => jump(at - 1)}>{t("back")}</button>
+        {at < deck.length - 1
+          ? <button className="btn btn-p" onClick={() => jump(at + 1)}>{t("next")}</button>
+          : <button className="btn btn-d" onClick={() => setConfirm(true)}>{t("finish")}</button>}
+      </div>
+      <button className="linkbtn" onClick={onQuit} style={{ marginTop: 16 }}>{t("quitLevel")}</button>
+    </div>
+  );
+}
+
+function LevelResult({ level, deck, ans, score, progress, onPath, onRetry, onNext }) {
+  const [mode, setMode] = useState("score");
+  const passed = score >= level.need;
+  const finished = allCleared(progress);
+  const isLast = level.n === LAST_LEVEL;
+
+  if (mode !== "score") {
+    const list = mode === "wrong" ? deck.filter((q) => !sameSet(ans[q.i], q.a)) : deck;
+    return (
+      <div className="page">
+        <div className="h2">{mode === "wrong" ? t("whatWrong") : t("everyQ")}</div>
+        <div className="chips" style={{ marginBottom: 16 }}>
+          <button className={"chip" + (mode === "wrong" ? " on" : "")} onClick={() => setMode("wrong")}>
+            {t("wrongOnly")} ({deck.length - score})
+          </button>
+          <button className={"chip" + (mode === "all" ? " on" : "")} onClick={() => setMode("all")}>
+            {t("everyQ")}
+          </button>
+        </div>
+        {list.map((q) => (
+          <div key={q.i} style={{ marginBottom: 14 }}>
+            <Q q={q} chosen={ans[q.i] || []} revealed onChoose={() => {}} />
+          </div>
+        ))}
+        <div className="btnrow">
+          <button className="btn btn-g" onClick={() => setMode("score")}>{t("backToScore")}</button>
+          <button className="btn btn-p" onClick={onPath}>{t("backPath")}</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page">
+      <div className={"hero " + (passed ? "win" : "lose")}>
+        <h1>{passed ? t("lvlCleared", { n: level.n }) : t("lvlMissed")}</h1>
+        <p>
+          {passed
+            ? (isLast ? t("readyTitle") : t("lvlClearedBody", { n: level.n + 1 }))
+            : t("lvlMissedBody", { n: level.need })}
+        </p>
+        <div className="hero-stats mono">
+          <div className="hs"><b>{score}/{level.len}</b><span>{t("score")}</span></div>
+          <div className="hs"><b>{Math.round((score / level.len) * 100)}%</b><span>{t("correctPct")}</span></div>
+          <div className="hs"><b>{level.need}</b><span>{t("pass")}</span></div>
+        </div>
+      </div>
+
+      {passed && isLast && finished && <ReadyCard />}
+
+      <div className="btnrow">
+        {score < deck.length && (
+          <button className="btn btn-g" onClick={() => setMode("wrong")}>{t("reviewAnswers")}</button>
+        )}
+        {passed
+          ? (isLast
+              ? <button className="btn btn-p" onClick={onPath}>{t("backPath")}</button>
+              : <button className="btn btn-p" onClick={onNext}>{t("nextLevel")}</button>)
+          : <button className="btn btn-p" onClick={onRetry}>{t("retryWord")}</button>}
+      </div>
+      <div className="btnrow" style={{ marginTop: 10 }}>
+        <button className="btn btn-g" onClick={onPath}>{t("backPath")}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    PRACTICE (chapter / quick / mistakes / bookmarks)
    ============================================================ */
 
@@ -2105,16 +2748,18 @@ function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark,
   const [shown, setShown] = useState(false);
   const [tally, setTally] = useState({ r: 0, n: 0 });
 
-  const adaptiveNote = mode === "quick" ? getAdaptiveQuizBlueprint(QUESTIONS, stats).at(-1)?.message : null;
-
   useEffect(() => {
-    if (mode === "quick") {
-      const smartDeck = getSmartQuizQuestions(QUESTIONS, stats).slice(0, 10).map(randomise);
-      setDeck(smartDeck);
-    } else if (mode === "mistakes") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
+    // Build the deck once per quiz — when the chapter or mode changes, not on
+    // every render. `stats` and `ids` are read here as a snapshot: the quick
+    // quiz is weighted from what you've missed so far (unseen questions and
+    // unresolved mistakes come up more often), but recording an answer mid-quiz
+    // must not land back here and reshuffle the deck under you.
+    if (mode === "quick") setDeck(getSmartQuizQuestions(QUESTIONS, stats, 10).map(randomise));
+    else if (mode === "mistakes") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
     else if (mode === "saved") setDeck(shuffle(QUESTIONS.filter((q) => ids.includes(q.i))).map(randomise));
     else if (ch) setDeck(shuffle(QUESTIONS.filter((q) => q.c === ch)).map(randomise));
-  }, [ch, mode, stats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ch, mode]);
 
   if (mode === "chapter" && !ch) {
     return (
@@ -2169,9 +2814,6 @@ function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark,
 
   return (
     <div className="page">
-      {mode === "quick" && adaptiveNote && (
-        <div className="note" style={{ marginTop: 6, marginBottom: 16 }}>{adaptiveNote}</div>
-      )}
       <div className="examtop" style={{ marginBottom: 12 }}>
         <span className="count mono">{at + 1} {t("ofWord")} {deck.length}</span>
         <span className="clock mono">{tally.n ? `${tally.r}/${tally.n}` : "—"}</span>
@@ -2476,7 +3118,7 @@ function Settings({ profile, setProfile, dark, setDark, lang, setLang, subs, set
           </p>
         )}
       </div>
-      {lang !== "en" && SUBS_AVAILABLE && (
+      {lang !== "en" && hasBundle(lang) && (
         <button className="toggle" onClick={() => setSubs(!subs)} style={{ marginBottom: 10 }}>
           <span className="ic">文</span>
           <span>
@@ -2524,6 +3166,11 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [openChapter, setOpenChapter] = useState(null);
   const [practiceChapter, setPracticeChapter] = useState(null);
+  // levelProgress: { [levelNumber]: { passed, best, attempts, last } }
+  const [levelProgress, setLevelProgress] = useState({});
+  const [atLevel, setAtLevel] = useState(null);      // the level being played
+  const [levelRun, setLevelRun] = useState(null);    // its finished attempt
+  const [runKey, setRunKey] = useState(0);           // bumping this deals a fresh deck
 
   useEffect(() => {
     (async () => {
@@ -2536,7 +3183,8 @@ export default function App() {
         setRead(saved.read || []);
         setDarkState(!!saved.dark);
         setLangState(saved.lang || "en");
-        setSubsState(SUBS_AVAILABLE && saved.subs !== false);
+        setSubsState(saved.subs !== false);
+        setLevelProgress(saved.levels || {});
         setOnboarded(!!saved.onboarded);
         const s = saved.streak || { last: null, n: 0 };
         const t = today();
@@ -2558,6 +3206,7 @@ export default function App() {
   const persist = (partial) => {
     const snapshot = {
       profile, stats, history, bookmarks, read, dark, lang, subs, onboarded,
+      levels: levelProgress,
       streak: { last: today(), n: streak },
       ...partial,
     };
@@ -2603,7 +3252,63 @@ export default function App() {
     if (v === "practice") setPracticeChapter(null);
     if (v === "study") setOpenChapter(null);
     setView(v);
-    if (["home", "study", "progress", "settings"].includes(v)) setTab(v);
+    if (["home", "path", "study", "progress", "settings"].includes(v)) setTab(v);
+    window.scrollTo(0, 0);
+  };
+
+  const startLevel = (n) => {
+    if (!isUnlocked(n, levelProgress)) return;   // the ladder is the point; no skipping
+    setAtLevel(n);
+    setLevelRun(null);
+    setRunKey((k) => k + 1);
+    setView("level");
+    window.scrollTo(0, 0);
+  };
+
+  /* Everything a finished level touches: the per-question stats that feed
+     readiness and the mistakes list, the level's own record, and — for the
+     two full-length levels — the mock history, since those are real mocks. */
+  const finishLevel = (deck, ans, seconds) => {
+    const level = levelByNumber(atLevel);
+    if (!level) return;
+    const score = deck.filter((q) => sameSet(ans[q.i], q.a)).length;
+    const passed = score >= level.need;
+
+    const nextStats = { ...stats };
+    deck.forEach((q) => {
+      const cur = nextStats[q.i] || { r: 0, w: 0, s: 0 };
+      const ok = sameSet(ans[q.i], q.a);
+      nextStats[q.i] = ok
+        ? { r: cur.r + 1, w: cur.w, s: cur.s + 1 }
+        : { r: cur.r, w: cur.w + 1, s: 0 };
+    });
+
+    const prev = levelProgress[level.n] || { passed: false, best: 0, attempts: 0 };
+    const nextLevels = {
+      ...levelProgress,
+      [level.n]: {
+        passed: prev.passed || passed,
+        best: Math.max(prev.best || 0, score),
+        attempts: (prev.attempts || 0) + 1,
+        last: today(),
+      },
+    };
+
+    let nextHist = history;
+    if (level.len === EXAM_LEN) {
+      const entry = {
+        date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+        score, seconds, level: level.n,
+      };
+      nextHist = [entry, ...history].slice(0, 40);
+      setHistory(nextHist);
+    }
+
+    setStats(nextStats);
+    setLevelProgress(nextLevels);
+    persist({ stats: nextStats, levels: nextLevels, history: nextHist });
+    setLevelRun({ level, deck, ans, score, seconds });
+    setView("levelresult");
     window.scrollTo(0, 0);
   };
 
@@ -2629,13 +3334,18 @@ export default function App() {
   };
 
   const clear = () => {
-    setStats({}); setHistory([]); setBookmarks([]); setRead([]);
-    persist({ stats: {}, history: [], bookmarks: [], read: [] });
+    setStats({}); setHistory([]); setBookmarks([]); setRead([]); setLevelProgress({});
+    persist({ stats: {}, history: [], bookmarks: [], read: [], levels: {} });
     go("home");
   };
 
   LANG = lang;
   SUBS = subs;
+
+  // Pull in the chosen language's question bank. Mounted questions re-render
+  // themselves when it lands, so nothing here has to wait on it.
+  useEffect(() => { ensureBundle(lang); }, [lang]);
+
   const rtl = (LANGS.find((l) => l.id === lang) || {}).rtl ? "rtl" : "ltr";
 
   if (!ready) return <div className="uk" dir={rtl} data-dark={dark ? "1" : "0"}><style>{CSS}</style><div className="page"><p className="empty">{t("loading")}</p></div></div>;
@@ -2652,8 +3362,9 @@ export default function App() {
     );
   }
 
-  const inExam = view === "exam";
+  const inExam = view === "exam" || view === "level";
   const mis = mistakeIds(stats);
+  const playing = levelByNumber(atLevel);
 
   return (
     <div className="uk" dir={rtl} data-dark={dark ? "1" : "0"}>
@@ -2668,9 +3379,29 @@ export default function App() {
         </div>
       )}
 
-      {view === "home" && <Home profile={profile} stats={stats} history={history} go={go} streak={streak} />}
+      {view === "home" && (
+        <Home profile={profile} stats={stats} history={history} go={go} streak={streak}
+          levelProgress={levelProgress} />
+      )}
 
       {view === "exam" && <Exam onFinish={finishExam} onQuit={() => go("home")} />}
+
+      {view === "path" && <Path progress={levelProgress} startLevel={startLevel} />}
+
+      {view === "level" && playing && (
+        <LevelQuiz key={"L" + playing.n + "-" + runKey} level={playing} stats={stats}
+          onFinish={finishLevel} onQuit={() => go("path")}
+          bookmarks={bookmarks} toggleBookmark={toggleBookmark} />
+      )}
+
+      {view === "levelresult" && levelRun && (
+        <LevelResult
+          level={levelRun.level} deck={levelRun.deck} ans={levelRun.ans} score={levelRun.score}
+          progress={levelProgress}
+          onPath={() => go("path")}
+          onRetry={() => startLevel(levelRun.level.n)}
+          onNext={() => startLevel(Math.min(levelRun.level.n + 1, LAST_LEVEL))} />
+      )}
 
       {view === "results" && result && (
         <Results result={result} onHome={() => go("home")}
@@ -2718,6 +3449,7 @@ export default function App() {
         <div className="nav">
           {[
             { k: "home", i: "⌂", l: t("home") },
+            { k: "path", i: "◆", l: t("path") },
             { k: "study", i: "☰", l: t("studyNotes") },
             { k: "progress", i: "◔", l: t("progress") },
             { k: "settings", i: "⚙", l: t("settings") },
