@@ -1964,29 +1964,98 @@ const CSS = `
 .osub{display:block;font-size:13.5px;line-height:1.4;color:var(--ink2);margin-top:3px}
 .wsub{display:block;font-size:13.5px;line-height:1.5;color:var(--ink2);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .uk[dir="rtl"] .qsub,.uk[dir="rtl"] .osub,.uk[dir="rtl"] .wsub{text-align:right;direction:rtl}
-/* The level ladder. The rail is a pseudo-element behind the number badges,
-   so the run of levels reads as one climb rather than eight loose cards. */
-.ladder{display:grid;gap:9px;position:relative}
-.ladder::before{content:"";position:absolute;left:33px;top:26px;bottom:26px;width:2px;background:var(--line)}
-.uk[dir="rtl"] .ladder::before{left:auto;right:33px}
-.lvl{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
-  border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;position:relative;
-  transition:transform .1s,border-color .1s}
-.lvl:hover:not(:disabled){border-color:var(--brand);transform:translateY(-1px)}
-.lvl:disabled{cursor:not-allowed;opacity:.55}
-.lvl.at{border-color:var(--brand);border-width:2px;padding:13px}
-.lvl.ok{border-color:var(--go)}
-.lvl-n{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
-  font-size:15px;font-weight:800;background:var(--soft);color:var(--ink2);
-  box-shadow:0 0 0 4px var(--card)}
-.lvl.ok .lvl-n{background:var(--go);color:#fff}
-.lvl.at .lvl-n{background:var(--brand);color:#fff}
-.lvl-t{font-weight:700;font-size:15px;display:block;letter-spacing:-0.01em}
-.lvl-s{font-size:12.5px;color:var(--ink2);display:block;margin-top:2px}
-.lvl-m{font-size:11.5px;color:var(--ink3);display:block;margin-top:5px;font-weight:600}
-.lvl-go{margin-left:auto;flex:0 0 auto;font-size:12px;font-weight:800;color:var(--ink3);padding-left:8px}
-.uk[dir="rtl"] .lvl-go{margin-left:0;margin-right:auto;padding-left:0;padding-right:8px}
-.lvl.ok .lvl-go{color:var(--go)}
+/* ============================================================
+   THE PATH — its own screen: a violet night-sky trail of the
+   eight levels, in the spirit of a language-app skill tree.
+   This screen commits to one look whatever the app's light or
+   dark setting is, so the colours here are literal, not tokens.
+   The uk:has(.pathwrap) rules re-tint the shared header and tab
+   bar for as long as this screen is the one on show.
+   ============================================================ */
+.uk:has(.pathwrap){
+  background:
+    radial-gradient(circle at 1px 1px,rgba(255,255,255,.06) 1.5px,transparent 1.7px) 0 0/24px 24px,
+    linear-gradient(180deg,#2A2059 0%,#1C1548 50%,#140F35 100%);
+}
+.uk:has(.pathwrap) .top{background:transparent}
+.uk:has(.pathwrap) .wordmark{color:#F3F0FF}
+.uk:has(.pathwrap) .logo{background:#B9A8FF;color:#241653}
+.uk:has(.pathwrap) .iconbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.18);color:#F3F0FF}
+.uk:has(.pathwrap) .nav{background:#1B1547;border-top-color:rgba(255,255,255,.08)}
+.uk:has(.pathwrap) .navi{color:#8B82C4}
+.uk:has(.pathwrap) .navi.on{color:#FFCB3D}
+
+.pathwrap{
+  --pw-ink:#F3F0FF; --pw-dim:#B4AAE0; --pw-line:#3C3374;
+  --pw-done:#B9A8FF; --pw-done-lip:#7A5FD8; --pw-done-ink:#241653;
+  --pw-here:#FFCB3D; --pw-here-lip:#CB9013; --pw-here-ink:#3B2A00;
+  --pw-lock:#2A2358; --pw-lock-lip:#1B1740; --pw-lock-ink:#7E74B4;
+  position:relative;z-index:1;max-width:560px;margin:0 auto;
+  padding:6px 18px 124px;overflow-x:clip;color:var(--pw-ink);
+}
+.pathwrap :focus-visible{outline-color:#FFCB3D}
+
+.pw-unit{
+  display:grid;gap:11px;border:1px solid rgba(255,255,255,.11);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));
+  padding:15px 17px;margin:4px 0 6px;
+}
+.pw-unit h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-0.02em}
+.pw-unit p{margin:3px 0 0;font-size:13px;font-weight:600;color:var(--pw-dim)}
+.pw-meter{height:9px;border-radius:999px;background:rgba(0,0,0,.30)}
+.pw-meter i{display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,#FFCB3D,#FFE49A);transition:width .45s ease}
+
+.pw-track{position:relative;width:260px;margin:2px auto 0}
+.pw-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.pw-lines path{fill:none;stroke:var(--pw-line);stroke-width:8;stroke-linecap:round;
+  stroke-dasharray:1;stroke-dashoffset:1;animation:pw-draw .9s ease-out .1s forwards}
+
+.pw-step{position:absolute;width:132px;transform:translateX(-50%);
+  display:grid;justify-items:center;gap:7px}
+.pw-node{width:66px;height:66px;border-radius:21px;border:0;padding:0;cursor:pointer;
+  display:grid;place-items:center;position:relative;color:var(--pw-lock-ink);
+  transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+.pw-mark{width:27px;height:27px;display:block}
+.pw-node-n{font-size:22px;font-weight:800;line-height:1}
+.pw-step.is-done .pw-node{background:var(--pw-done);color:var(--pw-done-ink);
+  box-shadow:0 6px 0 var(--pw-done-lip),inset 0 2px 1px rgba(255,255,255,.4)}
+.pw-step.is-here .pw-node{background:var(--pw-here);color:var(--pw-here-ink);
+  box-shadow:0 6px 0 var(--pw-here-lip),0 11px 26px rgba(255,203,61,.44),inset 0 2px 1px rgba(255,255,255,.5)}
+.pw-step.is-lock .pw-node{background:var(--pw-lock);
+  box-shadow:0 5px 0 var(--pw-lock-lip),inset 0 1px 0 rgba(255,255,255,.05)}
+.pw-node:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.06)}
+.pw-node:active:not(:disabled){transform:translateY(4px)}
+.pw-step.is-done .pw-node:active:not(:disabled){box-shadow:0 2px 0 var(--pw-done-lip),inset 0 2px 1px rgba(255,255,255,.4)}
+.pw-step.is-here .pw-node:active:not(:disabled){box-shadow:0 2px 0 var(--pw-here-lip),0 6px 16px rgba(255,203,61,.36),inset 0 2px 1px rgba(255,255,255,.5)}
+.pw-node:disabled{cursor:default}
+
+.pw-ring{position:absolute;inset:-8px;width:82px;height:82px;transform:rotate(-90deg);pointer-events:none}
+.pw-ring circle{fill:none;stroke-width:6;stroke-linecap:round}
+.pw-ring .trk{stroke:rgba(59,42,0,.22)}
+.pw-ring .val{stroke:#fff;transition:stroke-dasharray .5s ease}
+
+.pw-cap{font-size:12.5px;font-weight:700;line-height:1.2;text-align:center;max-width:126px}
+.pw-step.is-done .pw-cap{color:var(--pw-dim)}
+.pw-step.is-lock .pw-cap{color:#9A90CC}
+.pw-best{display:block;margin-top:1px;font-size:11px;color:#8B82C4;font-variant-numeric:tabular-nums}
+
+.pw-call{position:absolute;left:50%;top:calc(100% + 15px);transform:translateX(-50%);
+  width:224px;background:#2C2462;border:1px solid rgba(255,255,255,.13);border-radius:15px;
+  padding:11px 14px;text-align:center;box-shadow:0 16px 34px rgba(0,0,0,.42)}
+.pw-call::before{content:"";position:absolute;left:50%;bottom:100%;transform:translateX(-50%);
+  border:8px solid transparent;border-bottom-color:#2C2462}
+.pw-call b{display:block;font-size:14px;font-weight:800;color:var(--pw-here)}
+.pw-call span{display:block;margin-top:3px;font-size:11.5px;font-weight:600;line-height:1.45;color:var(--pw-dim)}
+
+.pathwrap .ready{background:linear-gradient(165deg,#FFD35C,#F1A63A);color:#3B2A00;
+  box-shadow:0 6px 0 #CB9013,0 18px 40px rgba(0,0,0,.4)}
+.pathwrap .ready p{color:rgba(59,42,0,.82)}
+.pathwrap .ready a{background:#241653;color:#F3F0FF}
+
+@keyframes pw-draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.pw-lines path{animation:none;stroke-dashoffset:0}}
+.uk[dir="rtl"] .pw-cap,.uk[dir="rtl"] .pw-call span{direction:rtl}
 .pathbar{display:flex;gap:4px;margin:2px 0 0}
 .pathbar i{flex:1;height:7px;border-radius:3px;background:var(--soft)}
 .pathbar i.ok{background:var(--go)}
@@ -2492,51 +2561,110 @@ function ReadyCard() {
   );
 }
 
+/* Authored marks for the nodes — a tick for a cleared level, a
+   padlock for one still shut. Kept as inline SVG so they scale and
+   take their colour from the node they sit in. */
+function CheckMark() {
+  return (
+    <svg className="pw-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 12.5l4.2 4.3L19 7.2" fill="none" stroke="currentColor"
+        strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function PadLock() {
+  return (
+    <svg className="pw-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4.5" y="10.3" width="15" height="10.2" rx="2.6" fill="currentColor" />
+      <path d="M7.6 10.3V8a4.4 4.4 0 0 1 8.8 0v2.3" fill="none"
+        stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* The path as a winding trail: eight nodes on an S-curve, the one
+   you are on lit and ringed by how close your best run got, the
+   rest either ticked off or padlocked. The connector is one SVG
+   stroke that traces itself in when the screen opens. */
 function Path({ progress, startLevel }) {
   const at = currentLevel(progress);
   const finished = allCleared(progress);
+  const cleared = clearedCount(progress);
+  const rtl = !!(LANGS.find((l) => l.id === LANG) || {}).rtl;
+
+  const N = LEVELS.length;
+  const atIdx = LEVELS.findIndex((l) => l.n === at);
+  const W = 260, NODE = 66, ROW = 128, PAD_T = 26;
+  // The level you are on carries a callout below it, so everything
+  // past it drops a little to leave that callout room to breathe.
+  const postGap = finished ? 0 : 54;
+  const OFF = [0, 50, 64, 34, -18, -60, -42, 6];
+  const cx = (i) => W / 2 + (rtl ? -1 : 1) * OFF[i % OFF.length];
+  const cy = (i) => PAD_T + i * ROW + NODE / 2 + (i > atIdx ? postGap : 0);
+  const H = cy(N - 1) + NODE / 2 + 52;
+
+  let d = `M ${cx(0)} ${cy(0)}`;
+  for (let i = 1; i < N; i++) {
+    const mid = (cy(i - 1) + cy(i)) / 2;
+    d += ` C ${cx(i - 1)} ${mid}, ${cx(i)} ${mid}, ${cx(i)} ${cy(i)}`;
+  }
 
   return (
-    <div className="page">
-      <div className="h2">{t("pathTitle")}</div>
-      <p className="lede">{t("pathSub")}</p>
-
-      <div className="pathbar">
-        {LEVELS.map((l) => (
-          <i key={l.n} className={progress[l.n] && progress[l.n].passed ? "ok" : (!finished && l.n === at ? "at" : "")} />
-        ))}
-      </div>
+    <div className="pathwrap">
+      <header className="pw-unit">
+        <div>
+          <h2>{finished ? t("pathDone") : t("lvl" + at)}</h2>
+          <p>{finished ? t("readyTitle") : t("pathHomeSub", { a: at, b: LAST_LEVEL, n: cleared })}</p>
+        </div>
+        <div className="pw-meter" role="progressbar"
+          aria-valuemin={0} aria-valuemax={N} aria-valuenow={cleared}>
+          <i style={{ width: `${(cleared / N) * 100}%` }} />
+        </div>
+      </header>
 
       {finished && <ReadyCard />}
 
-      <div className="eyebrow">
-        {finished ? t("pathDone") : t("levelOf", { a: at, b: LAST_LEVEL })}
-      </div>
+      <div className="pw-track" style={{ height: H }}>
+        <svg className="pw-lines" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          <path d={d} pathLength="1" />
+        </svg>
 
-      <div className="ladder">
-        {LEVELS.map((l) => {
+        {LEVELS.map((l, i) => {
           const p = progress[l.n] || {};
-          const open = isUnlocked(l.n, progress);
+          const done = !!p.passed;
           const here = !finished && l.n === at;
+          const open = done || here || isUnlocked(l.n, progress);
+          const cls = done ? "is-done" : here ? "is-here" : "is-lock";
+          const tried = here && p.attempts > 0;
+          const frac = tried ? Math.max(0.04, Math.min(1, (p.best || 0) / l.need)) : 0;
           return (
-            <button
-              key={l.n}
-              className={"lvl" + (p.passed ? " ok" : "") + (here ? " at" : "")}
-              disabled={!open}
-              onClick={() => startLevel(l.n)}
-            >
-              <span className="lvl-n">{p.passed ? "✓" : l.n}</span>
-              <span style={{ minWidth: 0 }}>
-                <span className="lvl-t">{t("lvl" + l.n)}</span>
-                <span className="lvl-s">{t("lvl" + l.n + "s")}</span>
-                <span className="lvl-m">
-                  {open ? levelMeta(l) : t("lockNote", { n: l.n - 1 })}
+            <div key={l.n} className={"pw-step " + cls}
+              style={{ left: `${(cx(i) / W) * 100}%`, top: cy(i) - NODE / 2 }}>
+              {here && (
+                <div className="pw-call">
+                  <b>{t("lvl" + l.n)}</b>
+                  <span>{levelMeta(l)}</span>
+                </div>
+              )}
+              <button className="pw-node" disabled={!open}
+                onClick={() => open && startLevel(l.n)}
+                aria-label={`${t("levelWord")} ${l.n}: ${t("lvl" + l.n)}`}>
+                {tried && (
+                  <svg className="pw-ring" viewBox="0 0 80 80" aria-hidden="true">
+                    <circle className="trk" cx="40" cy="40" r="37" pathLength="100" />
+                    <circle className="val" cx="40" cy="40" r="37" pathLength="100"
+                      strokeDasharray={`${frac * 100} 100`} />
+                  </svg>
+                )}
+                {done ? <CheckMark /> : here ? <span className="pw-node-n">{l.n}</span> : <PadLock />}
+              </button>
+              {!here && (
+                <span className="pw-cap">
+                  {t("lvl" + l.n)}
+                  {done && <span className="pw-best mono">{p.best}/{l.len}</span>}
                 </span>
-              </span>
-              <span className="lvl-go mono">
-                {!open ? "🔒" : p.passed ? p.best + "/" + l.len : "›"}
-              </span>
-            </button>
+              )}
+            </div>
           );
         })}
       </div>
