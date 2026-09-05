@@ -187,21 +187,28 @@ the entry is rejected and the question simply falls back to English rather
 than showing mismatched text under the wrong answer. This runs both at
 render time and in a dedicated test suite.
 
-### Status: Hindi is complete, thirteen languages are not yet translated
+### Status: five languages complete, nine still to translate
 
-`src/qtrans/hi.js` — **all 253 questions**, hand-translated with the rules
-above, verified against the English bank. The other thirteen languages the
-app offers (Urdu, Punjabi, Bengali, Arabic, Romanian, Polish, Italian,
-Portuguese, Gujarati, Tamil, Persian, Chinese, Filipino) are **not yet
-bundled**. `src/qtrans/index.js` only lists a loader for `hi` on purpose —
-a language not listed there falls back to plain English questions (no
-subtitle shown, toggle hidden in Settings), which was judged the honest
-behaviour: a half-translated bank looks broken in a way that plain English
-doesn't. Adding a language is: write `src/qtrans/<code>.js` in the same
-shape as `hi.js`, add one line to the `LOADERS` map in `index.js`, and run
-the test suite — it will fail loudly and specifically (which ids are
-missing, which entries have the wrong option count) until the bundle is
-complete.
+Complete and registered in `src/qtrans/index.js` (each **all 253
+questions**, hand-translated with the rules above, verified against the
+English bank by `bundles.test.js`):
+
+- `hi.js` — Hindi
+- `ur.js` — Urdu
+- `pa.js` — Punjabi
+- `bn.js` — Bengali
+- `ar.js` — Arabic (RTL)
+
+Still to do (not yet bundled, fall back to English questions with the
+toggle hidden): **Romanian, Polish, Italian, Portuguese, Gujarati,
+Tamil, Persian, Chinese, Filipino**. Adding one is: write
+`src/qtrans/<code>.js` in the same shape as `hi.js` (chapter-banner
+comments, `id: ["question", "opt|opt|opt|opt", "explanation"]`), add one
+line to the `LOADERS` map in `index.js`, run `npm test` — the bundle
+suite fails loudly and specifically (which ids are missing, which entries
+have the wrong option count) until the file is complete — then rebuild
+with `npm run build -- --base=/life-in-the-uk/` and redeploy the
+`gh-pages` branch (see [[deploy-web-and-ios]] in memory).
 
 ### New files
 
