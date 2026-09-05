@@ -37,6 +37,7 @@ const LOADERS = {
   ur: () => import("./ur.js"),
   pa: () => import("./pa.js"),
   bn: () => import("./bn.js"),
+  ar: () => import("./ar.js"),
 };
 
 /** Does a translated question bank ship for this language? */
