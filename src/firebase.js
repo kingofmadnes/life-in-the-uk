@@ -11,10 +11,14 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getAuth,
-  setPersistence,
+  initializeAuth,
   browserLocalPersistence,
+  indexedDBLocalPersistence,
   GoogleAuthProvider,
 } from "firebase/auth";
+import { Capacitor } from "@capacitor/core";
+
+const isNative = Capacitor.isNativePlatform();
 
 const fromEnv = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -49,13 +53,23 @@ let googleProvider = null;
 
 if (isFirebaseConfigured) {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  // Keep the session across reloads / app relaunches.
-  setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-  googleProvider = new GoogleAuthProvider();
-  // Always show the account chooser rather than silently reusing one session.
-  googleProvider.setCustomParameters({ prompt: "select_account" });
+  if (isNative) {
+    // In the Capacitor WKWebView, getAuth() sets up a popup/redirect
+    // resolver that loads an iframe from the auth domain — that iframe
+    // stalls at capacitor://localhost and hangs onAuthStateChanged.
+    // initializeAuth() with an explicit persistence list and no resolver
+    // skips it. We only use email/password natively, so no resolver is
+    // needed. IndexedDB persistence survives WKWebView eviction best.
+    auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    });
+  } else {
+    auth = getAuth(app);
+    // Google uses signInWithPopup — web only.
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+  }
 }
 
 export { auth, googleProvider };

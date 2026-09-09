@@ -40,7 +40,7 @@ const friendly = (e) =>
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function AuthScreen({ configError = false }) {
+export default function AuthScreen({ configError = false, onGuest }) {
   const [mode, setMode] = useState("login"); // login | register | reset
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -342,6 +342,17 @@ export default function AuthScreen({ configError = false }) {
               Create an account
             </button>
           </p>
+        )}
+
+        {!isReset && onGuest && (
+          <div className="auth-guest-wrap">
+            <button type="button" className="auth-guest" onClick={onGuest}>
+              Continue without an account
+            </button>
+            <p className="auth-guest-note">
+              Your progress stays on this device. You can sign in later to keep it safe.
+            </p>
+          </div>
         )}
       </form>
     </div>

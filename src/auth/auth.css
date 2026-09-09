@@ -204,6 +204,32 @@
 .auth-google:hover { background: var(--card); border-color: var(--ink2); }
 .auth-google svg { flex: 0 0 auto; }
 
+.auth-guest-wrap {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.auth-guest {
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 12px;
+  border-radius: 12px;
+}
+.auth-guest:hover { background: var(--soft); }
+.auth-guest-note {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink3);
+  line-height: 1.5;
+}
+
 .auth-alt {
   margin-top: 16px;
   text-align: center;
@@ -348,6 +374,47 @@
   cursor: pointer;
 }
 .acct-signout:hover { border-color: #5b6472; }
+.acct-pop button + button { margin-top: 8px; }
+.acct-pop button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.acct-err {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #e02424;
+}
+.acct-warn {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #5b6472;
+}
+.acct-danger {
+  width: 100%;
+  border: none;
+  background: #e02424;
+  color: #fff;
+  border-radius: 11px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.acct-danger:hover { background: #c21c1c; }
+.acct-danger-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #e02424;
+  border-radius: 11px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.acct-danger-link:hover { background: rgba(224, 36, 36, 0.08); }
 
 /* Hide the account control while a test is running (the app removes its
    bottom nav then — nothing to anchor against and no reason to sign out). */
@@ -368,3 +435,6 @@ body:has(.uk[data-dark="1"]) .acct-signout {
   border-color: #28303c;
   color: #edf1f6;
 }
+body:has(.uk[data-dark="1"]) .acct-warn { color: #9aa5b4; }
+body:has(.uk[data-dark="1"]) .acct-err { color: #ff5c5c; }
+body:has(.uk[data-dark="1"]) .acct-danger-link { color: #ff5c5c; }
