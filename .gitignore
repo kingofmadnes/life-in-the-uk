@@ -3,3 +3,8 @@ dist
 .env
 .env.local
 .DS_Store
+
+# Xcode / Capacitor build artifacts (ios/.gitignore covers the rest;
+# the Xcode project itself IS committed as source)
+DerivedData/
+*.xcuserstate

@@ -1,0 +1,18 @@
+{
+  "appId": "com.kingofmadnes.lifeintheuk",
+  "appName": "Life in the UK: Test Prep",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "launchShowDuration": 400,
+      "backgroundColor": "#2F6BFF"
+    },
+    "Keyboard": {
+      "resize": "native"
+    }
+  }
+}
