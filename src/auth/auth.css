@@ -1,0 +1,370 @@
+/* Auth layer styling. Lives OUTSIDE the app's .uk root, so it carries its own
+   copy of the design tokens. The pre-login screen follows the OS colour scheme;
+   the little account button that shows after login also tracks the app's own
+   dark toggle via body:has(.uk[data-dark="1"]). */
+
+.auth-root {
+  --bg: #f7f4ef;
+  --card: #ffffff;
+  --soft: #efebe3;
+  --line: #e0dad0;
+  --ink: #141a24;
+  --ink2: #5b6472;
+  --ink3: #8a93a0;
+  --brand: #2f6bff;
+  --brand-d: #1e4fd0;
+  --stop: #e02424;
+  --stop-soft: #fdecec;
+  --go: #0e9f6e;
+  --go-soft: #e4f6ef;
+
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 18px calc(40px + env(safe-area-inset-bottom));
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-root {
+    --bg: #0c1017;
+    --card: #151b24;
+    --soft: #1d242f;
+    --line: #28303c;
+    --ink: #edf1f6;
+    --ink2: #9aa5b4;
+    --ink3: #6c7684;
+    --brand: #5b8cff;
+    --brand-d: #3d74f5;
+    --stop: #ff5c5c;
+    --stop-soft: #2c1618;
+    --go: #2bc48d;
+    --go-soft: #12291f;
+    color-scheme: dark;
+  }
+}
+
+.auth-root * { box-sizing: border-box; }
+.auth-root :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.auth-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.auth-wordmark { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+
+.auth-h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.auth-sub {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--soft);
+  border-radius: 13px;
+  margin-bottom: 20px;
+}
+.auth-tab {
+  flex: 1;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+.auth-tab.on {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.auth-field { margin-bottom: 14px; }
+.auth-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+.auth-input-wrap { position: relative; display: flex; }
+.auth-field input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 13px;
+  padding: 13px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.auth-field input::placeholder { color: var(--ink3); }
+.auth-field input:focus-visible { border-color: var(--brand); }
+.auth-field.has-toggle input { padding-right: 62px; }
+.auth-peek {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink2);
+  padding: 6px 8px;
+}
+
+.auth-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  background: var(--brand);
+  color: #fff;
+  margin-top: 6px;
+}
+.auth-btn:hover { background: var(--brand-d); }
+.auth-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--ink3);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.auth-or::before,
+.auth-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 0;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.auth-google:hover { background: var(--card); border-color: var(--ink2); }
+.auth-google svg { flex: 0 0 auto; }
+
+.auth-alt {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--ink2);
+}
+.auth-link {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--brand);
+  padding: 4px;
+}
+.auth-forgot { display: block; margin: -4px 0 4px auto; }
+
+.auth-msg {
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.auth-msg.err { background: var(--stop-soft); color: var(--stop); }
+.auth-msg.ok { background: var(--go-soft); color: var(--go); }
+
+.auth-foot {
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--ink3);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.auth-config code {
+  display: block;
+  background: var(--soft);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  margin-top: 10px;
+  word-break: break-all;
+}
+
+/* ── Boot spinner (auth state still resolving) ───────────────────── */
+.auth-boot {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #f7f4ef;
+}
+@media (prefers-color-scheme: dark) {
+  .auth-boot { background: #0c1017; }
+}
+.auth-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(128, 128, 128, 0.25);
+  border-top-color: #2f6bff;
+  animation: auth-spin 0.7s linear infinite;
+}
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .auth-spinner { animation-duration: 2s; }
+}
+
+/* ── Account button (after login) ───────────────────────────────── */
+.acct { font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif; }
+
+.acct-fab {
+  position: fixed;
+  right: 14px;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 60;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #e0dad0;
+  background: #ffffff;
+  color: #141a24;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  display: grid;
+  place-items: center;
+  opacity: 0.9;
+}
+.acct-fab:hover,
+.acct-fab:focus-visible,
+.acct-fab[aria-expanded="true"] { opacity: 1; }
+.acct-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+.acct-pop {
+  position: fixed;
+  right: 14px;
+  bottom: calc(108px + env(safe-area-inset-bottom));
+  z-index: 61;
+  width: 240px;
+  max-width: calc(100vw - 32px);
+  background: #ffffff;
+  border: 1px solid #e0dad0;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+}
+.acct-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8a93a0;
+}
+.acct-email {
+  margin: 3px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #141a24;
+  word-break: break-all;
+}
+.acct-signout {
+  width: 100%;
+  border: 1px solid #e0dad0;
+  background: transparent;
+  color: #141a24;
+  border-radius: 11px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.acct-signout:hover { border-color: #5b6472; }
+
+/* Hide the account control while a test is running (the app removes its
+   bottom nav then — nothing to anchor against and no reason to sign out). */
+body:not(:has(.uk .nav)) .acct { display: none; }
+
+/* Track the app's own dark-mode toggle. */
+body:has(.uk[data-dark="1"]) .acct-fab {
+  border-color: #28303c;
+  background: #151b24;
+  color: #edf1f6;
+}
+body:has(.uk[data-dark="1"]) .acct-pop {
+  background: #151b24;
+  border-color: #28303c;
+}
+body:has(.uk[data-dark="1"]) .acct-email { color: #edf1f6; }
+body:has(.uk[data-dark="1"]) .acct-signout {
+  border-color: #28303c;
+  color: #edf1f6;
+}
