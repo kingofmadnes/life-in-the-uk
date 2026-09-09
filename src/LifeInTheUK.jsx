@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, createContext } from "react";
 import { hasBundle, loadBundle } from "./qtrans/index.js";
+import { auth } from "./firebase.js";
 import {
   LEVELS, LAST_LEVEL, EXAM_MIX, levelByNumber, isUnlocked, currentLevel,
   clearedCount, allCleared, buildLevelDeck, difficultyOf,
@@ -1747,9 +1748,28 @@ function readiness(stats) {
 
 // Everything the app remembers lives on the device. Both stay async: the callers await them, and
 // keeping the signatures means a future server-backed store is a drop-in replacement.
+//
+// The stored key is namespaced by the signed-in account, so two people sharing a
+// phone keep separate progress. Anyone who used the app before sign-in existed
+// keeps their history: the first account to load carries the old un-namespaced
+// blob over to its own key (and then it's consumed, so later accounts start clean).
+function storageKey(key) {
+  const uid = auth && auth.currentUser && auth.currentUser.uid;
+  return uid ? key + "::" + uid : key;
+}
+
 async function load(key, fallback) {
   try {
-    const r = localStorage.getItem(key);
+    const k = storageKey(key);
+    let r = localStorage.getItem(k);
+    if (r == null && k !== key) {
+      const legacy = localStorage.getItem(key);
+      if (legacy != null) {
+        localStorage.setItem(k, legacy);
+        localStorage.removeItem(key);
+        r = legacy;
+      }
+    }
     return r ? JSON.parse(r) : fallback;
   } catch (e) {
     return fallback;
@@ -1758,7 +1778,7 @@ async function load(key, fallback) {
 
 async function save(key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(storageKey(key), JSON.stringify(value));
   } catch (e) {}
 }
 
