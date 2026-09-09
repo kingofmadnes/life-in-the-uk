@@ -2131,7 +2131,7 @@ function Q({ q, chosen, onChoose, revealed, bookmarked, onBookmark }) {
         </button>
       )}
       <p className="qtext">{q.q}</p>
-      {sub && <p className="qsub">{sub.q}</p>}
+      {subQ && <p className="qsub">{subQ}</p>}
       {busy && <p className="qsub dim">···</p>}
       {multi && <div className="qhint">{t("chooseN", { n: q.a.length })}</div>}
       {q.o.map((text, i) => {
@@ -2154,7 +2154,7 @@ function Q({ q, chosen, onChoose, revealed, bookmarked, onBookmark }) {
         <div className="why">
           <b>{t("why")}</b>
           {q.e}
-          {sub && sub.e && <span className="wsub">{sub.e}</span>}
+          {subE && <span className="wsub">{subE}</span>}
         </div>
       )}
     </div>
@@ -2983,15 +2983,15 @@ function Study({ openChapter, setOpenChapter, back, practise, read, markRead }) 
   const [term, setTerm] = useState("");
 
   if (term.trim().length > 1) {
-    const t = term.trim().toLowerCase();
+    const needle = term.trim().toLowerCase();
     const hits = [];
     NOTES.forEach((n) => n.sections.forEach((s) => s.p.forEach((line) => {
-      if (line.toLowerCase().includes(t)) hits.push({ c: n.c, h: s.h, line });
+      if (line.toLowerCase().includes(needle)) hits.push({ c: n.c, h: s.h, line });
     })));
     return (
       <div className="page">
         <div className="h2">{t("studyNotes")}</div>
-        <input className="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={t("searchPh")} />
+        <input key="study-search" className="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={t("searchPh")} />
         <p className="lede">{t("results", { n: hits.length })}</p>
         {hits.slice(0, 60).map((h, i) => (
           <div className="sec" key={i}>
@@ -3011,7 +3011,7 @@ function Study({ openChapter, setOpenChapter, back, practise, read, markRead }) 
       <div className="page">
         <div className="h2">{t("studyNotes")}</div>
         <p className="lede">{t("studySub")}</p>
-        <input className="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={t("searchPh")} />
+        <input key="study-search" className="search" value={term} onChange={(e) => setTerm(e.target.value)} placeholder={t("searchPh")} />
         <div style={{ display: "grid", gap: 10 }}>
           {CHAPTERS.map((c) => (
             <button key={c.n} className="row" onClick={() => setOpenChapter(c.n)}>
