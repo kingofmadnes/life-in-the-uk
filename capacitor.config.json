@@ -9,7 +9,7 @@
     "SplashScreen": {
       "launchAutoHide": true,
       "launchShowDuration": 400,
-      "backgroundColor": "#2F6BFF"
+      "backgroundColor": "#3B0F7A"
     },
     "Keyboard": {
       "resize": "native"
