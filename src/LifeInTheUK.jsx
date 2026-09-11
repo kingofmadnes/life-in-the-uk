@@ -1864,8 +1864,8 @@ const CSS = `
 .tile span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
 
 .btn{border:none;border-radius:14px;padding:14px 18px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-0.01em}
-.btn-p{background:var(--brand);color:#fff}
-.btn-d{background:var(--ink);color:var(--bg)}
+.btn.btn-p{background:var(--brand);color:#fff}
+.btn.btn-d{background:var(--ink);color:var(--bg)}
 .btn-g{background:transparent;border:1px solid var(--line);color:var(--ink)}
 .btn-g:hover{border-color:var(--ink2)}
 .btn:disabled{opacity:.42;cursor:not-allowed}
