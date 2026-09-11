@@ -1796,7 +1796,13 @@ const CSS = `
   --stop:#E02424; --stop-soft:#FDECEC;
   --amber:#F59E0B; --amber-soft:#FEF3DC;
   min-height:100vh;background:var(--bg);color:var(--ink);
-  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  /* 'Apple Symbols' sits between the text face and system-ui on purpose: the UI
+     icons are bare Unicode glyphs (⌂ ◆ ☰ ◔ ⚙ ▶ ✓), Plus Jakarta Sans has none of
+     them, and on iOS WebKit stops at system-ui — which also lacks them — instead
+     of walking on to sans-serif, so they render as tofu boxes in the app. Apple
+     Symbols only ever claims characters the text face is missing, so Latin stays
+     on Plus Jakarta Sans and the non-Latin scripts still fall through to system-ui. */
+  font-family:'Plus Jakarta Sans','Apple Symbols',system-ui,-apple-system,sans-serif;
   font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
   padding-bottom:env(safe-area-inset-bottom);
 }
