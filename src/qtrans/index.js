@@ -40,6 +40,7 @@ const LOADERS = {
   ar: () => import("./ar.js"),
   ro: () => import("./ro.js"),
   pl: () => import("./pl.js"),
+  pt: () => import("./pt.js"),
 };
 
 /** Does a translated question bank ship for this language? */
