@@ -1787,6 +1787,19 @@ async function save(key, value) {
    ============================================================ */
 
 const CSS = `
+/* The UI icons are bare Unicode glyphs (⌂ ◆ ☰ ◔ ⚙ ▶ ✓ ☾ ☀ ★ ☆ ›) that Plus
+   Jakarta Sans doesn't carry. On iOS, WebKit stops at the first family in the
+   stack that claims a character instead of walking the rest of the list, so
+   those glyphs came out as tofu boxes — and naming a symbol font in the stack
+   outright fixed them but then swallowed Devanagari, Arabic, Bengali and Tamil
+   the same way. unicode-range is the way out: this face is consulted for these
+   twelve codepoints and for nothing else, so every script still falls through
+   to system-ui exactly as before. */
+@font-face{
+  font-family:'UKGlyphs';
+  src:local('Apple Symbols');
+  unicode-range:U+203A,U+2302,U+25B6,U+25C6,U+25D4,U+2600,U+2605,U+2606,U+2630,U+263E,U+2699,U+2713;
+}
 .uk{
   --bg:#F7F4EF; --card:#FFFFFF; --soft:#EFEBE3; --line:#E0DAD0;
   --ink:#141A24; --ink2:#5B6472; --ink3:#8A93A0;
@@ -1796,13 +1809,14 @@ const CSS = `
   --stop:#E02424; --stop-soft:#FDECEC;
   --amber:#F59E0B; --amber-soft:#FEF3DC;
   min-height:100vh;background:var(--bg);color:var(--ink);
-  /* 'Apple Symbols' sits between the text face and system-ui on purpose: the UI
-     icons are bare Unicode glyphs (⌂ ◆ ☰ ◔ ⚙ ▶ ✓), Plus Jakarta Sans has none of
-     them, and on iOS WebKit stops at system-ui — which also lacks them — instead
-     of walking on to sans-serif, so they render as tofu boxes in the app. Apple
-     Symbols only ever claims characters the text face is missing, so Latin stays
-     on Plus Jakarta Sans and the non-Latin scripts still fall through to system-ui. */
-  font-family:'Plus Jakarta Sans','Apple Symbols',system-ui,-apple-system,sans-serif;
+  /* No system-ui here on purpose. In the iOS WKWebView, system-ui claims every
+     character and then draws .notdef for anything outside Latin, and WebKit
+     stops at the first family that claims a character rather than walking the
+     rest of the stack — so naming it turned all fourteen non-English languages
+     into tofu boxes in the app while the web was fine. sans-serif resolves to a
+     face that covers every script we ship. Plus Jakarta Sans still carries all
+     the Latin text, so nothing changes visually where it was already correct. */
+  font-family:'Plus Jakarta Sans','UKGlyphs',sans-serif;
   font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
   padding-bottom:env(safe-area-inset-bottom);
 }
