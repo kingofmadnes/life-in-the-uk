@@ -510,7 +510,8 @@ T.en = {
   skip: "Skip", startStudying: "Start studying", chooseLang: "Choose your language",
   langNote: "The test itself is in English, so questions stay in English. Everything around them is in your language.",
   wHi: "Welcome", wGo: "Let's begin", wMins: "minutes",
-  wLead: "Learn everything for the Life in the UK test — in your own language.",
+  wLead: "Practice questions, timed mock tests and study notes for the official test — all in your language.",
+  wInside: "What's inside",
   wChange: "You can change this any time in Settings.",
   detailsTitle: "A couple of details", detailsSub: "Both are optional. The date turns on a countdown.",
   loading: "Loading…", nothingHere: "Nothing here yet.", questions: "questions", saved: "saved",
@@ -586,7 +587,8 @@ T.hi = {
   skip: "छोड़ें", startStudying: "पढ़ाई शुरू करें", chooseLang: "अपनी भाषा चुनें",
   langNote: "परीक्षा अंग्रेज़ी में होती है, इसलिए प्रश्न अंग्रेज़ी में रहते हैं। बाकी सब आपकी भाषा में है।",
   wHi: "स्वागत है", wGo: "चलिए शुरू करें", wMins: "मिनट",
-  wLead: "Life in the UK परीक्षा की पूरी तैयारी — आपकी अपनी भाषा में।",
+  wLead: "अभ्यास प्रश्न, समयबद्ध मॉक टेस्ट और अध्ययन नोट्स — सब कुछ आपकी भाषा में।",
+  wInside: "इसमें क्या है",
   wChange: "आप इसे कभी भी सेटिंग्स में बदल सकते हैं।",
   detailsTitle: "कुछ जानकारी", detailsSub: "दोनों वैकल्पिक हैं। तिथि से उलटी गिनती शुरू होती है।",
   loading: "लोड हो रहा है…", nothingHere: "यहाँ अभी कुछ नहीं।", questions: "प्रश्न", saved: "सहेजे गए",
@@ -662,7 +664,8 @@ T.ur = {
   skip: "چھوڑیں", startStudying: "پڑھائی شروع کریں", chooseLang: "اپنی زبان منتخب کریں",
   langNote: "ٹیسٹ انگریزی میں ہوتا ہے، اس لیے سوالات انگریزی میں رہتے ہیں۔ باقی سب آپ کی زبان میں ہے۔",
   wHi: "خوش آمدید", wGo: "آئیے شروع کریں", wMins: "منٹ",
-  wLead: "Life in the UK ٹیسٹ کی مکمل تیاری — آپ کی اپنی زبان میں۔",
+  wLead: "مشقی سوالات، وقت مقررہ ماک ٹیسٹ اور مطالعے کے نوٹس — سب کچھ آپ کی زبان میں۔",
+  wInside: "اس میں کیا ہے",
   wChange: "آپ اسے کسی بھی وقت سیٹنگز میں تبدیل کر سکتے ہیں۔",
   detailsTitle: "چند تفصیلات", detailsSub: "دونوں اختیاری ہیں۔ تاریخ سے الٹی گنتی شروع ہوتی ہے۔",
   loading: "لوڈ ہو رہا ہے…", nothingHere: "یہاں ابھی کچھ نہیں۔", questions: "سوالات", saved: "محفوظ",
@@ -738,7 +741,8 @@ T.pa = {
   skip: "ਛੱਡੋ", startStudying: "ਪੜ੍ਹਾਈ ਸ਼ੁਰੂ ਕਰੋ", chooseLang: "ਆਪਣੀ ਭਾਸ਼ਾ ਚੁਣੋ",
   langNote: "ਟੈਸਟ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਹੁੰਦਾ ਹੈ, ਇਸ ਲਈ ਸਵਾਲ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਰਹਿੰਦੇ ਹਨ। ਬਾਕੀ ਸਭ ਤੁਹਾਡੀ ਭਾਸ਼ਾ ਵਿੱਚ ਹੈ।",
   wHi: "ਜੀ ਆਇਆਂ ਨੂੰ", wGo: "ਆਓ ਸ਼ੁਰੂ ਕਰੀਏ", wMins: "ਮਿੰਟ",
-  wLead: "Life in the UK ਟੈਸਟ ਦੀ ਪੂਰੀ ਤਿਆਰੀ — ਤੁਹਾਡੀ ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ।",
+  wLead: "ਅਭਿਆਸ ਸਵਾਲ, ਸਮਾਂਬੱਧ ਮੌਕ ਟੈਸਟ ਅਤੇ ਅਧਿਐਨ ਨੋਟਸ — ਸਭ ਕੁਝ ਤੁਹਾਡੀ ਭਾਸ਼ਾ ਵਿੱਚ।",
+  wInside: "ਇਸ ਵਿੱਚ ਕੀ ਹੈ",
   wChange: "ਤੁਸੀਂ ਇਸਨੂੰ ਕਦੇ ਵੀ ਸੈਟਿੰਗਜ਼ ਵਿੱਚ ਬਦਲ ਸਕਦੇ ਹੋ।",
   detailsTitle: "ਕੁਝ ਵੇਰਵੇ", detailsSub: "ਦੋਵੇਂ ਵਿਕਲਪਿਕ ਹਨ। ਤਾਰੀਖ ਨਾਲ ਉਲਟੀ ਗਿਣਤੀ ਸ਼ੁਰੂ ਹੁੰਦੀ ਹੈ।",
   loading: "ਲੋਡ ਹੋ ਰਿਹਾ…", nothingHere: "ਇੱਥੇ ਹਾਲੇ ਕੁਝ ਨਹੀਂ।", questions: "ਸਵਾਲ", saved: "ਸੰਭਾਲੇ",
@@ -814,7 +818,8 @@ T.bn = {
   skip: "এড়িয়ে যান", startStudying: "পড়া শুরু করুন", chooseLang: "আপনার ভাষা বেছে নিন",
   langNote: "পরীক্ষা ইংরেজিতে হয়, তাই প্রশ্ন ইংরেজিতেই থাকে। বাকি সব আপনার ভাষায়।",
   wHi: "স্বাগতম", wGo: "চলুন শুরু করি", wMins: "মিনিট",
-  wLead: "Life in the UK পরীক্ষার সম্পূর্ণ প্রস্তুতি — আপনার নিজের ভাষায়।",
+  wLead: "অনুশীলন প্রশ্ন, সময়সীমাবদ্ধ মক টেস্ট এবং পড়ার নোট — সবকিছু আপনার ভাষায়।",
+  wInside: "এতে কী আছে",
   wChange: "আপনি যেকোনো সময় সেটিংসে এটি পরিবর্তন করতে পারেন।",
   detailsTitle: "কিছু তথ্য", detailsSub: "দুটোই ঐচ্ছিক। তারিখ দিলে কাউন্টডাউন চালু হয়।",
   loading: "লোড হচ্ছে…", nothingHere: "এখানে এখনও কিছু নেই।", questions: "প্রশ্ন", saved: "সংরক্ষিত",
@@ -890,7 +895,8 @@ T.ar = {
   skip: "تخطٍّ", startStudying: "ابدأ الدراسة", chooseLang: "اختر لغتك",
   langNote: "الاختبار نفسه بالإنجليزية، لذا تبقى الأسئلة بالإنجليزية. أما بقية التطبيق فبلغتك.",
   wHi: "أهلاً بك", wGo: "لنبدأ", wMins: "دقيقة",
-  wLead: "كل ما تحتاجه لاجتياز اختبار Life in the UK — بلغتك أنت.",
+  wLead: "أسئلة تدريبية واختبارات تجريبية مؤقتة وملاحظات دراسية — كل ذلك بلغتك.",
+  wInside: "ما الذي يحتويه التطبيق",
   wChange: "يمكنك تغييرها في أي وقت من الإعدادات.",
   detailsTitle: "بعض التفاصيل", detailsSub: "كلاهما اختياري. التاريخ يفعّل العد التنازلي.",
   loading: "جارٍ التحميل…", nothingHere: "لا شيء هنا بعد.", questions: "سؤالاً", saved: "محفوظة",
@@ -966,7 +972,8 @@ T.ro = {
   skip: "Sari peste", startStudying: "Începe să studiezi", chooseLang: "Alege limba",
   langNote: "Testul este în engleză, deci întrebările rămân în engleză. Restul aplicației este în limba ta.",
   wHi: "Bine ai venit", wGo: "Să începem", wMins: "minute",
-  wLead: "Tot ce îți trebuie pentru testul Life in the UK — în limba ta.",
+  wLead: "Întrebări de exersare, teste simulate cronometrate și notițe de studiu — totul în limba ta.",
+  wInside: "Ce găsești în aplicație",
   wChange: "O poți schimba oricând în Setări.",
   detailsTitle: "Câteva detalii", detailsSub: "Ambele sunt opționale. Data pornește numărătoarea inversă.",
   loading: "Se încarcă…", nothingHere: "Nimic aici încă.", questions: "întrebări", saved: "salvate",
@@ -1042,7 +1049,8 @@ T.pl = {
   skip: "Pomiń", startStudying: "Zacznij naukę", chooseLang: "Wybierz język",
   langNote: "Egzamin jest po angielsku, więc pytania pozostają po angielsku. Reszta aplikacji jest w Twoim języku.",
   wHi: "Witamy", wGo: "Zaczynajmy", wMins: "minut",
-  wLead: "Wszystko, czego potrzebujesz do egzaminu Life in the UK — w Twoim języku.",
+  wLead: "Pytania do ćwiczeń, egzaminy próbne na czas i notatki — wszystko w Twoim języku.",
+  wInside: "Co znajdziesz w aplikacji",
   wChange: "Możesz to zmienić w każdej chwili w Ustawieniach.",
   detailsTitle: "Kilka szczegółów", detailsSub: "Oba są opcjonalne. Data włącza odliczanie.",
   loading: "Ładowanie…", nothingHere: "Jeszcze nic tu nie ma.", questions: "pytań", saved: "zapisane",
@@ -1118,7 +1126,8 @@ T.it = {
   skip: "Salta", startStudying: "Inizia a studiare", chooseLang: "Scegli la lingua",
   langNote: "Il test è in inglese, quindi le domande restano in inglese. Tutto il resto è nella tua lingua.",
   wHi: "Benvenuto", wGo: "Iniziamo", wMins: "minuti",
-  wLead: "Tutto quello che serve per l'esame Life in the UK — nella tua lingua.",
+  wLead: "Domande di esercitazione, simulazioni a tempo e appunti di studio — tutto nella tua lingua.",
+  wInside: "Cosa contiene",
   wChange: "Puoi cambiarla quando vuoi nelle Impostazioni.",
   detailsTitle: "Qualche dettaglio", detailsSub: "Entrambi facoltativi. La data attiva il conto alla rovescia.",
   loading: "Caricamento…", nothingHere: "Ancora niente qui.", questions: "domande", saved: "salvate",
@@ -1194,7 +1203,8 @@ T.pt = {
   skip: "Ignorar", startStudying: "Começar a estudar", chooseLang: "Escolha o seu idioma",
   langNote: "O teste é em inglês, por isso as perguntas ficam em inglês. O resto está no seu idioma.",
   wHi: "Bem-vindo", wGo: "Vamos começar", wMins: "minutos",
-  wLead: "Tudo o que precisa para o teste Life in the UK — no seu idioma.",
+  wLead: "Perguntas de treino, simulações cronometradas e notas de estudo — tudo no seu idioma.",
+  wInside: "O que inclui",
   wChange: "Pode alterar isto a qualquer momento nas Definições.",
   detailsTitle: "Alguns detalhes", detailsSub: "Ambos opcionais. A data ativa a contagem decrescente.",
   loading: "A carregar…", nothingHere: "Ainda nada aqui.", questions: "perguntas", saved: "guardadas",
@@ -1270,7 +1280,8 @@ T.gu = {
   skip: "છોડો", startStudying: "અભ્યાસ શરૂ કરો", chooseLang: "તમારી ભાષા પસંદ કરો",
   langNote: "પરીક્ષા અંગ્રેજીમાં હોય છે, તેથી પ્રશ્નો અંગ્રેજીમાં રહે છે. બાકીનું બધું તમારી ભાષામાં છે.",
   wHi: "સ્વાગત છે", wGo: "ચાલો શરૂ કરીએ", wMins: "મિનિટ",
-  wLead: "Life in the UK પરીક્ષાની સંપૂર્ણ તૈયારી — તમારી પોતાની ભાષામાં.",
+  wLead: "અભ્યાસ પ્રશ્નો, સમયબદ્ધ મોક ટેસ્ટ અને અભ્યાસ નોંધ — બધું તમારી ભાષામાં.",
+  wInside: "આમાં શું છે",
   wChange: "તમે આ ગમે ત્યારે સેટિંગ્સમાં બદલી શકો છો.",
   detailsTitle: "થોડી વિગતો", detailsSub: "બંને વૈકલ્પિક છે. તારીખથી ગણતરી શરૂ થાય છે.",
   loading: "લોડ થાય છે…", nothingHere: "અહીં હજુ કંઈ નથી.", questions: "પ્રશ્નો", saved: "સાચવેલા",
@@ -1346,7 +1357,8 @@ T.ta = {
   skip: "தவிர்", startStudying: "படிக்கத் தொடங்கு", chooseLang: "உங்கள் மொழியைத் தேர்ந்தெடுங்கள்",
   langNote: "தேர்வு ஆங்கிலத்தில் நடக்கிறது, எனவே கேள்விகள் ஆங்கிலத்திலேயே இருக்கும். மற்ற அனைத்தும் உங்கள் மொழியில்.",
   wHi: "வரவேற்கிறோம்", wGo: "தொடங்குவோம்", wMins: "நிமிடம்",
-  wLead: "Life in the UK தேர்வுக்குத் தேவையான அனைத்தும் — உங்கள் சொந்த மொழியில்.",
+  wLead: "பயிற்சி கேள்விகள், நேரக் கட்டுப்பாட்டு மாதிரித் தேர்வுகள், படிப்புக் குறிப்புகள் — அனைத்தும் உங்கள் மொழியில்.",
+  wInside: "இதில் என்ன உள்ளது",
   wChange: "இதை எப்போது வேண்டுமானாலும் அமைப்புகளில் மாற்றலாம்.",
   detailsTitle: "சில விவரங்கள்", detailsSub: "இரண்டும் விருப்பத்தேர்வு. தேதி கவுண்ட்டவுனைத் தொடங்கும்.",
   loading: "ஏற்றுகிறது…", nothingHere: "இங்கே இன்னும் ஒன்றும் இல்லை.", questions: "கேள்விகள்", saved: "சேமிக்கப்பட்டவை",
@@ -1422,7 +1434,8 @@ T.fa = {
   skip: "رد کردن", startStudying: "شروع مطالعه", chooseLang: "زبان خود را انتخاب کنید",
   langNote: "خود آزمون به انگلیسی است، بنابراین سؤال‌ها انگلیسی می‌مانند. بقیهٔ برنامه به زبان شماست.",
   wHi: "خوش آمدید", wGo: "شروع کنیم", wMins: "دقیقه",
-  wLead: "هر آنچه برای آزمون Life in the UK لازم دارید — به زبان خودتان.",
+  wLead: "سؤال‌های تمرینی، آزمون‌های آزمایشی زمان‌دار و جزوه‌های مطالعه — همه به زبان شما.",
+  wInside: "چه چیزی در برنامه هست",
   wChange: "می‌توانید هر زمان آن را در تنظیمات تغییر دهید.",
   detailsTitle: "چند جزئیات", detailsSub: "هر دو اختیاری‌اند. تاریخ، شمارش معکوس را فعال می‌کند.",
   loading: "در حال بارگذاری…", nothingHere: "هنوز چیزی اینجا نیست.", questions: "سؤال", saved: "ذخیره‌شده",
@@ -1498,7 +1511,8 @@ T.zh = {
   skip: "跳过", startStudying: "开始学习", chooseLang: "选择你的语言",
   langNote: "考试本身用英语进行，因此题目保持英文。其余界面为你的语言。",
   wHi: "欢迎", wGo: "开始吧", wMins: "分钟",
-  wLead: "备考 Life in the UK 所需的一切——用你自己的语言。",
+  wLead: "练习题、限时模拟考试和学习笔记——全部使用你的语言。",
+  wInside: "应用内容",
   wChange: "你可以随时在设置中更改。",
   detailsTitle: "几项信息", detailsSub: "两项都可不填。填了日期就会开始倒数。",
   loading: "加载中…", nothingHere: "这里还没有内容。", questions: "题", saved: "已收藏",
@@ -1574,7 +1588,8 @@ T.tl = {
   skip: "Laktawan", startStudying: "Simulan ang pag-aaral", chooseLang: "Piliin ang iyong wika",
   langNote: "Ang test mismo ay nasa Ingles, kaya nananatiling Ingles ang mga tanong. Ang iba ay nasa wika mo.",
   wHi: "Maligayang pagdating", wGo: "Simulan na", wMins: "minuto",
-  wLead: "Lahat ng kailangan mo para sa Life in the UK test — sa sarili mong wika.",
+  wLead: "Mga practice question, timed mock test at study notes — lahat sa wika mo.",
+  wInside: "Ano ang nasa loob",
   wChange: "Maaari mo itong palitan anumang oras sa Settings.",
   detailsTitle: "Ilang detalye", detailsSub: "Pareho itong opsyonal. Sisimulan ng petsa ang countdown.",
   loading: "Naglo-load…", nothingHere: "Wala pa rito.", questions: "tanong", saved: "naka-save",
@@ -1884,6 +1899,14 @@ const CSS = `
 .wordmark{font-size:16px;font-weight:800;letter-spacing:-0.02em}
 /* Onboarding has no sticky header of its own, so the first screen carries the mark. */
 .obmark{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+/* The "what's inside" list on the welcome step. One card, hairline-separated
+   rows — it is a description, not four separate things to tap. */
+.wlist{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.wrow{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
+.wrow:last-child{border-bottom:none}
+.wrow .ic{width:34px;height:34px;font-size:15px;border-radius:10px}
+.wrow .row-t{font-size:14.5px}
+.wrow .row-s{font-size:12.5px}
 .iconbtn{margin-left:auto;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:15px}
 .iconbtn+.iconbtn{margin-left:0}
 .page{max-width:560px;margin:0 auto;padding:4px 18px 110px}
@@ -2299,23 +2322,41 @@ function Onboarding({ onDone, lang, setLang }) {
         <div className="hero">
           <h1>{t("wHi")}</h1>
           <p>{t("wLead")}</p>
-          <div className="hero-stats mono">
-            <div className="hs"><b>24</b><span>{t("questions")}</span></div>
-            <div className="hs"><b>45</b><span>{t("wMins")}</span></div>
-            <div className="hs"><b>18</b><span>{t("pass")}</span></div>
-          </div>
         </div>
-        <button className="row" style={{ marginTop: 12 }} onClick={() => setStep(0)}>
-          <span className="ic" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>文</span>
+
+        {/* What the app actually is, said with the descriptions the rest of the
+            app already uses — so it is already translated everywhere and reads
+            the same here as it will on the home screen a minute later. */}
+        <div className="eyebrow">{t("wInside")}</div>
+        <div className="wlist">
+          {[
+            { i: "◆", t: t("pathHome"), s: t("pathHomeStart") },
+            { i: "▶", t: t("startMock"), s: t("startMockSub") },
+            { i: "☰", t: t("studyNotes"), s: t("studySub") },
+            { i: "✓", t: t("chapterPractice"), s: t("chapterSub") },
+          ].map((f) => (
+            <div className="wrow" key={f.t}>
+              <span className="ic" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>{f.i}</span>
+              <span>
+                <span className="row-t">{f.t}</span>
+                <span className="row-s">{f.s}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <button className="row" style={{ marginTop: 14 }} onClick={() => setStep(0)}>
+          <span className="ic" style={{ background: "var(--soft)" }}>文</span>
           <span>
             <span className="row-t" dir={picked.rtl ? "rtl" : "ltr"}>{picked.native}</span>
             <span className="row-s">{t("wChange")}</span>
           </span>
           <span className="row-go">›</span>
         </button>
-        <div className="note" style={{ background: "var(--soft)" }}>
-          Life in the United Kingdom: A Guide for New Residents (3rd edition)
-        </div>
+        <p className="foot" style={{ marginTop: 14 }}>
+          {QUESTIONS.length} questions and {FLASHCARDS.length} flashcards written from
+          Life in the United Kingdom: A Guide for New Residents (3rd edition).
+        </p>
         <div className="btnrow">
           <button className="btn btn-p" onClick={() => setStep(2)}>{t("wGo")}</button>
         </div>
