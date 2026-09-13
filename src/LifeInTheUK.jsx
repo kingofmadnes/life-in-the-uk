@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, createContext } from "react";
 import { hasBundle, loadBundle } from "./qtrans/index.js";
 import { auth } from "./firebase.js";
+import { useEntitlement } from "./entitlement.js";
+import { restore as storeRestore } from "./storekit.js";
+import Paywall from "./paywall/Paywall.jsx";
+import AdBanner from "./ads/AdBanner.jsx";
+import { maybeInterstitial } from "./ads/ads.js";
 import {
   LEVELS, LAST_LEVEL, EXAM_MIX, levelByNumber, isUnlocked, currentLevel,
   clearedCount, allCleared, buildLevelDeck, difficultyOf,
@@ -11,6 +16,10 @@ import {
    LIFE IN THE UK — STUDY & MOCK TEST
    Question bank: c = chapter (1-5), a = array of correct indices
    ============================================================ */
+
+/* Where a banner is allowed to sit: the screens people browse, never one
+   they are answering a question on. */
+const AD_VIEWS = ["home", "path", "study", "progress", "testday", "cards"];
 
 const CHAPTERS = [
   { n: 1, name: "Values and principles of the UK", short: "Values" },
@@ -546,6 +555,14 @@ T.en = {
   readyBody: "All eight levels cleared, including the last one at 21 out of 24 — three marks above what the real test asks of you.",
   bookCta: "Book at gov.uk", pathDone: "All eight levels cleared",
   bookNote: "gov.uk/life-in-the-uk-test is the only official booking site. £50 an attempt, book at least 3 days ahead, and bring the same photo ID you booked with.",
+  pwTitle: "Unlock the quiz", pwLead: "Your free 24 hours are up. Study notes, flashcards and test-day guidance stay free — unlock to carry on testing yourself.",
+  pwOne: "Every mock test, quick quiz and chapter practice", pwTwo: "Your mistakes list and saved questions", pwThree: "No ads, anywhere in the app",
+  pwBuy: "Unlock for {p}", pwBuying: "Just a moment…", pwOnce: "One payment. Not a subscription.",
+  pwRestore: "Restore purchase", pwNotNow: "Not now",
+  pwFail: "That didn't go through. You have not been charged.", pwNone: "No previous purchase found on this Apple ID.",
+  pwPending: "Waiting for approval. The quiz unlocks as soon as it comes through.",
+  pwTrial: "{n}h of free access left",
+  pwOwned: "Unlocked. Thank you.",
 };
 
 T.hi = {
@@ -623,6 +640,14 @@ T.hi = {
   readyBody: "सभी आठ स्तर पार, आख़िरी भी 24 में से 21 पर — असली परीक्षा की माँग से तीन अंक ऊपर।",
   bookCta: "gov.uk पर बुक करें", pathDone: "सभी आठ स्तर पार",
   bookNote: "gov.uk/life-in-the-uk-test ही एकमात्र आधिकारिक बुकिंग साइट है। हर प्रयास £50, कम से कम 3 दिन पहले बुक करें, और वही फोटो पहचान लाएँ जिससे बुक किया।",
+  pwTitle: "क्विज़ अनलॉक करें", pwLead: "आपके 24 मुफ़्त घंटे पूरे हो गए। अध्ययन नोट्स, फ़्लैशकार्ड और परीक्षा-दिवस की जानकारी मुफ़्त रहेगी — अभ्यास जारी रखने के लिए अनलॉक करें।",
+  pwOne: "हर मॉक टेस्ट, त्वरित क्विज़ और अध्याय अभ्यास", pwTwo: "आपकी गलतियों की सूची और सहेजे गए प्रश्न", pwThree: "पूरे ऐप में कोई विज्ञापन नहीं",
+  pwBuy: "{p} में अनलॉक करें", pwBuying: "एक क्षण…", pwOnce: "एक बार का भुगतान। सदस्यता नहीं।",
+  pwRestore: "खरीद बहाल करें", pwNotNow: "अभी नहीं",
+  pwFail: "यह पूरा नहीं हो सका। आपसे कोई शुल्क नहीं लिया गया।", pwNone: "इस Apple ID पर कोई पिछली खरीद नहीं मिली।",
+  pwPending: "स्वीकृति की प्रतीक्षा है। मंज़ूरी मिलते ही क्विज़ खुल जाएगा।",
+  pwTrial: "{n} घंटे की मुफ़्त पहुँच बाकी",
+  pwOwned: "अनलॉक हो गया। धन्यवाद।",
 };
 
 T.ur = {
@@ -700,6 +725,14 @@ T.ur = {
   readyBody: "تمام آٹھ سطحیں مکمل، آخری بھی 24 میں سے 21 پر — اصل ٹیسٹ کے تقاضے سے تین نمبر اوپر۔",
   bookCta: "gov.uk پر بک کریں", pathDone: "تمام آٹھ سطحیں مکمل",
   bookNote: "gov.uk/life-in-the-uk-test ہی واحد سرکاری بکنگ سائٹ ہے۔ ہر کوشش £50، کم از کم 3 دن پہلے بک کریں، اور وہی تصویری شناخت لائیں جس سے بک کیا۔",
+  pwTitle: "کوئز ان لاک کریں", pwLead: "آپ کے 24 مفت گھنٹے ختم ہو گئے۔ اسٹڈی نوٹس، فلیش کارڈز اور ٹیسٹ کے دن کی رہنمائی مفت رہے گی — مشق جاری رکھنے کے لیے ان لاک کریں۔",
+  pwOne: "ہر ماک ٹیسٹ، فوری کوئز اور باب کی مشق", pwTwo: "آپ کی غلطیوں کی فہرست اور محفوظ سوالات", pwThree: "پوری ایپ میں کوئی اشتہار نہیں",
+  pwBuy: "{p} میں ان لاک کریں", pwBuying: "ایک لمحہ…", pwOnce: "ایک بار کی ادائیگی۔ سبسکرپشن نہیں۔",
+  pwRestore: "خریداری بحال کریں", pwNotNow: "ابھی نہیں",
+  pwFail: "یہ مکمل نہیں ہو سکا۔ آپ سے کوئی رقم نہیں لی گئی۔", pwNone: "اس Apple ID پر کوئی پچھلی خریداری نہیں ملی۔",
+  pwPending: "منظوری کا انتظار ہے۔ منظوری ملتے ہی کوئز کھل جائے گا۔",
+  pwTrial: "{n} گھنٹے کی مفت رسائی باقی",
+  pwOwned: "ان لاک ہو گیا۔ شکریہ۔",
 };
 
 T.pa = {
@@ -777,6 +810,14 @@ T.pa = {
   readyBody: "ਸਾਰੇ ਅੱਠ ਪੱਧਰ ਪਾਸ, ਆਖ਼ਰੀ ਵੀ 24 ਵਿੱਚੋਂ 21 'ਤੇ — ਅਸਲ ਟੈਸਟ ਦੀ ਮੰਗ ਤੋਂ ਤਿੰਨ ਅੰਕ ਉੱਪਰ।",
   bookCta: "gov.uk 'ਤੇ ਬੁੱਕ ਕਰੋ", pathDone: "ਸਾਰੇ ਅੱਠ ਪੱਧਰ ਪਾਸ",
   bookNote: "gov.uk/life-in-the-uk-test ਹੀ ਇੱਕੋ-ਇੱਕ ਸਰਕਾਰੀ ਬੁਕਿੰਗ ਸਾਈਟ ਹੈ। ਹਰ ਕੋਸ਼ਿਸ਼ £50, ਘੱਟੋ-ਘੱਟ 3 ਦਿਨ ਪਹਿਲਾਂ ਬੁੱਕ ਕਰੋ, ਅਤੇ ਉਹੀ ਫੋਟੋ ਪਛਾਣ ਲਿਆਓ ਜਿਸ ਨਾਲ ਬੁੱਕ ਕੀਤਾ।",
+  pwTitle: "ਕੁਇਜ਼ ਅਨਲਾਕ ਕਰੋ", pwLead: "ਤੁਹਾਡੇ 24 ਮੁਫ਼ਤ ਘੰਟੇ ਪੂਰੇ ਹੋ ਗਏ। ਸਟੱਡੀ ਨੋਟਸ, ਫ਼ਲੈਸ਼ਕਾਰਡ ਅਤੇ ਟੈਸਟ ਵਾਲੇ ਦਿਨ ਦੀ ਜਾਣਕਾਰੀ ਮੁਫ਼ਤ ਰਹੇਗੀ — ਅਭਿਆਸ ਜਾਰੀ ਰੱਖਣ ਲਈ ਅਨਲਾਕ ਕਰੋ।",
+  pwOne: "ਹਰ ਮੌਕ ਟੈਸਟ, ਤੇਜ਼ ਕੁਇਜ਼ ਅਤੇ ਅਧਿਆਇ ਅਭਿਆਸ", pwTwo: "ਤੁਹਾਡੀਆਂ ਗਲਤੀਆਂ ਦੀ ਸੂਚੀ ਅਤੇ ਸੰਭਾਲੇ ਸਵਾਲ", pwThree: "ਪੂਰੀ ਐਪ ਵਿੱਚ ਕੋਈ ਇਸ਼ਤਿਹਾਰ ਨਹੀਂ",
+  pwBuy: "{p} ਵਿੱਚ ਅਨਲਾਕ ਕਰੋ", pwBuying: "ਇੱਕ ਪਲ…", pwOnce: "ਇੱਕ ਵਾਰ ਦੀ ਅਦਾਇਗੀ। ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਨਹੀਂ।",
+  pwRestore: "ਖ਼ਰੀਦ ਬਹਾਲ ਕਰੋ", pwNotNow: "ਹੁਣੇ ਨਹੀਂ",
+  pwFail: "ਇਹ ਪੂਰਾ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਤੁਹਾਡੇ ਤੋਂ ਕੋਈ ਪੈਸਾ ਨਹੀਂ ਲਿਆ ਗਿਆ।", pwNone: "ਇਸ Apple ID ਉੱਤੇ ਕੋਈ ਪਿਛਲੀ ਖ਼ਰੀਦ ਨਹੀਂ ਮਿਲੀ।",
+  pwPending: "ਮਨਜ਼ੂਰੀ ਦੀ ਉਡੀਕ ਹੈ। ਮਨਜ਼ੂਰੀ ਮਿਲਦੇ ਹੀ ਕੁਇਜ਼ ਖੁੱਲ੍ਹ ਜਾਵੇਗਾ।",
+  pwTrial: "{n} ਘੰਟੇ ਦੀ ਮੁਫ਼ਤ ਪਹੁੰਚ ਬਾਕੀ",
+  pwOwned: "ਅਨਲਾਕ ਹੋ ਗਿਆ। ਧੰਨਵਾਦ।",
 };
 
 T.bn = {
@@ -854,6 +895,14 @@ T.bn = {
   readyBody: "সব আটটি স্তর পার, শেষটিও 24-এর মধ্যে 21-এ — আসল পরীক্ষার চাহিদার চেয়ে তিন নম্বর বেশি।",
   bookCta: "gov.uk-এ বুক করুন", pathDone: "সব আটটি স্তর পার",
   bookNote: "gov.uk/life-in-the-uk-test-ই একমাত্র সরকারি বুকিং সাইট। প্রতি চেষ্টায় £50, অন্তত 3 দিন আগে বুক করুন, এবং যে ছবিযুক্ত পরিচয়পত্র দিয়ে বুক করেছেন সেটিই আনুন।",
+  pwTitle: "কুইজ আনলক করুন", pwLead: "আপনার 24 ঘণ্টার বিনামূল্যে সময় শেষ। স্টাডি নোট, ফ্ল্যাশকার্ড ও পরীক্ষার দিনের নির্দেশনা বিনামূল্যেই থাকবে — অনুশীলন চালিয়ে যেতে আনলক করুন।",
+  pwOne: "প্রতিটি মক টেস্ট, দ্রুত কুইজ ও অধ্যায় অনুশীলন", pwTwo: "আপনার ভুলের তালিকা ও সংরক্ষিত প্রশ্ন", pwThree: "অ্যাপের কোথাও কোনো বিজ্ঞাপন নেই",
+  pwBuy: "{p}-এ আনলক করুন", pwBuying: "একটু সময়…", pwOnce: "এককালীন পেমেন্ট। সাবস্ক্রিপশন নয়।",
+  pwRestore: "ক্রয় পুনরুদ্ধার করুন", pwNotNow: "এখন নয়",
+  pwFail: "এটি সম্পন্ন হয়নি। আপনার কাছ থেকে কোনো টাকা নেওয়া হয়নি।", pwNone: "এই Apple ID-তে আগের কোনো ক্রয় পাওয়া যায়নি।",
+  pwPending: "অনুমোদনের অপেক্ষায়। অনুমোদন পেলেই কুইজ খুলে যাবে।",
+  pwTrial: "{n} ঘণ্টার বিনামূল্যে ব্যবহার বাকি",
+  pwOwned: "আনলক হয়েছে। ধন্যবাদ।",
 };
 
 T.ar = {
@@ -931,6 +980,14 @@ T.ar = {
   readyBody: "اجتزت المستويات الثمانية كلها، والأخير بـ 21 من 24 — ثلاث درجات فوق ما يطلبه الاختبار الحقيقي.",
   bookCta: "احجز على gov.uk", pathDone: "اجتزت المستويات الثمانية كلها",
   bookNote: "gov.uk/life-in-the-uk-test هو موقع الحجز الرسمي الوحيد. الرسوم £50 لكل محاولة، احجز قبل 3 أيام على الأقل، وأحضر نفس بطاقة الهوية المصوّرة التي حجزت بها.",
+  pwTitle: "افتح الاختبارات", pwLead: "انتهت ساعاتك الـ24 المجانية. تبقى الملاحظات والبطاقات وإرشادات يوم الاختبار مجانية — افتح الاختبارات لتواصل التدرّب.",
+  pwOne: "كل اختبار تجريبي واختبار سريع وتدريب على الفصول", pwTwo: "قائمة أخطائك والأسئلة المحفوظة", pwThree: "بلا إعلانات في أي مكان بالتطبيق",
+  pwBuy: "افتحه مقابل {p}", pwBuying: "لحظة…", pwOnce: "دفعة واحدة. ليس اشتراكًا.",
+  pwRestore: "استعادة الشراء", pwNotNow: "ليس الآن",
+  pwFail: "لم تتم العملية. لم يُخصم منك أي مبلغ.", pwNone: "لا يوجد شراء سابق على معرّف Apple هذا.",
+  pwPending: "في انتظار الموافقة. ستُفتح الاختبارات فور وصولها.",
+  pwTrial: "بقي {n} ساعة من الوصول المجاني",
+  pwOwned: "تم الفتح. شكرًا لك.",
 };
 
 T.ro = {
@@ -1008,6 +1065,14 @@ T.ro = {
   readyBody: "Toate cele opt niveluri trecute, inclusiv ultimul la 21 din 24 — cu trei puncte peste ce cere testul real.",
   bookCta: "Programează pe gov.uk", pathDone: "Toate cele opt niveluri trecute",
   bookNote: "gov.uk/life-in-the-uk-test este singurul site oficial de programare. £50 pe încercare, programează cu cel puțin 3 zile înainte și adu același act de identitate cu fotografie cu care ai programat.",
+  pwTitle: "Deblochează testele", pwLead: "Cele 24 de ore gratuite s-au încheiat. Notițele, cardurile și ghidul pentru ziua examenului rămân gratuite — deblochează pentru a continua să exersezi.",
+  pwOne: "Toate testele simulate, chestionarele rapide și exercițiile pe capitole", pwTwo: "Lista ta de greșeli și întrebările salvate", pwThree: "Fără reclame, nicăieri în aplicație",
+  pwBuy: "Deblochează pentru {p}", pwBuying: "O clipă…", pwOnce: "O singură plată. Nu este abonament.",
+  pwRestore: "Restaurează achiziția", pwNotNow: "Nu acum",
+  pwFail: "Nu a reușit. Nu ți s-a debitat nimic.", pwNone: "Nu am găsit nicio achiziție anterioară pe acest Apple ID.",
+  pwPending: "Se așteaptă aprobarea. Testele se deblochează imediat ce sosește.",
+  pwTrial: "Îți mai rămân {n} h de acces gratuit",
+  pwOwned: "Deblocat. Mulțumim.",
 };
 
 T.pl = {
@@ -1085,6 +1150,14 @@ T.pl = {
   readyBody: "Wszystkie osiem poziomów zaliczone, w tym ostatni na 21 z 24 — trzy punkty powyżej tego, czego wymaga prawdziwy egzamin.",
   bookCta: "Zapisz się na gov.uk", pathDone: "Wszystkie osiem poziomów zaliczone",
   bookNote: "gov.uk/life-in-the-uk-test to jedyna oficjalna strona zapisów. £50 za podejście, zapisz się co najmniej 3 dni wcześniej i weź ten sam dokument ze zdjęciem, którym się zapisywałeś.",
+  pwTitle: "Odblokuj testy", pwLead: "Twoje 24 darmowe godziny minęły. Notatki, fiszki i informacje o dniu egzaminu pozostają darmowe — odblokuj, aby dalej ćwiczyć.",
+  pwOne: "Wszystkie testy próbne, szybkie quizy i ćwiczenia z rozdziałów", pwTwo: "Twoja lista błędów i zapisane pytania", pwThree: "Żadnych reklam w całej aplikacji",
+  pwBuy: "Odblokuj za {p}", pwBuying: "Chwileczkę…", pwOnce: "Jednorazowa płatność. To nie subskrypcja.",
+  pwRestore: "Przywróć zakup", pwNotNow: "Nie teraz",
+  pwFail: "Nie udało się. Nie pobrano żadnej opłaty.", pwNone: "Nie znaleziono wcześniejszego zakupu na tym Apple ID.",
+  pwPending: "Czekamy na zatwierdzenie. Testy odblokują się, gdy tylko przyjdzie.",
+  pwTrial: "Pozostało {n} h darmowego dostępu",
+  pwOwned: "Odblokowane. Dziękujemy.",
 };
 
 T.it = {
@@ -1162,6 +1235,14 @@ T.it = {
   readyBody: "Tutti e otto i livelli superati, compreso l'ultimo a 21 su 24 — tre punti sopra quello che chiede il test vero.",
   bookCta: "Prenota su gov.uk", pathDone: "Tutti e otto i livelli superati",
   bookNote: "gov.uk/life-in-the-uk-test è l'unico sito ufficiale per prenotare. £50 a tentativo, prenota con almeno 3 giorni di anticipo e porta lo stesso documento con foto con cui hai prenotato.",
+  pwTitle: "Sblocca i quiz", pwLead: "Le tue 24 ore gratuite sono finite. Appunti, flashcard e guida al giorno dell'esame restano gratis — sblocca per continuare a esercitarti.",
+  pwOne: "Tutte le simulazioni, i quiz rapidi e gli esercizi per capitolo", pwTwo: "Il tuo elenco di errori e le domande salvate", pwThree: "Nessuna pubblicità, in tutta l'app",
+  pwBuy: "Sblocca per {p}", pwBuying: "Un attimo…", pwOnce: "Pagamento unico. Non è un abbonamento.",
+  pwRestore: "Ripristina acquisto", pwNotNow: "Non ora",
+  pwFail: "Non è andata a buon fine. Non ti è stato addebitato nulla.", pwNone: "Nessun acquisto precedente trovato su questo Apple ID.",
+  pwPending: "In attesa di approvazione. I quiz si sbloccano appena arriva.",
+  pwTrial: "Ti restano {n} h di accesso gratuito",
+  pwOwned: "Sbloccato. Grazie.",
 };
 
 T.pt = {
@@ -1239,6 +1320,14 @@ T.pt = {
   readyBody: "Todos os oito níveis concluídos, incluindo o último com 21 em 24 — três pontos acima do que o teste real exige.",
   bookCta: "Marcar em gov.uk", pathDone: "Todos os oito níveis concluídos",
   bookNote: "gov.uk/life-in-the-uk-test é o único site oficial de marcação. £50 por tentativa, marque com pelo menos 3 dias de antecedência e leve o mesmo documento com fotografia com que marcou.",
+  pwTitle: "Desbloquear os testes", pwLead: "As suas 24 horas gratuitas terminaram. Os apontamentos, os cartões e o guia do dia do exame continuam gratuitos — desbloqueie para continuar a praticar.",
+  pwOne: "Todos os simulados, questionários rápidos e prática por capítulo", pwTwo: "A sua lista de erros e as perguntas guardadas", pwThree: "Sem anúncios, em toda a aplicação",
+  pwBuy: "Desbloquear por {p}", pwBuying: "Um momento…", pwOnce: "Pagamento único. Não é uma subscrição.",
+  pwRestore: "Restaurar compra", pwNotNow: "Agora não",
+  pwFail: "Não foi possível concluir. Não lhe foi cobrado nada.", pwNone: "Não foi encontrada nenhuma compra anterior neste Apple ID.",
+  pwPending: "A aguardar aprovação. Os testes desbloqueiam assim que chegar.",
+  pwTrial: "Restam {n} h de acesso gratuito",
+  pwOwned: "Desbloqueado. Obrigado.",
 };
 
 T.gu = {
@@ -1316,6 +1405,14 @@ T.gu = {
   readyBody: "બધા આઠ સ્તર પાર, છેલ્લું પણ 24 માંથી 21 પર — અસલી પરીક્ષાની માંગ કરતાં ત્રણ ગુણ ઉપર.",
   bookCta: "gov.uk પર બુક કરો", pathDone: "બધા આઠ સ્તર પાર",
   bookNote: "gov.uk/life-in-the-uk-test એ જ એકમાત્ર સત્તાવાર બુકિંગ સાઇટ છે. દરેક પ્રયાસના £50, ઓછામાં ઓછા 3 દિવસ પહેલાં બુક કરો, અને જે ફોટો ઓળખપત્રથી બુક કર્યું તે જ લાવો.",
+  pwTitle: "ક્વિઝ અનલૉક કરો", pwLead: "તમારા 24 મફત કલાક પૂરા થયા. સ્ટડી નોટ્સ, ફ્લેશકાર્ડ અને પરીક્ષાના દિવસની માહિતી મફત જ રહેશે — અભ્યાસ ચાલુ રાખવા અનલૉક કરો.",
+  pwOne: "દરેક મૉક ટેસ્ટ, ઝડપી ક્વિઝ અને પ્રકરણ અભ્યાસ", pwTwo: "તમારી ભૂલોની યાદી અને સાચવેલા પ્રશ્નો", pwThree: "આખી ઍપમાં ક્યાંય જાહેરાત નહીં",
+  pwBuy: "{p}માં અનલૉક કરો", pwBuying: "એક ક્ષણ…", pwOnce: "એક જ વારની ચુકવણી. સબસ્ક્રિપ્શન નથી.",
+  pwRestore: "ખરીદી પુનઃસ્થાપિત કરો", pwNotNow: "અત્યારે નહીં",
+  pwFail: "આ પૂરું થઈ શક્યું નહીં. તમારી પાસેથી કોઈ રકમ લેવાઈ નથી.", pwNone: "આ Apple ID પર અગાઉની કોઈ ખરીદી મળી નથી.",
+  pwPending: "મંજૂરીની રાહ છે. મંજૂરી મળતાં જ ક્વિઝ ખૂલી જશે.",
+  pwTrial: "{n} કલાકનો મફત વપરાશ બાકી",
+  pwOwned: "અનલૉક થયું. આભાર.",
 };
 
 T.ta = {
@@ -1393,6 +1490,14 @@ T.ta = {
   readyBody: "எட்டு நிலைகளும் கடந்தாயிற்று, கடைசியும் 24-இல் 21 — உண்மையான தேர்வு கேட்பதை விட மூன்று மதிப்பெண் அதிகம்.",
   bookCta: "gov.uk-இல் பதிவு செய்", pathDone: "எட்டு நிலைகளும் கடந்தாயிற்று",
   bookNote: "gov.uk/life-in-the-uk-test மட்டுமே அதிகாரப்பூர்வ பதிவுத் தளம். ஒவ்வொரு முயற்சிக்கும் £50, குறைந்தது 3 நாட்களுக்கு முன் பதிவு செய்யவும், பதிவு செய்த அதே புகைப்பட அடையாளத்தைக் கொண்டு வரவும்.",
+  pwTitle: "வினாடி வினாவைத் திறக்கவும்", pwLead: "உங்கள் 24 மணி நேர இலவசப் பயன்பாடு முடிந்தது. குறிப்புகள், ஃபிளாஷ்கார்டுகள், தேர்வு நாள் வழிகாட்டுதல் இலவசமாகவே இருக்கும் — பயிற்சியைத் தொடர திறக்கவும்.",
+  pwOne: "அனைத்து மாதிரித் தேர்வுகள், விரைவு வினாடி வினா, அத்தியாயப் பயிற்சி", pwTwo: "உங்கள் தவறுகள் பட்டியல் மற்றும் சேமித்த கேள்விகள்", pwThree: "ஆப்பில் எங்கும் விளம்பரம் இல்லை",
+  pwBuy: "{p}க்கு திறக்கவும்", pwBuying: "ஒரு நிமிடம்…", pwOnce: "ஒரே முறை கட்டணம். சந்தா அல்ல.",
+  pwRestore: "கொள்முதலை மீட்டெடுக்கவும்", pwNotNow: "இப்போது வேண்டாம்",
+  pwFail: "இது நிறைவடையவில்லை. உங்களிடம் எந்தத் தொகையும் வசூலிக்கப்படவில்லை.", pwNone: "இந்த Apple ID-யில் முந்தைய கொள்முதல் எதுவும் இல்லை.",
+  pwPending: "ஒப்புதலுக்காகக் காத்திருக்கிறது. ஒப்புதல் கிடைத்ததும் வினாடி வினா திறக்கும்.",
+  pwTrial: "{n} மணி நேர இலவசப் பயன்பாடு மீதம்",
+  pwOwned: "திறக்கப்பட்டது. நன்றி.",
 };
 
 T.fa = {
@@ -1470,6 +1575,14 @@ T.fa = {
   readyBody: "هر هشت مرحله گذرانده شد، از جمله آخری با 21 از 24 — سه نمره بالاتر از چیزی که آزمون واقعی می‌خواهد.",
   bookCta: "رزرو در gov.uk", pathDone: "هر هشت مرحله گذرانده شد",
   bookNote: "تنها سایت رسمی رزرو gov.uk/life-in-the-uk-test است. هر تلاش £50، دست‌کم 3 روز زودتر رزرو کنید و همان کارت شناسایی عکس‌داری را که با آن رزرو کردید همراه بیاورید.",
+  pwTitle: "باز کردن آزمون‌ها", pwLead: "۲۴ ساعت رایگان شما تمام شد. یادداشت‌ها، فلش‌کارت‌ها و راهنمای روز آزمون رایگان می‌مانند — برای ادامهٔ تمرین قفل را باز کنید.",
+  pwOne: "همهٔ آزمون‌های آزمایشی، آزمون سریع و تمرین فصل‌ها", pwTwo: "فهرست اشتباه‌ها و سؤال‌های ذخیره‌شدهٔ شما", pwThree: "بدون تبلیغات، در هیچ جای برنامه",
+  pwBuy: "باز کردن با {p}", pwBuying: "یک لحظه…", pwOnce: "پرداخت یک‌باره. اشتراک نیست.",
+  pwRestore: "بازیابی خرید", pwNotNow: "الان نه",
+  pwFail: "انجام نشد. مبلغی از شما کسر نشده است.", pwNone: "خرید قبلی روی این Apple ID پیدا نشد.",
+  pwPending: "در انتظار تأیید. به‌محض تأیید، آزمون‌ها باز می‌شوند.",
+  pwTrial: "{n} ساعت دسترسی رایگان باقی مانده",
+  pwOwned: "باز شد. سپاسگزاریم.",
 };
 
 T.zh = {
@@ -1547,6 +1660,14 @@ T.zh = {
   readyBody: "八个级别全部通过，最后一级也拿到 24 题中的 21 题——比真实考试要求高出三分。",
   bookCta: "在 gov.uk 预约", pathDone: "八个级别全部通过",
   bookNote: "gov.uk/life-in-the-uk-test 是唯一的官方预约网站。每次 £50，至少提前 3 天预约，并携带与预约时相同的带照片证件。",
+  pwTitle: "解锁题目练习", pwLead: "你的 24 小时免费时间已结束。学习笔记、记忆卡和考试当天指南仍然免费——解锁即可继续做题。",
+  pwOne: "全部模拟考试、快速测验和分章练习", pwTwo: "你的错题本和收藏的题目", pwThree: "应用内任何地方都没有广告",
+  pwBuy: "{p} 解锁", pwBuying: "请稍候…", pwOnce: "一次性付费，不是订阅。",
+  pwRestore: "恢复购买", pwNotNow: "暂不",
+  pwFail: "未能完成，没有向你收取任何费用。", pwNone: "此 Apple ID 上没有找到以前的购买记录。",
+  pwPending: "等待批准。批准后题目练习会立即解锁。",
+  pwTrial: "还剩 {n} 小时免费使用",
+  pwOwned: "已解锁，谢谢你。",
 };
 
 T.tl = {
@@ -1624,6 +1745,14 @@ T.tl = {
   readyBody: "Naipasa lahat ng walong antas, pati ang huli sa 21 sa 24 — tatlong marka higit sa hinihingi ng totoong test.",
   bookCta: "Mag-book sa gov.uk", pathDone: "Naipasa lahat ng walong antas",
   bookNote: "Ang gov.uk/life-in-the-uk-test lang ang opisyal na booking site. £50 kada pagsubok, mag-book nang hindi bababa sa 3 araw bago, at dalhin ang parehong ID na may litrato na ginamit mo sa pag-book.",
+  pwTitle: "I-unlock ang mga pagsusulit", pwLead: "Tapos na ang iyong 24 na oras na libre. Libre pa rin ang mga study notes, flashcard at gabay sa araw ng test — mag-unlock para makapagsanay pa.",
+  pwOne: "Lahat ng mock test, mabilisang pagsusulit at pagsasanay kada kabanata", pwTwo: "Ang listahan ng iyong mga mali at mga na-save na tanong", pwThree: "Walang ad, kahit saan sa app",
+  pwBuy: "I-unlock sa {p}", pwBuying: "Sandali lang…", pwOnce: "Isang bayad lang. Hindi subscription.",
+  pwRestore: "Ibalik ang binili", pwNotNow: "Hindi muna",
+  pwFail: "Hindi natuloy. Wala kang sinigil.", pwNone: "Walang nakitang dating binili sa Apple ID na ito.",
+  pwPending: "Naghihintay ng pag-apruba. Mabubuksan ang mga pagsusulit pagdating nito.",
+  pwTrial: "{n} oras pa ang libreng access",
+  pwOwned: "Na-unlock na. Salamat.",
 };
 
 let LANG = "en";
@@ -1909,7 +2038,7 @@ const CSS = `
 .wrow .row-s{font-size:12.5px}
 .iconbtn{margin-left:auto;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:15px}
 .iconbtn+.iconbtn{margin-left:0}
-.page{max-width:560px;margin:0 auto;padding:4px 18px 110px}
+.page{max-width:560px;margin:0 auto;padding:4px 18px calc(110px + var(--ad-h,0px))}
 
 .hero{background:var(--brand);border-radius:22px;padding:20px;color:#fff;position:relative;overflow:hidden}
 .hero.win{background:var(--go)} .hero.lose{background:var(--stop)}
@@ -2038,7 +2167,11 @@ const CSS = `
 .foot{margin-top:24px;font-size:12px;color:var(--ink3);line-height:1.65}
 .note{background:var(--amber-soft);border-radius:14px;padding:13px 14px;font-size:13px;line-height:1.55;margin-top:14px}
 
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--card);border-top:1px solid var(--line);
+/* --ad-h is the measured height of the AdMob banner, published by
+   AdBanner.jsx. It is 0px unless a banner is actually on screen, so
+   the paid and trial tiers — and the whole web build — are laid out
+   exactly as they were before ads existed. */
+.nav{position:fixed;left:0;right:0;bottom:var(--ad-h,0px);z-index:50;background:var(--card);border-top:1px solid var(--line);
   display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
 .navi{flex:1;background:none;border:none;cursor:pointer;display:grid;justify-items:center;gap:3px;color:var(--ink3);padding:4px 0}
 .navi.on{color:var(--brand)}
@@ -2180,6 +2313,32 @@ const CSS = `
 .lang.on{border-color:var(--brand);border-width:2px;background:var(--brand-soft)}
 .lang b{display:block;font-size:15px;font-weight:700}
 .lang span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
+
+/* Unlock screen. Sits over the app rather than replacing it, so "Not now"
+   puts you back exactly where you were. */
+.pw{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:rgba(8,12,20,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  overflow-y:auto}
+.pw-card{width:100%;max-width:400px;margin:auto;background:var(--card);border:1px solid var(--line);
+  border-radius:22px;padding:24px 20px;box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.pw-mark{width:44px;height:44px;border-radius:13px;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;font-size:20px;margin-bottom:16px}
+.pw-title{margin:0 0 6px;font-size:23px;font-weight:800;letter-spacing:-0.03em;line-height:1.2}
+.pw-lead{margin:0 0 18px;font-size:14px;line-height:1.6;color:var(--ink2)}
+.pw-list{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;gap:11px}
+.pw-list li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;line-height:1.45}
+.pw-tick{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--go-soft);color:var(--go);
+  display:grid;place-items:center;font-size:11px;margin-top:1px}
+.pw-msg{margin:0 0 14px;background:var(--amber-soft);color:var(--ink);border-radius:12px;
+  padding:11px 13px;font-size:13.5px;line-height:1.5}
+.pw-buy{width:100%;border:none;border-radius:14px;padding:15px 18px;font-size:15.5px;font-weight:800;
+  letter-spacing:-0.01em;cursor:pointer;background:var(--brand);color:#fff}
+.pw-once{margin:9px 0 4px;text-align:center;font-size:12px;color:var(--ink3)}
+.pw-alt{width:100%;border:none;background:none;cursor:pointer;font:inherit;font-size:14px;font-weight:700;
+  color:var(--ink);padding:11px;border-radius:12px;margin-top:4px}
+.pw-alt:hover{background:var(--soft)}
+.pw-quiet{color:var(--ink2);font-weight:600}
+.pw button:disabled{opacity:.55;cursor:not-allowed}
 `;
 
 /* ============================================================
@@ -3369,7 +3528,60 @@ function TestDay() {
    SETTINGS
    ============================================================ */
 
-function Settings({ profile, setProfile, dark, setDark, lang, setLang, subs, setSubs }) {
+/* The purchase row in Settings. Apple requires a restore path that does
+   not depend on reaching the paywall first, and someone who already owns
+   the unlock should be able to see that they do.
+
+   Renders nothing on the web, where there is nothing to buy. */
+function Purchase({ ent, onUnlock }) {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  if (ent.state === "web" || ent.state === "loading") return null;
+
+  const restore = async () => {
+    setBusy(true);
+    setMsg("");
+    const owned = await storeRestore();
+    if (owned) await ent.refresh();
+    else setMsg(t("pwNone"));
+    setBusy(false);
+  };
+
+  return (
+    <>
+      <div className="eyebrow">{t("pwTitle")}</div>
+      {ent.state === "paid" ? (
+        <div className="wlist" style={{ marginBottom: 10 }}>
+          <div className="wrow">
+            <span className="ic">✓</span>
+            <span><span className="row-t">{t("pwOwned")}</span></span>
+          </div>
+        </div>
+      ) : (
+        <>
+          <button className="toggle" onClick={onUnlock} style={{ marginBottom: 10 }}>
+            <span className="ic">★</span>
+            <span>
+              <span className="row-t">{t("pwTitle")}</span>
+              <span className="row-s">{ent.state === "trial" ? t("pwOnce") : t("pwThree")}</span>
+            </span>
+            <span className="chev">›</span>
+          </button>
+          <button className="toggle" disabled={busy} onClick={restore} style={{ marginBottom: 10 }}>
+            <span className="ic">☆</span>
+            <span>
+              <span className="row-t">{busy ? t("pwBuying") : t("pwRestore")}</span>
+              {msg && <span className="row-s">{msg}</span>}
+            </span>
+          </button>
+        </>
+      )}
+    </>
+  );
+}
+
+function Settings({ profile, setProfile, dark, setDark, lang, setLang, subs, setSubs, ent, onUnlock }) {
   const [name, setName] = useState(profile.name || "");
   const [date, setDate] = useState(profile.testDate || "");
   const days = daysUntil(date);
@@ -3377,6 +3589,7 @@ function Settings({ profile, setProfile, dark, setDark, lang, setLang, subs, set
     <div className="page">
       <div className="h2">{t("settings")}</div>
       <p className="lede">{t("localOnly")}</p>
+      <Purchase ent={ent} onUnlock={onUnlock} />
       <div className="eyebrow">{t("language")}</div>
       <LangPicker value={lang} onPick={setLang} />
       <div className="eyebrow">{t("yourName")}</div>
@@ -3446,6 +3659,8 @@ export default function App() {
   const [atLevel, setAtLevel] = useState(null);      // the level being played
   const [levelRun, setLevelRun] = useState(null);    // its finished attempt
   const [runKey, setRunKey] = useState(0);           // bumping this deals a fresh deck
+  const ent = useEntitlement();
+  const [pending, setPending] = useState(null);      // what to open once unlocked
 
   useEffect(() => {
     (async () => {
@@ -3523,21 +3738,68 @@ export default function App() {
     });
   };
 
-  const go = (v) => {
+  /* ── The unlock gate ──────────────────────────────────────────
+     Answering questions is what the £2.99 buys. Study notes,
+     flashcards, the path map, progress and the test-day guidance
+     stay free — so the free app is still a usable study app, just
+     without the self-testing.
+
+     Nothing below applies on the web, where entitlement resolves
+     to "web" and unlocked is always true. */
+  const GATED = ["exam", "quick", "practice", "mistakes", "saved", "level"];
+
+  const navigate = (v) => {
     if (v === "practice") setPracticeChapter(null);
     if (v === "study") setOpenChapter(null);
     setView(v);
     if (["home", "path", "study", "progress", "settings"].includes(v)) setTab(v);
     window.scrollTo(0, 0);
+    // Throttled inside; see ads.js for why it is not one per tap.
+    if (ent.adsOn) maybeInterstitial();
   };
 
-  const startLevel = (n) => {
-    if (!isUnlocked(n, levelProgress)) return;   // the ladder is the point; no skipping
+  const openLevel = (n) => {
     setAtLevel(n);
     setLevelRun(null);
     setRunKey((k) => k + 1);
     setView("level");
     window.scrollTo(0, 0);
+  };
+
+  const openChapterPractice = (n) => {
+    setPracticeChapter(n);
+    setView("practice");
+    window.scrollTo(0, 0);
+  };
+
+  const go = (v) => {
+    if (GATED.includes(v) && !ent.unlocked) { setPending({ go: v }); return; }
+    navigate(v);
+  };
+
+  const startLevel = (n) => {
+    if (!isUnlocked(n, levelProgress)) return;   // the ladder is the point; no skipping
+    if (!ent.unlocked) { setPending({ level: n }); return; }
+    openLevel(n);
+  };
+
+  // Study notes link straight into that chapter's practice, so it is a
+  // third way into a gated screen and needs the same check.
+  const practiseChapter = (n) => {
+    if (!ent.unlocked) { setPending({ chapter: n }); return; }
+    openChapterPractice(n);
+  };
+
+  /* Whatever they were trying to open when the paywall appeared, so that
+     buying drops them into it rather than back at the home screen. */
+  const resumeAfterUnlock = async () => {
+    await ent.refresh();
+    const p = pending;
+    setPending(null);
+    if (!p) return;
+    if (p.go) navigate(p.go);
+    else if (p.level != null) openLevel(p.level);
+    else if (p.chapter != null) openChapterPractice(p.chapter);
   };
 
   /* Everything a finished level touches: the per-question stats that feed
@@ -3709,7 +3971,7 @@ export default function App() {
       {view === "study" && (
         <Study openChapter={openChapter} setOpenChapter={setOpenChapter} back={() => go("home")}
           read={read} markRead={markRead}
-          practise={(n) => { setPracticeChapter(n); setView("practice"); window.scrollTo(0, 0); }} />
+          practise={practiseChapter} />
       )}
 
       {view === "testday" && <TestDay />}
@@ -3718,7 +3980,7 @@ export default function App() {
         <Progress history={history} stats={stats} bookmarks={bookmarks} go={go} clear={clear} />
       )}
 
-      {view === "settings" && <Settings profile={profile} setProfile={setProfile} dark={dark} setDark={setDark} lang={lang} setLang={setLang} subs={subs} setSubs={setSubs} />}
+      {view === "settings" && <Settings profile={profile} setProfile={setProfile} dark={dark} setDark={setDark} lang={lang} setLang={setLang} subs={subs} setSubs={setSubs} ent={ent} onUnlock={() => setPending({ go: "settings" })} />}
 
       {!inExam && (
         <div className="nav">
@@ -3734,6 +3996,15 @@ export default function App() {
             </button>
           ))}
         </div>
+      )}
+
+      {/* Ads only in the free tier, and never on a screen with a question
+          on it — inExam covers the timed runs, and the banner is limited
+          to the browsing views below. */}
+      {ent.adsOn && !inExam && AD_VIEWS.includes(view) && <AdBanner />}
+
+      {pending && (
+        <Paywall t={t} onClose={() => setPending(null)} onUnlocked={resumeAfterUnlock} />
       )}
     </div>
   );
