@@ -101,6 +101,32 @@ async function trialStart(uid) {
 }
 
 /**
+ * Remove this account's trial record. Called on the way out of "Delete
+ * account", before the auth user goes — once it is gone the client has
+ * no credentials left to delete anything with.
+ *
+ * Losing the record does not hand anyone a free trial: a new account
+ * gets a new uid and its own fresh clock either way. Deleting it is
+ * simply what the privacy policy promises.
+ */
+export async function forgetTrial(uid) {
+  if (!isNative || !uid) return;
+  try {
+    const db = await getDb();
+    if (!db) return;
+    const { doc, deleteDoc } = await import("firebase/firestore");
+    await deleteDoc(doc(db, "users", uid));
+  } catch {
+    /* Best effort. Account deletion must not fail because of this. */
+  }
+  try {
+    localStorage.removeItem(cacheKey(uid));
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
  * Work out the current state. Order matters: a purchase outranks
  * everything, and it is checked first so that a paying customer is
  * never shown an ad while the network decides what it thinks.
