@@ -725,14 +725,14 @@ T.ur = {
   readyBody: "تمام آٹھ سطحیں مکمل، آخری بھی 24 میں سے 21 پر — اصل ٹیسٹ کے تقاضے سے تین نمبر اوپر۔",
   bookCta: "gov.uk پر بک کریں", pathDone: "تمام آٹھ سطحیں مکمل",
   bookNote: "gov.uk/life-in-the-uk-test ہی واحد سرکاری بکنگ سائٹ ہے۔ ہر کوشش £50، کم از کم 3 دن پہلے بک کریں، اور وہی تصویری شناخت لائیں جس سے بک کیا۔",
-  pwTitle: "کوئز ان لاک کریں", pwLead: "آپ کے 24 مفت گھنٹے ختم ہو گئے۔ اسٹڈی نوٹس، فلیش کارڈز اور ٹیسٹ کے دن کی رہنمائی مفت رہے گی — مشق جاری رکھنے کے لیے ان لاک کریں۔",
-  pwOne: "ہر ماک ٹیسٹ، فوری کوئز اور باب کی مشق", pwTwo: "آپ کی غلطیوں کی فہرست اور محفوظ سوالات", pwThree: "پوری ایپ میں کوئی اشتہار نہیں",
+  pwTitle: "راستہ ان لاک کریں", pwLead: "آپ کا 24 گھنٹے کا راستہ ٹرائل ختم ہو گیا۔ بقیہ سب کچھ مفت رہتا ہے — راستہ ان لاک کریں اور اشتہارات ہٹائیں۔",
+  pwOne: "تمام آٹھ راستہ سطحوں تک رسائی", pwTwo: "مکمل، وقت کے ساتھ مکمل ماکس", pwThree: "پوری ایپ میں کوئی اشتہار نہیں",
   pwBuy: "{p} میں ان لاک کریں", pwBuying: "ایک لمحہ…", pwOnce: "ایک بار کی ادائیگی۔ سبسکرپشن نہیں۔",
   pwRestore: "خریداری بحال کریں", pwNotNow: "ابھی نہیں",
   pwFail: "یہ مکمل نہیں ہو سکا۔ آپ سے کوئی رقم نہیں لی گئی۔", pwNone: "اس Apple ID پر کوئی پچھلی خریداری نہیں ملی۔",
-  pwPending: "منظوری کا انتظار ہے۔ منظوری ملتے ہی کوئز کھل جائے گا۔",
-  pwTrial: "{n} گھنٹے کی مفت رسائی باقی",
-  pwOwned: "ان لاک ہو گیا۔ شکریہ۔",
+  pwPending: "منظوری کی انتظار ہے۔ راستہ فوری طور پر ان لاک ہو جائے گا۔",
+  pwTrial: "{n}h راستہ رسائی بچی",
+  pwOwned: "راستہ ان لاک ہو گیا۔ شکریہ۔",
 };
 
 T.pa = {
@@ -810,14 +810,14 @@ T.pa = {
   readyBody: "ਸਾਰੇ ਅੱਠ ਪੱਧਰ ਪਾਸ, ਆਖ਼ਰੀ ਵੀ 24 ਵਿੱਚੋਂ 21 'ਤੇ — ਅਸਲ ਟੈਸਟ ਦੀ ਮੰਗ ਤੋਂ ਤਿੰਨ ਅੰਕ ਉੱਪਰ।",
   bookCta: "gov.uk 'ਤੇ ਬੁੱਕ ਕਰੋ", pathDone: "ਸਾਰੇ ਅੱਠ ਪੱਧਰ ਪਾਸ",
   bookNote: "gov.uk/life-in-the-uk-test ਹੀ ਇੱਕੋ-ਇੱਕ ਸਰਕਾਰੀ ਬੁਕਿੰਗ ਸਾਈਟ ਹੈ। ਹਰ ਕੋਸ਼ਿਸ਼ £50, ਘੱਟੋ-ਘੱਟ 3 ਦਿਨ ਪਹਿਲਾਂ ਬੁੱਕ ਕਰੋ, ਅਤੇ ਉਹੀ ਫੋਟੋ ਪਛਾਣ ਲਿਆਓ ਜਿਸ ਨਾਲ ਬੁੱਕ ਕੀਤਾ।",
-  pwTitle: "ਕੁਇਜ਼ ਅਨਲਾਕ ਕਰੋ", pwLead: "ਤੁਹਾਡੇ 24 ਮੁਫ਼ਤ ਘੰਟੇ ਪੂਰੇ ਹੋ ਗਏ। ਸਟੱਡੀ ਨੋਟਸ, ਫ਼ਲੈਸ਼ਕਾਰਡ ਅਤੇ ਟੈਸਟ ਵਾਲੇ ਦਿਨ ਦੀ ਜਾਣਕਾਰੀ ਮੁਫ਼ਤ ਰਹੇਗੀ — ਅਭਿਆਸ ਜਾਰੀ ਰੱਖਣ ਲਈ ਅਨਲਾਕ ਕਰੋ।",
-  pwOne: "ਹਰ ਮੌਕ ਟੈਸਟ, ਤੇਜ਼ ਕੁਇਜ਼ ਅਤੇ ਅਧਿਆਇ ਅਭਿਆਸ", pwTwo: "ਤੁਹਾਡੀਆਂ ਗਲਤੀਆਂ ਦੀ ਸੂਚੀ ਅਤੇ ਸੰਭਾਲੇ ਸਵਾਲ", pwThree: "ਪੂਰੀ ਐਪ ਵਿੱਚ ਕੋਈ ਇਸ਼ਤਿਹਾਰ ਨਹੀਂ",
+  pwTitle: "ਰਾਹ ਅਨਲਾਕ ਕਰੋ", pwLead: "ਤੁਹਾਡੀ 24 ਘੰਟੇ ਦੀ ਰਾਹ ਅਜ਼ਮਾਇਸ਼ ਖਤਮ ਹੋ ਗਈ। ਬਾਕੀ ਸਭ ਮੁਫ਼ਤ ਰਹਿੰਦਾ ਹੈ — ਰਾਹ ਅਨਲਾਕ ਕਰੋ ਅਤੇ ਇਸ਼ਤਿਹਾਰ ਹਟਾਓ।",
+  pwOne: "ਸਮੁੱਚੀਆਂ ਅੱਠ ਰਾਹ ਸਤਰਾਂ ਤਕ ਪਹੁੰਚ", pwTwo: "ਸੰਪੂਰਨ, ਵਕਤ ਦੇ ਨਾਲ ਪੂਰੀ ਮੌਕਾਂ", pwThree: "ਪੂਰੀ ਐਪ ਵਿੱਚ ਕੋਈ ਇਸ਼ਤਿਹਾਰ ਨਹੀਂ",
   pwBuy: "{p} ਵਿੱਚ ਅਨਲਾਕ ਕਰੋ", pwBuying: "ਇੱਕ ਪਲ…", pwOnce: "ਇੱਕ ਵਾਰ ਦੀ ਅਦਾਇਗੀ। ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਨਹੀਂ।",
   pwRestore: "ਖ਼ਰੀਦ ਬਹਾਲ ਕਰੋ", pwNotNow: "ਹੁਣੇ ਨਹੀਂ",
   pwFail: "ਇਹ ਪੂਰਾ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਤੁਹਾਡੇ ਤੋਂ ਕੋਈ ਪੈਸਾ ਨਹੀਂ ਲਿਆ ਗਿਆ।", pwNone: "ਇਸ Apple ID ਉੱਤੇ ਕੋਈ ਪਿਛਲੀ ਖ਼ਰੀਦ ਨਹੀਂ ਮਿਲੀ।",
-  pwPending: "ਮਨਜ਼ੂਰੀ ਦੀ ਉਡੀਕ ਹੈ। ਮਨਜ਼ੂਰੀ ਮਿਲਦੇ ਹੀ ਕੁਇਜ਼ ਖੁੱਲ੍ਹ ਜਾਵੇਗਾ।",
-  pwTrial: "{n} ਘੰਟੇ ਦੀ ਮੁਫ਼ਤ ਪਹੁੰਚ ਬਾਕੀ",
-  pwOwned: "ਅਨਲਾਕ ਹੋ ਗਿਆ। ਧੰਨਵਾਦ।",
+  pwPending: "ਮਨਜ਼ੂਰੀ ਦੀ ਉਡੀਕ ਜਾਰੀ ਹੈ। ਮਨਜ਼ੂਰੀ ਆਉਂਦੇ ਹੀ ਰਾਹ ਖੁੱਲ ਜਾਏਗੀ।",
+  pwTrial: "{n}h ਰਾਹ ਪਹੁੰਚ ਬਾਕੀ",
+  pwOwned: "ਰਾਹ ਅਨਲਾਕ ਹੋ ਗਈ। ਧੰਨਵਾਦ।",
 };
 
 T.bn = {
@@ -895,14 +895,14 @@ T.bn = {
   readyBody: "সব আটটি স্তর পার, শেষটিও 24-এর মধ্যে 21-এ — আসল পরীক্ষার চাহিদার চেয়ে তিন নম্বর বেশি।",
   bookCta: "gov.uk-এ বুক করুন", pathDone: "সব আটটি স্তর পার",
   bookNote: "gov.uk/life-in-the-uk-test-ই একমাত্র সরকারি বুকিং সাইট। প্রতি চেষ্টায় £50, অন্তত 3 দিন আগে বুক করুন, এবং যে ছবিযুক্ত পরিচয়পত্র দিয়ে বুক করেছেন সেটিই আনুন।",
-  pwTitle: "কুইজ আনলক করুন", pwLead: "আপনার 24 ঘণ্টার বিনামূল্যে সময় শেষ। স্টাডি নোট, ফ্ল্যাশকার্ড ও পরীক্ষার দিনের নির্দেশনা বিনামূল্যেই থাকবে — অনুশীলন চালিয়ে যেতে আনলক করুন।",
-  pwOne: "প্রতিটি মক টেস্ট, দ্রুত কুইজ ও অধ্যায় অনুশীলন", pwTwo: "আপনার ভুলের তালিকা ও সংরক্ষিত প্রশ্ন", pwThree: "অ্যাপের কোথাও কোনো বিজ্ঞাপন নেই",
+  pwTitle: "পথ আনলক করুন", pwLead: "আপনার 24 ঘণ্টার পথ ট্রায়াল শেষ। বাকি সবকিছু বিনামূল্যে থাকে — পথ আনলক করুন এবং বিজ্ঞাপন সরান।",
+  pwOne: "সমস্ত আটটি পথ স্তরে অ্যাক্সেস", pwTwo: "সম্পূর্ণ, সময়সীমা সহ সম্পূর্ণ মক", pwThree: "অ্যাপের যেকোনো জায়গায় কোনো বিজ্ঞাপন নেই",
   pwBuy: "{p}-এ আনলক করুন", pwBuying: "একটু সময়…", pwOnce: "এককালীন পেমেন্ট। সাবস্ক্রিপশন নয়।",
   pwRestore: "ক্রয় পুনরুদ্ধার করুন", pwNotNow: "এখন নয়",
   pwFail: "এটি সম্পন্ন হয়নি। আপনার কাছ থেকে কোনো টাকা নেওয়া হয়নি।", pwNone: "এই Apple ID-তে আগের কোনো ক্রয় পাওয়া যায়নি।",
-  pwPending: "অনুমোদনের অপেক্ষায়। অনুমোদন পেলেই কুইজ খুলে যাবে।",
-  pwTrial: "{n} ঘণ্টার বিনামূল্যে ব্যবহার বাকি",
-  pwOwned: "আনলক হয়েছে। ধন্যবাদ।",
+  pwPending: "অনুমোদনের জন্য অপেক্ষা করছি। অনুমোদন আসার সাথে সাথে পথটি আনলক হবে।",
+  pwTrial: "{n}h পথ অ্যাক্সেস বাকি",
+  pwOwned: "পথ আনলক হয়েছে। ধন্যবাদ।",
 };
 
 T.ar = {
@@ -980,14 +980,14 @@ T.ar = {
   readyBody: "اجتزت المستويات الثمانية كلها، والأخير بـ 21 من 24 — ثلاث درجات فوق ما يطلبه الاختبار الحقيقي.",
   bookCta: "احجز على gov.uk", pathDone: "اجتزت المستويات الثمانية كلها",
   bookNote: "gov.uk/life-in-the-uk-test هو موقع الحجز الرسمي الوحيد. الرسوم £50 لكل محاولة، احجز قبل 3 أيام على الأقل، وأحضر نفس بطاقة الهوية المصوّرة التي حجزت بها.",
-  pwTitle: "افتح الاختبارات", pwLead: "انتهت ساعاتك الـ24 المجانية. تبقى الملاحظات والبطاقات وإرشادات يوم الاختبار مجانية — افتح الاختبارات لتواصل التدرّب.",
-  pwOne: "كل اختبار تجريبي واختبار سريع وتدريب على الفصول", pwTwo: "قائمة أخطائك والأسئلة المحفوظة", pwThree: "بلا إعلانات في أي مكان بالتطبيق",
+  pwTitle: "فتح المسار", pwLead: "انتهت فترة تجربة مسارك لمدة 24 ساعة. كل شيء آخر يبقى مجانيًا — فتح المسار وأزل الإعلانات.",
+  pwOne: "الوصول إلى مستويات المسار الثمانية كاملة", pwTwo: "اختبارات كاملة ومحددة بالوقت", pwThree: "بلا إعلانات في أي مكان في التطبيق",
   pwBuy: "افتحه مقابل {p}", pwBuying: "لحظة…", pwOnce: "دفعة واحدة. ليس اشتراكًا.",
   pwRestore: "استعادة الشراء", pwNotNow: "ليس الآن",
   pwFail: "لم تتم العملية. لم يُخصم منك أي مبلغ.", pwNone: "لا يوجد شراء سابق على معرّف Apple هذا.",
-  pwPending: "في انتظار الموافقة. ستُفتح الاختبارات فور وصولها.",
-  pwTrial: "بقي {n} ساعة من الوصول المجاني",
-  pwOwned: "تم الفتح. شكرًا لك.",
+  pwPending: "في انتظار الموافقة. سيتم فتح المسار بمجرد موافقته.",
+  pwTrial: "{n}h وصول المسار المتبقي",
+  pwOwned: "تم فتح المسار. شكرا لك.",
 };
 
 T.ro = {
@@ -1065,14 +1065,14 @@ T.ro = {
   readyBody: "Toate cele opt niveluri trecute, inclusiv ultimul la 21 din 24 — cu trei puncte peste ce cere testul real.",
   bookCta: "Programează pe gov.uk", pathDone: "Toate cele opt niveluri trecute",
   bookNote: "gov.uk/life-in-the-uk-test este singurul site oficial de programare. £50 pe încercare, programează cu cel puțin 3 zile înainte și adu același act de identitate cu fotografie cu care ai programat.",
-  pwTitle: "Deblochează testele", pwLead: "Cele 24 de ore gratuite s-au încheiat. Notițele, cardurile și ghidul pentru ziua examenului rămân gratuite — deblochează pentru a continua să exersezi.",
-  pwOne: "Toate testele simulate, chestionarele rapide și exercițiile pe capitole", pwTwo: "Lista ta de greșeli și întrebările salvate", pwThree: "Fără reclame, nicăieri în aplicație",
+  pwTitle: "Deblochează calea", pwLead: "Perioada dvs. de încercare a căii de 24 de ore s-a încheiat. Tot ce mai rămâne este gratuit — deblocați calea și eliminați anunțurile.",
+  pwOne: "Acces la toate cele opt niveluri ale căii", pwTwo: "Teste complete și cronometrate", pwThree: "Fără reclame nicăieri în aplicație",
   pwBuy: "Deblochează pentru {p}", pwBuying: "O clipă…", pwOnce: "O singură plată. Nu este abonament.",
   pwRestore: "Restaurează achiziția", pwNotNow: "Nu acum",
   pwFail: "Nu a reușit. Nu ți s-a debitat nimic.", pwNone: "Nu am găsit nicio achiziție anterioară pe acest Apple ID.",
-  pwPending: "Se așteaptă aprobarea. Testele se deblochează imediat ce sosește.",
-  pwTrial: "Îți mai rămân {n} h de acces gratuit",
-  pwOwned: "Deblocat. Mulțumim.",
+  pwPending: "Aștept aprobare. Calea se va debloca imediat ce va fi aprobată.",
+  pwTrial: "{n}h acces la cale rămas",
+  pwOwned: "Cale deblochată. Mulțumiri.",
 };
 
 T.pl = {
@@ -1150,14 +1150,14 @@ T.pl = {
   readyBody: "Wszystkie osiem poziomów zaliczone, w tym ostatni na 21 z 24 — trzy punkty powyżej tego, czego wymaga prawdziwy egzamin.",
   bookCta: "Zapisz się na gov.uk", pathDone: "Wszystkie osiem poziomów zaliczone",
   bookNote: "gov.uk/life-in-the-uk-test to jedyna oficjalna strona zapisów. £50 za podejście, zapisz się co najmniej 3 dni wcześniej i weź ten sam dokument ze zdjęciem, którym się zapisywałeś.",
-  pwTitle: "Odblokuj testy", pwLead: "Twoje 24 darmowe godziny minęły. Notatki, fiszki i informacje o dniu egzaminu pozostają darmowe — odblokuj, aby dalej ćwiczyć.",
-  pwOne: "Wszystkie testy próbne, szybkie quizy i ćwiczenia z rozdziałów", pwTwo: "Twoja lista błędów i zapisane pytania", pwThree: "Żadnych reklam w całej aplikacji",
+  pwTitle: "Odblokuj ścieżkę", pwLead: "Twój 24-godzinny okres próbny ścieżki się skończył. Wszystko inne pozostaje darmowe — odblokuj ścieżkę i usuń reklamy.",
+  pwOne: "Dostęp do wszystkich ośmiu poziomów ścieżki", pwTwo: "Pełne, limitowane czasowo testy", pwThree: "Brak reklam w całej aplikacji",
   pwBuy: "Odblokuj za {p}", pwBuying: "Chwileczkę…", pwOnce: "Jednorazowa płatność. To nie subskrypcja.",
   pwRestore: "Przywróć zakup", pwNotNow: "Nie teraz",
   pwFail: "Nie udało się. Nie pobrano żadnej opłaty.", pwNone: "Nie znaleziono wcześniejszego zakupu na tym Apple ID.",
-  pwPending: "Czekamy na zatwierdzenie. Testy odblokują się, gdy tylko przyjdzie.",
-  pwTrial: "Pozostało {n} h darmowego dostępu",
-  pwOwned: "Odblokowane. Dziękujemy.",
+  pwPending: "Oczekiwanie na zatwierdzenie. Ścieżka zostanie odblokowana zaraz po zatwierdzeniu.",
+  pwTrial: "{n}h dostępu do ścieżki pozostało",
+  pwOwned: "Ścieżka odblokowana. Dziękuję.",
 };
 
 T.it = {
@@ -1320,14 +1320,14 @@ T.pt = {
   readyBody: "Todos os oito níveis concluídos, incluindo o último com 21 em 24 — três pontos acima do que o teste real exige.",
   bookCta: "Marcar em gov.uk", pathDone: "Todos os oito níveis concluídos",
   bookNote: "gov.uk/life-in-the-uk-test é o único site oficial de marcação. £50 por tentativa, marque com pelo menos 3 dias de antecedência e leve o mesmo documento com fotografia com que marcou.",
-  pwTitle: "Desbloquear os testes", pwLead: "As suas 24 horas gratuitas terminaram. Os apontamentos, os cartões e o guia do dia do exame continuam gratuitos — desbloqueie para continuar a praticar.",
-  pwOne: "Todos os simulados, questionários rápidos e prática por capítulo", pwTwo: "A sua lista de erros e as perguntas guardadas", pwThree: "Sem anúncios, em toda a aplicação",
+  pwTitle: "Desbloquear o caminho", pwLead: "Seu período de avaliação de caminho de 24 horas terminou. Tudo o mais permanece gratuito — desbloqueie o caminho e remova anúncios.",
+  pwOne: "Acesso aos oito níveis de caminho completos", pwTwo: "Testes completos e cronometrados", pwThree: "Sem anúncios em lugar nenhum do aplicativo",
   pwBuy: "Desbloquear por {p}", pwBuying: "Um momento…", pwOnce: "Pagamento único. Não é uma subscrição.",
   pwRestore: "Restaurar compra", pwNotNow: "Agora não",
   pwFail: "Não foi possível concluir. Não lhe foi cobrado nada.", pwNone: "Não foi encontrada nenhuma compra anterior neste Apple ID.",
-  pwPending: "A aguardar aprovação. Os testes desbloqueiam assim que chegar.",
-  pwTrial: "Restam {n} h de acesso gratuito",
-  pwOwned: "Desbloqueado. Obrigado.",
+  pwPending: "Aguardando aprovação. O caminho será desbloqueado assim que for aprovado.",
+  pwTrial: "{n}h de acesso ao caminho restante",
+  pwOwned: "Caminho desbloqueado. Obrigado.",
 };
 
 T.gu = {
@@ -1405,14 +1405,14 @@ T.gu = {
   readyBody: "બધા આઠ સ્તર પાર, છેલ્લું પણ 24 માંથી 21 પર — અસલી પરીક્ષાની માંગ કરતાં ત્રણ ગુણ ઉપર.",
   bookCta: "gov.uk પર બુક કરો", pathDone: "બધા આઠ સ્તર પાર",
   bookNote: "gov.uk/life-in-the-uk-test એ જ એકમાત્ર સત્તાવાર બુકિંગ સાઇટ છે. દરેક પ્રયાસના £50, ઓછામાં ઓછા 3 દિવસ પહેલાં બુક કરો, અને જે ફોટો ઓળખપત્રથી બુક કર્યું તે જ લાવો.",
-  pwTitle: "ક્વિઝ અનલૉક કરો", pwLead: "તમારા 24 મફત કલાક પૂરા થયા. સ્ટડી નોટ્સ, ફ્લેશકાર્ડ અને પરીક્ષાના દિવસની માહિતી મફત જ રહેશે — અભ્યાસ ચાલુ રાખવા અનલૉક કરો.",
-  pwOne: "દરેક મૉક ટેસ્ટ, ઝડપી ક્વિઝ અને પ્રકરણ અભ્યાસ", pwTwo: "તમારી ભૂલોની યાદી અને સાચવેલા પ્રશ્નો", pwThree: "આખી ઍપમાં ક્યાંય જાહેરાત નહીં",
+  pwTitle: "પાથ અનલૉક કરો", pwLead: "તમારી 24-કલાકીય પાથ ટ્રાયલ સમાપ્ત થઈ ગઈ। બાકી બધું મુક્ત રહે છે — પાથ અનલૉક કરો અને જાહેરાતો દૂર કરો।",
+  pwOne: "તમામ આટલી પાથ સ્તરોમાં પ્રવેશ", pwTwo: "સંપૂર્ણ, સમય-મર્યાદિત સમ્પૂર્ણ પરીક્ષણો", pwThree: "આવકમાં ક્યાં પણ જાહેરાતો નહીં",
   pwBuy: "{p}માં અનલૉક કરો", pwBuying: "એક ક્ષણ…", pwOnce: "એક જ વારની ચુકવણી. સબસ્ક્રિપ્શન નથી.",
   pwRestore: "ખરીદી પુનઃસ્થાપિત કરો", pwNotNow: "અત્યારે નહીં",
   pwFail: "આ પૂરું થઈ શક્યું નહીં. તમારી પાસેથી કોઈ રકમ લેવાઈ નથી.", pwNone: "આ Apple ID પર અગાઉની કોઈ ખરીદી મળી નથી.",
-  pwPending: "મંજૂરીની રાહ છે. મંજૂરી મળતાં જ ક્વિઝ ખૂલી જશે.",
-  pwTrial: "{n} કલાકનો મફત વપરાશ બાકી",
-  pwOwned: "અનલૉક થયું. આભાર.",
+  pwPending: "મંજૂરી માટે રાહ જોવા છે। જેવી જ મંજૂરી આવે તેવી પાથ અનલૉક થશે।",
+  pwTrial: "{n}h પાથ એક્સેસ બાકી",
+  pwOwned: "પાથ અનલૉક થઈ ગઈ। આભાર.",
 };
 
 T.ta = {
@@ -1490,14 +1490,14 @@ T.ta = {
   readyBody: "எட்டு நிலைகளும் கடந்தாயிற்று, கடைசியும் 24-இல் 21 — உண்மையான தேர்வு கேட்பதை விட மூன்று மதிப்பெண் அதிகம்.",
   bookCta: "gov.uk-இல் பதிவு செய்", pathDone: "எட்டு நிலைகளும் கடந்தாயிற்று",
   bookNote: "gov.uk/life-in-the-uk-test மட்டுமே அதிகாரப்பூர்வ பதிவுத் தளம். ஒவ்வொரு முயற்சிக்கும் £50, குறைந்தது 3 நாட்களுக்கு முன் பதிவு செய்யவும், பதிவு செய்த அதே புகைப்பட அடையாளத்தைக் கொண்டு வரவும்.",
-  pwTitle: "வினாடி வினாவைத் திறக்கவும்", pwLead: "உங்கள் 24 மணி நேர இலவசப் பயன்பாடு முடிந்தது. குறிப்புகள், ஃபிளாஷ்கார்டுகள், தேர்வு நாள் வழிகாட்டுதல் இலவசமாகவே இருக்கும் — பயிற்சியைத் தொடர திறக்கவும்.",
-  pwOne: "அனைத்து மாதிரித் தேர்வுகள், விரைவு வினாடி வினா, அத்தியாயப் பயிற்சி", pwTwo: "உங்கள் தவறுகள் பட்டியல் மற்றும் சேமித்த கேள்விகள்", pwThree: "ஆப்பில் எங்கும் விளம்பரம் இல்லை",
+  pwTitle: "பாதையை திறக்கவும்", pwLead: "உங்கள் 24 மணிநேர பாதை சோதனை முடிந்துவிட்டது. மற்றெல்லாம் இலவசமாக இருக்கும் — பாதையை திறக்கவும் மற்றும் விளம்பரங்களை அகற்றவும்।",
+  pwOne: "எட்டு பாதை நிலைகளுக்கான அணுகல்", pwTwo: "முழு, நேரம் கட்டுப்படுத்தப்பட்ட முழு சோதனைகள்", pwThree: "பயன்பாட்டில் எங்கும் விளம்பரங்கள் இல்லை",
   pwBuy: "{p}க்கு திறக்கவும்", pwBuying: "ஒரு நிமிடம்…", pwOnce: "ஒரே முறை கட்டணம். சந்தா அல்ல.",
   pwRestore: "கொள்முதலை மீட்டெடுக்கவும்", pwNotNow: "இப்போது வேண்டாம்",
   pwFail: "இது நிறைவடையவில்லை. உங்களிடம் எந்தத் தொகையும் வசூலிக்கப்படவில்லை.", pwNone: "இந்த Apple ID-யில் முந்தைய கொள்முதல் எதுவும் இல்லை.",
-  pwPending: "ஒப்புதலுக்காகக் காத்திருக்கிறது. ஒப்புதல் கிடைத்ததும் வினாடி வினா திறக்கும்.",
-  pwTrial: "{n} மணி நேர இலவசப் பயன்பாடு மீதம்",
-  pwOwned: "திறக்கப்பட்டது. நன்றி.",
+  pwPending: "ஆமோதனத்திற்காக காத்திருக்கிறது। ஆமோதனம் வந்ததுமே பாதை திறந்துவிடும்.",
+  pwTrial: "{n}h பாதை அணுகல் மீதமுள்ளது",
+  pwOwned: "பாதை திறக்கப்பட்டது। நன்றி.",
 };
 
 T.fa = {
@@ -1575,14 +1575,14 @@ T.fa = {
   readyBody: "هر هشت مرحله گذرانده شد، از جمله آخری با 21 از 24 — سه نمره بالاتر از چیزی که آزمون واقعی می‌خواهد.",
   bookCta: "رزرو در gov.uk", pathDone: "هر هشت مرحله گذرانده شد",
   bookNote: "تنها سایت رسمی رزرو gov.uk/life-in-the-uk-test است. هر تلاش £50، دست‌کم 3 روز زودتر رزرو کنید و همان کارت شناسایی عکس‌داری را که با آن رزرو کردید همراه بیاورید.",
-  pwTitle: "باز کردن آزمون‌ها", pwLead: "۲۴ ساعت رایگان شما تمام شد. یادداشت‌ها، فلش‌کارت‌ها و راهنمای روز آزمون رایگان می‌مانند — برای ادامهٔ تمرین قفل را باز کنید.",
-  pwOne: "همهٔ آزمون‌های آزمایشی، آزمون سریع و تمرین فصل‌ها", pwTwo: "فهرست اشتباه‌ها و سؤال‌های ذخیره‌شدهٔ شما", pwThree: "بدون تبلیغات، در هیچ جای برنامه",
+  pwTitle: "باز کردن مسیر", pwLead: "دوره آزمایشی 24 ساعتی مسیر شما تمام شد. همه چیز دیگر رایگان می‌ماند — مسیر را باز کنید و تبلیغات را حذف کنید.",
+  pwOne: "دسترسی به هر هشت سطح مسیر", pwTwo: "آزمون‌های کامل و محدود به زمان", pwThree: "بدون تبلیغات در هر جای برنامه",
   pwBuy: "باز کردن با {p}", pwBuying: "یک لحظه…", pwOnce: "پرداخت یک‌باره. اشتراک نیست.",
   pwRestore: "بازیابی خرید", pwNotNow: "الان نه",
   pwFail: "انجام نشد. مبلغی از شما کسر نشده است.", pwNone: "خرید قبلی روی این Apple ID پیدا نشد.",
-  pwPending: "در انتظار تأیید. به‌محض تأیید، آزمون‌ها باز می‌شوند.",
-  pwTrial: "{n} ساعت دسترسی رایگان باقی مانده",
-  pwOwned: "باز شد. سپاسگزاریم.",
+  pwPending: "در انتظار تایید. مسیر بلافاصله پس از تایید باز خواهد شد.",
+  pwTrial: "{n}h دسترسی مسیر باقی‌مانده",
+  pwOwned: "مسیر باز شد. متشکرم.",
 };
 
 T.zh = {
@@ -1660,14 +1660,14 @@ T.zh = {
   readyBody: "八个级别全部通过，最后一级也拿到 24 题中的 21 题——比真实考试要求高出三分。",
   bookCta: "在 gov.uk 预约", pathDone: "八个级别全部通过",
   bookNote: "gov.uk/life-in-the-uk-test 是唯一的官方预约网站。每次 £50，至少提前 3 天预约，并携带与预约时相同的带照片证件。",
-  pwTitle: "解锁题目练习", pwLead: "你的 24 小时免费时间已结束。学习笔记、记忆卡和考试当天指南仍然免费——解锁即可继续做题。",
-  pwOne: "全部模拟考试、快速测验和分章练习", pwTwo: "你的错题本和收藏的题目", pwThree: "应用内任何地方都没有广告",
+  pwTitle: "解锁路径", pwLead: "您的24小时路径试用已结束。其他一切保持免费——解锁路径并移除广告。",
+  pwOne: "访问所有八个路径级别", pwTwo: "完整的、限时的完整模拟考试", pwThree: "应用内任何地方都没有广告",
   pwBuy: "{p} 解锁", pwBuying: "请稍候…", pwOnce: "一次性付费，不是订阅。",
   pwRestore: "恢复购买", pwNotNow: "暂不",
   pwFail: "未能完成，没有向你收取任何费用。", pwNone: "此 Apple ID 上没有找到以前的购买记录。",
-  pwPending: "等待批准。批准后题目练习会立即解锁。",
-  pwTrial: "还剩 {n} 小时免费使用",
-  pwOwned: "已解锁，谢谢你。",
+  pwPending: "等待批准。批准后立即解锁路径。",
+  pwTrial: "{n}小时的路径访问权限剩余",
+  pwOwned: "路径已解锁。谢谢。",
 };
 
 T.tl = {
@@ -1745,14 +1745,14 @@ T.tl = {
   readyBody: "Naipasa lahat ng walong antas, pati ang huli sa 21 sa 24 — tatlong marka higit sa hinihingi ng totoong test.",
   bookCta: "Mag-book sa gov.uk", pathDone: "Naipasa lahat ng walong antas",
   bookNote: "Ang gov.uk/life-in-the-uk-test lang ang opisyal na booking site. £50 kada pagsubok, mag-book nang hindi bababa sa 3 araw bago, at dalhin ang parehong ID na may litrato na ginamit mo sa pag-book.",
-  pwTitle: "I-unlock ang mga pagsusulit", pwLead: "Tapos na ang iyong 24 na oras na libre. Libre pa rin ang mga study notes, flashcard at gabay sa araw ng test — mag-unlock para makapagsanay pa.",
-  pwOne: "Lahat ng mock test, mabilisang pagsusulit at pagsasanay kada kabanata", pwTwo: "Ang listahan ng iyong mga mali at mga na-save na tanong", pwThree: "Walang ad, kahit saan sa app",
+  pwTitle: "I-unlock ang landas", pwLead: "Ang iyong 24-oras na pagsubok sa landas ay natapos na. Lahat ng iba ay nananatiling libre — i-unlock ang landas at alisin ang mga ad.",
+  pwOne: "Pagpasok sa lahat ng walong antas ng landas", pwTwo: "Kumpletong, limitadong oras na buong pagsusulit", pwThree: "Walang ads saanman sa app",
   pwBuy: "I-unlock sa {p}", pwBuying: "Sandali lang…", pwOnce: "Isang bayad lang. Hindi subscription.",
   pwRestore: "Ibalik ang binili", pwNotNow: "Hindi muna",
   pwFail: "Hindi natuloy. Wala kang sinigil.", pwNone: "Walang nakitang dating binili sa Apple ID na ito.",
-  pwPending: "Naghihintay ng pag-apruba. Mabubuksan ang mga pagsusulit pagdating nito.",
-  pwTrial: "{n} oras pa ang libreng access",
-  pwOwned: "Na-unlock na. Salamat.",
+  pwPending: "Naghihintay ng apruba. Ang landas ay bubuksan sa sandaling aprubado.",
+  pwTrial: "{n}h ng landas na access na natitira",
+  pwOwned: "Ang landas ay na-unlock. Salamat.",
 };
 
 let LANG = "en";
