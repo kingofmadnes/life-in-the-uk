@@ -152,26 +152,42 @@ export async function resolve() {
  */
 export function useEntitlement() {
   const [state, setState] = useState("loading");
-  const [pathTrialStart, setPathTrialStart] = useState(null);
+  /* Named trialStartMs, NOT pathTrialStart: that is the module-level
+     function just above, and a state variable of the same name would
+     shadow it here — every call would throw and leave the state stuck
+     on "loading", which means no ads and nothing ever gated. */
+  const [trialStartMs, setTrialStartMs] = useState(null);
   /* Resolving hits the network, so two of them can be in flight at once —
      a sign-in and a return-from-background, say. Without a token the
      slower one wins by finishing last, which could put someone who has
      just paid back onto the free tier. Only the newest answer is kept. */
   const seq = useRef(0);
 
-  const settle = useCallback((token, next, pts) => {
+  const settle = useCallback((token, next, startMs) => {
     if (token === seq.current) {
       setState(next);
-      setPathTrialStart(pts);
+      setTrialStartMs(startMs);
     }
   }, []);
+
+  /* The clock only matters on the free tier, and only for an account:
+     a purchase outranks it, and a guest has no uid to hang it on. */
+  const readClock = async (next) => {
+    const user = auth && auth.currentUser;
+    if (next !== "free" || !user) return null;
+    try {
+      return await pathTrialStart(user.uid);
+    } catch {
+      // Fails open in pathTrialActive(); never strand someone on a paywall
+      // because a read threw.
+      return null;
+    }
+  };
 
   const refresh = useCallback(async () => {
     const token = ++seq.current;
     const next = await resolve();
-    const user = auth && auth.currentUser;
-    const pts = next === "free" && user ? await pathTrialStart(user.uid) : null;
-    settle(token, next, pts);
+    settle(token, next, await readClock(next));
     return next;
   }, [settle]);
 
@@ -180,9 +196,8 @@ export function useEntitlement() {
     const run = async () => {
       const token = ++seq.current;
       const s = await resolve();
-      const user = auth && auth.currentUser;
-      const pts = s === "free" && user ? await pathTrialStart(user.uid) : null;
-      if (live) settle(token, s, pts);
+      const startMs = await readClock(s);
+      if (live) settle(token, s, startMs);
     };
 
     /* Deliberately no resolve() before this point. Firebase restores the
@@ -208,7 +223,7 @@ export function useEntitlement() {
     };
   }, [settle]);
 
-  const pathOpen = pathOpenFor(state, pathTrialActive(pathTrialStart, Date.now()));
+  const pathOpen = pathOpenFor(state, pathTrialActive(trialStartMs, Date.now()));
 
   return {
     state,
