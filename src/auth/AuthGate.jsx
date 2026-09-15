@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, deleteUser } from "firebase/auth";
 import { auth, isFirebaseConfigured } from "../firebase.js";
-import { forgetTrial } from "../entitlement.js";
+import { forgetPathTrial } from "../entitlement.js";
 import AuthScreen from "./AuthScreen.jsx";
 import "./auth.css";
 
@@ -118,10 +118,10 @@ function AccountButton({ user }) {
     setErr("");
     const uid = user.uid;
     try {
-      // The trial record has to go first: once the auth user is deleted
+      // The path trial record has to go first: once the auth user is deleted
       // there are no credentials left to delete it with, and the privacy
       // policy says account deletion removes it.
-      await forgetTrial(uid);
+      await forgetPathTrial(uid);
       await deleteUser(user);
       try {
         localStorage.removeItem("uk2:all::" + uid);

@@ -7,36 +7,40 @@
    person may use lives here.
 
    States:
-     loading  still working it out — show the app, gate nothing
-     web      not the native app: everything, no ads, forever
-     paid     owns the one-off unlock: everything, no ads
-     trial    signed in less than 24h ago: everything, no ads
-     free     the steady state: whole app minus the quiz, with ads
+     loading         still working it out — show the app, gate nothing
+     web             not the native app: everything, no ads, forever
+     paid            owns the £3.99 unlock: path open, no ads
+     free            the steady state: path locked (unless trial active),
+                     everything else open, with ads
+
+   The path has a 24-hour trial: new signed-in users get 24h to try it,
+   then must pay to keep using it. Free users always see ads. Guests get
+   the same experience as free (path locked, ads on) but without a trial
+   clock.
    ============================================================ */
 
-export const TRIAL_MS = 24 * 60 * 60 * 1000;
+export const PATH_TRIAL_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Trial or free, given when the clock started.
+ * Is the path trial active? Given when it started and the current time.
  *
  * A null start means we never managed to read the clock: never been
  * online, or Firestore is not enabled yet. That fails OPEN — a student
- * who signed up thirty seconds ago should not meet a paywall because
- * their train went into a tunnel. Nothing is written in that case, so
- * the real 24 hours still start from the first connected launch.
+ * who signed up thirty seconds ago should have path access while the
+ * server works. Nothing is written in that case, so the real 24 hours
+ * still start from the first connected launch.
  */
-export function trialState(startedMs, nowMs) {
-  if (!startedMs) return "trial";
+export function pathTrialActive(startedMs, nowMs) {
+  if (!startedMs) return true;
   const elapsed = nowMs - startedMs;
-  // A start in the future means a wrong device clock or a bad write.
-  // Treat it as just-started rather than instantly expired.
-  if (elapsed < 0) return "trial";
-  return elapsed < TRIAL_MS ? "trial" : "free";
+  if (elapsed < 0) return true;  // clock went backward; give them the trial
+  return elapsed < PATH_TRIAL_MS;
 }
 
-/** May this person open a quiz screen? Everything but the free tier. */
-export function unlockedFor(state) {
-  return state !== "free";
+/** May this person open the path? Paid users always; free users if trial active; others always. */
+export function pathOpenFor(state, pathTrialActive) {
+  if (state === "free") return pathTrialActive;
+  return true;  // paid, web, loading, etc. all have path open
 }
 
 /** Should this person be shown ads? Only the free tier. */
@@ -44,10 +48,10 @@ export function adsOnFor(state) {
   return state === "free";
 }
 
-/** Whole hours of trial left, for the countdown in Settings. */
-export function trialHoursLeft(startedMs, nowMs) {
+/** Whole hours of path trial left, for the countdown in Settings. */
+export function pathTrialHoursLeft(startedMs, nowMs) {
   if (!startedMs) return null;
-  const left = TRIAL_MS - (nowMs - startedMs);
+  const left = PATH_TRIAL_MS - (nowMs - startedMs);
   if (left <= 0) return 0;
   return Math.ceil(left / (60 * 60 * 1000));
 }

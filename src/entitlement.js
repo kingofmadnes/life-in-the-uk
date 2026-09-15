@@ -5,20 +5,18 @@
 
      loading  still working it out — show the app, gate nothing
      web      not the native app: everything, no ads, forever
-     paid     owns the £2.99 unlock: everything, no ads
-     trial    signed in less than 24h ago: everything, no ads
-     free     the steady state: whole app minus the quiz, with ads
+     paid     owns the £3.99 unlock: path open, no ads
+     free     the steady state: path locked (unless trial active),
+              everything else open, with ads
 
-   Two derived booleans are what callers should actually branch on,
-   so nobody has to remember that "web" outranks "free":
+   Two derived booleans are what callers should actually branch on:
 
-     unlocked  may open the quiz
-     adsOn     should be shown ads
+     pathOpen  may open the path (paid, or free with active trial)
+     adsOn     should be shown ads (free tier only)
 
-   The trial clock lives in Firestore, not on the device, because a
-   device clock resets when you delete the app. See the rules in the
-   plan: `allow update: if false` is what stops an account restarting
-   its own trial.
+   The path trial clock lives in Firestore, not on the device, because a
+   device clock resets when you delete the app. See the rules: `allow
+   update: if false` is what stops an account restarting its own trial.
 
    This file does the talking — Firestore, StoreKit, React. The
    decisions themselves live in entitlementLogic.js, which has no
@@ -31,19 +29,19 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, getDb } from "./firebase.js";
 import { isOwned } from "./storekit.js";
 import {
-  TRIAL_MS, trialState, unlockedFor, adsOnFor, trialHoursLeft,
+  PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft,
 } from "./entitlementLogic.js";
 
 const isNative = Capacitor.isNativePlatform();
 
-export { TRIAL_MS, trialState, unlockedFor, adsOnFor, trialHoursLeft };
+export { PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft };
 
-/* The last trial start we successfully read from Firestore, per account.
+/* The last path trial start we successfully read from Firestore, per account.
    This is a cache, never the authority: it exists so that a student
    revising on a train keeps the state they already had instead of being
    bounced to a paywall by a dropped connection. It can only ever make
    the trial end sooner, never later. */
-const cacheKey = (uid) => "uk2:trial::" + uid;
+const cacheKey = (uid) => "uk2:pathTrial::" + uid;
 
 function readCache(uid) {
   try {
@@ -63,14 +61,14 @@ function writeCache(uid, ms) {
 }
 
 /**
- * When did this account's trial start? Milliseconds, or null if we
+ * When did this account's path trial start? Milliseconds, or null if we
  * genuinely could not find out.
  *
  * Writes the clock on first sight and never again — the document is
  * create-only in the security rules, so a second write would be
  * rejected by the server even if a bug here tried.
  */
-async function trialStart(uid) {
+async function pathTrialStart(uid) {
   const db = await getDb();
   if (!db) return readCache(uid);
 
@@ -81,12 +79,12 @@ async function trialStart(uid) {
   try {
     let snap = await getDoc(ref);
     if (!snap.exists()) {
-      await setDoc(ref, { trialStartedAt: serverTimestamp() });
+      await setDoc(ref, { pathTrialStartedAt: serverTimestamp() });
       // The local snapshot right after a write still has a null
       // timestamp — the server is the one that stamps it.
       snap = await getDocFromServer(ref);
     }
-    const stamp = snap.data() && snap.data().trialStartedAt;
+    const stamp = snap.data() && snap.data().pathTrialStartedAt;
     const ms = stamp && typeof stamp.toMillis === "function" ? stamp.toMillis() : null;
     if (ms) {
       writeCache(uid, ms);
@@ -101,15 +99,15 @@ async function trialStart(uid) {
 }
 
 /**
- * Remove this account's trial record. Called on the way out of "Delete
+ * Remove this account's path trial record. Called on the way out of "Delete
  * account", before the auth user goes — once it is gone the client has
  * no credentials left to delete anything with.
  *
- * Losing the record does not hand anyone a free trial: a new account
+ * Losing the record does not hand anyone a free path trial: a new account
  * gets a new uid and its own fresh clock either way. Deleting it is
  * simply what the privacy policy promises.
  */
-export async function forgetTrial(uid) {
+export async function forgetPathTrial(uid) {
   if (!isNative || !uid) return;
   try {
     const db = await getDb();
@@ -137,59 +135,67 @@ export async function resolve() {
   if (await isOwned()) return "paid";
 
   const user = auth && auth.currentUser;
-  // Guests have no account to hang a trial on. They still get the
-  // whole app bar the quiz, which is the same deal everyone lands on
-  // after 24 hours.
+  // Guests have no account to hang a path trial on. They still get the
+  // whole app except the path, same as free users after 24 hours.
   if (!user) return "free";
 
-  return trialState(await trialStart(user.uid), Date.now());
+  // For free users, just return "free" — the path trial is checked
+  // separately in useEntitlement using pathTrialActive().
+  return "free";
 }
 
 /**
  * React binding. Re-resolves when the signed-in account changes, and
  * exposes refresh() for the moments that can change the answer
  * out-of-band: finishing a purchase, restoring one, coming back from
- * the background after a trial has run out.
+ * the background after a path trial has run out.
  */
 export function useEntitlement() {
   const [state, setState] = useState("loading");
+  const [pathTrialStart, setPathTrialStart] = useState(null);
   /* Resolving hits the network, so two of them can be in flight at once —
      a sign-in and a return-from-background, say. Without a token the
      slower one wins by finishing last, which could put someone who has
      just paid back onto the free tier. Only the newest answer is kept. */
   const seq = useRef(0);
 
-  const settle = useCallback((token, next) => {
-    if (token === seq.current) setState(next);
+  const settle = useCallback((token, next, pts) => {
+    if (token === seq.current) {
+      setState(next);
+      setPathTrialStart(pts);
+    }
   }, []);
 
   const refresh = useCallback(async () => {
     const token = ++seq.current;
     const next = await resolve();
-    settle(token, next);
+    const user = auth && auth.currentUser;
+    const pts = next === "free" && user ? await pathTrialStart(user.uid) : null;
+    settle(token, next, pts);
     return next;
   }, [settle]);
 
   useEffect(() => {
     let live = true;
-    const run = () => {
+    const run = async () => {
       const token = ++seq.current;
-      resolve().then((s) => {
-        if (live) settle(token, s);
-      });
+      const s = await resolve();
+      const user = auth && auth.currentUser;
+      const pts = s === "free" && user ? await pathTrialStart(user.uid) : null;
+      if (live) settle(token, s, pts);
     };
 
     /* Deliberately no resolve() before this point. Firebase restores the
        session asynchronously, so calling resolve() on mount would read
        currentUser as null and report a signed-in student as a guest —
-       ads on, quiz locked — until the listener corrected it a moment
+       ads on, path locked — until the listener corrected it a moment
        later. onAuthStateChanged always fires once on subscribe, with
        null or a user, which is exactly the signal we want to start from.
        Until then the state stays "loading": nothing gated, no ads. */
     const stop = auth ? onAuthStateChanged(auth, run) : null;
     if (!auth) run();
 
-    // A trial can expire while the app sits in the background.
+    // A path trial can expire while the app sits in the background.
     const onShow = () => {
       if (document.visibilityState === "visible") run();
     };
@@ -200,11 +206,13 @@ export function useEntitlement() {
       if (stop) stop();
       document.removeEventListener("visibilitychange", onShow);
     };
-  }, []);
+  }, [settle]);
+
+  const pathOpen = pathOpenFor(state, pathTrialActive(pathTrialStart, Date.now()));
 
   return {
     state,
-    unlocked: unlockedFor(state),
+    pathOpen,
     adsOn: adsOnFor(state),
     loading: state === "loading",
     refresh,

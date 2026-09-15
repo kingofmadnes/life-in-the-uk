@@ -555,14 +555,14 @@ T.en = {
   readyBody: "All eight levels cleared, including the last one at 21 out of 24 — three marks above what the real test asks of you.",
   bookCta: "Book at gov.uk", pathDone: "All eight levels cleared",
   bookNote: "gov.uk/life-in-the-uk-test is the only official booking site. £50 an attempt, book at least 3 days ahead, and bring the same photo ID you booked with.",
-  pwTitle: "Unlock the quiz", pwLead: "Your free 24 hours are up. Study notes, flashcards and test-day guidance stay free — unlock to carry on testing yourself.",
-  pwOne: "Every mock test, quick quiz and chapter practice", pwTwo: "Your mistakes list and saved questions", pwThree: "No ads, anywhere in the app",
+  pwTitle: "Unlock the path", pwLead: "Your 24-hour path trial has ended. Everything else stays free — unlock the path and remove ads.",
+  pwOne: "Access to all eight path levels", pwTwo: "Complete, timed full-length mocks", pwThree: "No ads, anywhere in the app",
   pwBuy: "Unlock for {p}", pwBuying: "Just a moment…", pwOnce: "One payment. Not a subscription.",
   pwRestore: "Restore purchase", pwNotNow: "Not now",
   pwFail: "That didn't go through. You have not been charged.", pwNone: "No previous purchase found on this Apple ID.",
-  pwPending: "Waiting for approval. The quiz unlocks as soon as it comes through.",
-  pwTrial: "{n}h of free access left",
-  pwOwned: "Unlocked. Thank you.",
+  pwPending: "Waiting for approval. The path unlocks as soon as it comes through.",
+  pwTrial: "{n}h of path access left",
+  pwOwned: "Path unlocked. Thank you.",
 };
 
 T.hi = {
@@ -640,14 +640,14 @@ T.hi = {
   readyBody: "सभी आठ स्तर पार, आख़िरी भी 24 में से 21 पर — असली परीक्षा की माँग से तीन अंक ऊपर।",
   bookCta: "gov.uk पर बुक करें", pathDone: "सभी आठ स्तर पार",
   bookNote: "gov.uk/life-in-the-uk-test ही एकमात्र आधिकारिक बुकिंग साइट है। हर प्रयास £50, कम से कम 3 दिन पहले बुक करें, और वही फोटो पहचान लाएँ जिससे बुक किया।",
-  pwTitle: "क्विज़ अनलॉक करें", pwLead: "आपके 24 मुफ़्त घंटे पूरे हो गए। अध्ययन नोट्स, फ़्लैशकार्ड और परीक्षा-दिवस की जानकारी मुफ़्त रहेगी — अभ्यास जारी रखने के लिए अनलॉक करें।",
-  pwOne: "हर मॉक टेस्ट, त्वरित क्विज़ और अध्याय अभ्यास", pwTwo: "आपकी गलतियों की सूची और सहेजे गए प्रश्न", pwThree: "पूरे ऐप में कोई विज्ञापन नहीं",
+  pwTitle: "पथ अनलॉक करें", pwLead: "आपका 24 घंटे का पथ परीक्षण समाप्त हो गया। बाकी सब कुछ मुफ़्त रहता है — पथ अनलॉक करें और विज्ञापन हटाएँ।",
+  pwOne: "सभी आठ पथ स्तरों तक पहुँच", pwTwo: "संपूर्ण, समयबद्ध पूर्ण-लंबाई के मॉक", pwThree: "पूरे ऐप में कोई विज्ञापन नहीं",
   pwBuy: "{p} में अनलॉक करें", pwBuying: "एक क्षण…", pwOnce: "एक बार का भुगतान। सदस्यता नहीं।",
   pwRestore: "खरीद बहाल करें", pwNotNow: "अभी नहीं",
   pwFail: "यह पूरा नहीं हो सका। आपसे कोई शुल्क नहीं लिया गया।", pwNone: "इस Apple ID पर कोई पिछली खरीद नहीं मिली।",
-  pwPending: "स्वीकृति की प्रतीक्षा है। मंज़ूरी मिलते ही क्विज़ खुल जाएगा।",
-  pwTrial: "{n} घंटे की मुफ़्त पहुँच बाकी",
-  pwOwned: "अनलॉक हो गया। धन्यवाद।",
+  pwPending: "स्वीकृति की प्रतीक्षा है। मंज़ूरी मिलते ही पथ खुल जाएगा।",
+  pwTrial: "{n} घंटे की पथ पहुँच बाकी",
+  pwOwned: "पथ अनलॉक हो गया। धन्यवाद।",
 };
 
 T.ur = {
@@ -3745,8 +3745,8 @@ export default function App() {
      without the self-testing.
 
      Nothing below applies on the web, where entitlement resolves
-     to "web" and unlocked is always true. */
-  const GATED = ["exam", "quick", "practice", "mistakes", "saved", "level"];
+     to "web" and pathOpen is always true. */
+  const GATED = ["path"];
 
   const navigate = (v) => {
     if (v === "practice") setPracticeChapter(null);
@@ -3773,20 +3773,20 @@ export default function App() {
   };
 
   const go = (v) => {
-    if (GATED.includes(v) && !ent.unlocked) { setPending({ go: v }); return; }
+    if (GATED.includes(v) && !ent.pathOpen) { setPending({ go: v }); return; }
     navigate(v);
   };
 
   const startLevel = (n) => {
     if (!isUnlocked(n, levelProgress)) return;   // the ladder is the point; no skipping
-    if (!ent.unlocked) { setPending({ level: n }); return; }
+    if (!ent.pathOpen) { setPending({ level: n }); return; }
     openLevel(n);
   };
 
   // Study notes link straight into that chapter's practice, so it is a
   // third way into a gated screen and needs the same check.
   const practiseChapter = (n) => {
-    if (!ent.unlocked) { setPending({ chapter: n }); return; }
+    if (!ent.pathOpen) { setPending({ chapter: n }); return; }
     openChapterPractice(n);
   };
 

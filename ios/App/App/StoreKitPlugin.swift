@@ -2,7 +2,7 @@ import Foundation
 import Capacitor
 import StoreKit
 
-/// The purchase side of the app: one non-consumable that unlocks the quiz
+/// The purchase side of the app: one non-consumable that unlocks the path
 /// and turns the ads off permanently.
 ///
 /// StoreKit 2 rather than a third-party SDK, because `Transaction` arrives
