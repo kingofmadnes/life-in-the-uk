@@ -3,65 +3,39 @@
 
    The decisions behind the paywall, with no imports, so they can be
    tested the way quizLogic.js is. entitlement.js does the talking to
-   Firestore, StoreKit and React; everything that decides what a
-   person may use lives here.
+   StoreKit and React; everything that decides what a person may use
+   lives here.
 
    States:
-     loading         still working it out — show the app, gate nothing
-     web             not the native app: everything, no ads, forever
-     paid            owns the £3.99 unlock: path open, no ads
-     free            the steady state: path locked (unless trial active),
-                     everything else open, with ads
+     loading   still working it out — show the app, gate nothing
+     web       not the native app: everything, no ads, forever
+     free      no subscription: path locked, ads on
+     trialing  inside the 3-day free trial: path open, ads still on
+     paid      trial converted to a real charge: path open, ads off
 
-   The path has a 24-hour trial: new signed-in users get 24h to try it,
-   then must pay to keep using it. Free users always see ads. Guests get
-   the same experience as free (path locked, ads on) but without a trial
-   clock.
+   There is no device- or account-side trial clock any more. Apple only
+   allows a free trial to require a payment method on an auto-renewable
+   subscription — never on a one-time purchase — so the trial itself
+   is Apple's to track: StoreKit reports whether the current entitlement
+   is the introductory offer or a paid period, and stateFor() below is
+   the entire translation from that into what this app shows. Nothing
+   here is farmable by reinstalling, because nothing here lives on the
+   device.
    ============================================================ */
 
-export const PATH_TRIAL_MS = 24 * 60 * 60 * 1000;
-
-/**
- * Is the path trial active? Given when it started and the current time.
- *
- * A null start means we never managed to read the clock: never been
- * online, or Firestore is not enabled yet. That fails OPEN — a student
- * who signed up thirty seconds ago should have path access while the
- * server works. Nothing is written in that case, so the real 24 hours
- * still start from the first connected launch.
- */
-export function pathTrialActive(startedMs, nowMs) {
-  if (!startedMs) return true;
-  const elapsed = nowMs - startedMs;
-  if (elapsed < 0) return true;  // clock went backward; give them the trial
-  return elapsed < PATH_TRIAL_MS;
+/** Turn StoreKit's read into one of our states. */
+export function stateFor(owned, trialing) {
+  if (!owned) return "free";
+  return trialing ? "trialing" : "paid";
 }
 
-/** May this person open the path? Paid users always; free users if trial active; others always. */
-export function pathOpenFor(state, pathTrialActive) {
-  if (state === "free") return pathTrialActive;
-  return true;  // paid, web, loading, etc. all have path open
+/** May this person open the path? Everything but a bare "free". */
+export function pathOpenFor(state) {
+  return state !== "free";
 }
 
-/** Should this person be shown ads? Only the free tier. */
+/** Should this person be shown ads? Free and trialing both see ads —
+    only a converted, paid period turns them off. */
 export function adsOnFor(state) {
-  return state === "free";
-}
-
-/**
- * The clock for a trial that starts on first sight: whatever was stored
- * if it is a usable timestamp, otherwise now (which the caller then
- * stores). Keeps "first launch starts the 24 hours, every launch after
- * keeps the original start" in one tested place.
- */
-export function startedOrNow(storedMs, nowMs) {
-  return Number.isFinite(storedMs) && storedMs > 0 ? storedMs : nowMs;
-}
-
-/** Whole hours of path trial left, for the countdown in Settings. */
-export function pathTrialHoursLeft(startedMs, nowMs) {
-  if (!startedMs) return null;
-  const left = PATH_TRIAL_MS - (nowMs - startedMs);
-  if (left <= 0) return 0;
-  return Math.ceil(left / (60 * 60 * 1000));
+  return state === "free" || state === "trialing";
 }

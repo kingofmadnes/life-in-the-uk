@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, deleteUser } from "firebase/auth";
 import { auth, isFirebaseConfigured } from "../firebase.js";
-import { forgetPathTrial } from "../entitlement.js";
 import AuthScreen from "./AuthScreen.jsx";
 import "./auth.css";
 
@@ -118,10 +117,13 @@ function AccountButton({ user }) {
     setErr("");
     const uid = user.uid;
     try {
-      // The path trial record has to go first: once the auth user is deleted
-      // there are no credentials left to delete it with, and the privacy
-      // policy says account deletion removes it.
-      await forgetPathTrial(uid);
+      // Nothing to unwind on the entitlement side: the subscription
+      // belongs to the Apple ID via StoreKit, not to this Firebase
+      // account, so deleting the account correctly leaves it untouched.
+      // Someone who wants to stop paying cancels it from Settings ›
+      // Manage subscription (or Apple's own subscriptions page) —
+      // deleting their study progress here should not silently do that
+      // for them.
       await deleteUser(user);
       try {
         localStorage.removeItem("uk2:all::" + uid);

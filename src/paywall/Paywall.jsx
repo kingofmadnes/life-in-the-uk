@@ -9,16 +9,22 @@ import * as store from "../storekit.js";
    languages the person chose, like every other screen. */
 export default function Paywall({ t, onClose, onUnlocked }) {
   const [price, setPrice] = useState("");
+  const [introDays, setIntroDays] = useState(null);
+  const [introEligible, setIntroEligible] = useState(true);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Ask the App Store what this costs where the viewer lives. Until it
-  // answers, the button says "Unlock" with no figure — better than showing
-  // £2.99 to someone who will be charged in rupees.
+  // Ask the App Store what this costs where the viewer lives, and
+  // whether this Apple ID still qualifies for the free trial. Until it
+  // answers, the button falls back to the plain title rather than
+  // showing a trial offer to someone who may not get one.
   useEffect(() => {
     let live = true;
     store.product().then((p) => {
-      if (live && p && p.price) setPrice(p.price);
+      if (!live || !p) return;
+      if (p.price) setPrice(p.price);
+      if (typeof p.introDays === "number") setIntroDays(p.introDays);
+      if (typeof p.introEligible === "boolean") setIntroEligible(p.introEligible);
     });
     return () => { live = false; };
   }, []);
@@ -40,7 +46,7 @@ export default function Paywall({ t, onClose, onUnlocked }) {
   const restore = async () => {
     setBusy("restore");
     setMsg("");
-    const owned = await store.restore();
+    const { owned } = await store.restore();
     if (owned) {
       onUnlocked();
       return;
@@ -50,13 +56,14 @@ export default function Paywall({ t, onClose, onUnlocked }) {
   };
 
   const working = busy !== "";
+  const showTrial = introEligible && Number.isFinite(introDays) && introDays > 0;
 
   return (
     <div className="pw" role="dialog" aria-modal="true" aria-label={t("pwTitle")}>
       <div className="pw-card">
         <div className="pw-mark" aria-hidden="true">★</div>
         <h2 className="pw-title">{t("pwTitle")}</h2>
-        <p className="pw-lead">{t("pwLead")}</p>
+        <p className="pw-lead">{showTrial ? t("pwLeadTrial", { n: introDays }) : t("pwLeadNoTrial")}</p>
 
         <ul className="pw-list">
           {[t("pwOne"), t("pwTwo"), t("pwThree")].map((line) => (
@@ -70,9 +77,22 @@ export default function Paywall({ t, onClose, onUnlocked }) {
         {msg && <p className="pw-msg">{msg}</p>}
 
         <button type="button" className="pw-buy" disabled={working} onClick={buy}>
-          {busy === "buy" ? t("pwBuying") : price ? t("pwBuy", { p: price }) : t("pwTitle")}
+          {busy === "buy"
+            ? t("pwBuying")
+            : showTrial
+              ? t("pwStartTrial", { n: introDays })
+              : price
+                ? t("pwBuy", { p: price })
+                : t("pwTitle")}
         </button>
-        <p className="pw-once">{t("pwOnce")}</p>
+        {/* The mandatory bit: what this actually charges and when, and
+            that it renews unless cancelled. Apple requires this text be
+            visible before the purchase, not just in a linked policy. */}
+        <p className="pw-once">
+          {price
+            ? (showTrial ? t("pwTrialTerms", { n: introDays, p: price }) : t("pwRenewTerms", { p: price }))
+            : ""}
+        </p>
 
         <button type="button" className="pw-alt" disabled={working} onClick={restore}>
           {busy === "restore" ? t("pwBuying") : t("pwRestore")}

@@ -3,246 +3,92 @@
 
    Resolves to exactly one state:
 
-     loading  still working it out — show the app, gate nothing
-     web      not the native app: everything, no ads, forever
-     paid     owns the £3.99 unlock: path open, no ads
-     free     the steady state: path locked (unless trial active),
-              everything else open, with ads
+     loading   still working it out — show the app, gate nothing
+     web       not the native app: everything, no ads, forever
+     free      no subscription: path locked, ads on
+     trialing  inside the 3-day free trial: path open, ads still on
+     paid      trial converted to a real charge: path open, ads off
 
    Two derived booleans are what callers should actually branch on:
 
-     pathOpen  may open the path (paid, or free with active trial)
-     adsOn     should be shown ads (free tier only)
+     pathOpen  may open the path (anything but a bare "free")
+     adsOn     should be shown ads (free and trialing; not paid)
 
-   The path trial clock lives in Firestore, not on the device, because a
-   device clock resets when you delete the app. See the rules: `allow
-   update: if false` is what stops an account restarting its own trial.
+   There is no trial clock to keep here — Firestore, a guest device
+   clock, all of it. Apple only allows a free trial to require a card
+   on an auto-renewable subscription, so the trial itself lives inside
+   StoreKit: `entitlement()` on the native side reports both whether
+   the Apple ID has a live subscription and whether it is currently the
+   introductory (trial) period or a paid one. stateFor() in
+   entitlementLogic.js is the entire translation from that pair into
+   what this app shows — see there for why nothing here is farmable by
+   reinstalling or signing out.
 
-   This file does the talking — Firestore, StoreKit, React. The
-   decisions themselves live in entitlementLogic.js, which has no
-   imports and is covered by entitlementLogic.test.js.
+   This file does the talking — StoreKit and React. The decisions
+   themselves live in entitlementLogic.js, which has no imports and is
+   covered by entitlementLogic.test.js.
    ============================================================ */
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, getDb } from "./firebase.js";
-import { isOwned } from "./storekit.js";
-import {
-  PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft,
-  startedOrNow,
-} from "./entitlementLogic.js";
+import { status as storeStatus } from "./storekit.js";
+import { stateFor, pathOpenFor, adsOnFor } from "./entitlementLogic.js";
 
 const isNative = Capacitor.isNativePlatform();
 
-export {
-  PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft,
-  startedOrNow,
-};
-
-/* The last path trial start we successfully read from Firestore, per account.
-   This is a cache, never the authority: it exists so that a student
-   revising on a train keeps the state they already had instead of being
-   bounced to a paywall by a dropped connection. It can only ever make
-   the trial end sooner, never later. */
-const cacheKey = (uid) => "uk2:pathTrial::" + uid;
-
-function readCache(uid) {
-  try {
-    const v = Number(localStorage.getItem(cacheKey(uid)));
-    return Number.isFinite(v) && v > 0 ? v : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(uid, ms) {
-  try {
-    localStorage.setItem(cacheKey(uid), String(ms));
-  } catch {
-    /* ignore — a full or private store just costs us the cache */
-  }
-}
+export { stateFor, pathOpenFor, adsOnFor };
 
 /**
- * When did this account's path trial start? Milliseconds, or null if we
- * genuinely could not find out.
- *
- * Writes the clock on first sight and never again — the document is
- * create-only in the security rules, so a second write would be
- * rejected by the server even if a bug here tried.
- */
-async function pathTrialStart(uid) {
-  const db = await getDb();
-  if (!db) return readCache(uid);
-
-  const { doc, getDoc, getDocFromServer, setDoc, serverTimestamp } =
-    await import("firebase/firestore");
-
-  const ref = doc(db, "users", uid);
-  try {
-    let snap = await getDoc(ref);
-    if (!snap.exists()) {
-      await setDoc(ref, { pathTrialStartedAt: serverTimestamp() });
-      // The local snapshot right after a write still has a null
-      // timestamp — the server is the one that stamps it.
-      snap = await getDocFromServer(ref);
-    }
-    const stamp = snap.data() && snap.data().pathTrialStartedAt;
-    const ms = stamp && typeof stamp.toMillis === "function" ? stamp.toMillis() : null;
-    if (ms) {
-      writeCache(uid, ms);
-      return ms;
-    }
-    return readCache(uid);
-  } catch {
-    // Offline, rules not deployed yet, quota — fall back to whatever
-    // we last knew. See resolve() for what happens when that is nothing.
-    return readCache(uid);
-  }
-}
-
-/* A guest has no account, so there is nowhere on the server to hang a
-   trial. They get the same 24 hours, kept on the device instead.
-
-   This is farmable by deleting and reinstalling the app, and that is a
-   deliberate trade rather than an oversight: the unlock is a one-off
-   £3.99, and the alternative — refusing anyone a look at the path until
-   they make an account — costs more in first-run drop-off than reinstall
-   farming could ever cost in revenue. Accounts still get the Firestore
-   clock, which is not farmable. */
-const GUEST_KEY = "uk2:pathTrial::guest";
-
-function guestTrialStart() {
-  try {
-    const stored = Number(localStorage.getItem(GUEST_KEY));
-    const start = startedOrNow(stored, Date.now());
-    if (start !== stored) localStorage.setItem(GUEST_KEY, String(start));
-    return start;
-  } catch {
-    // No storage at all — private mode, or a full disk. Returning null
-    // fails open in pathTrialActive(), which is the right way to be
-    // wrong: a guest keeps the path rather than meeting a paywall we
-    // cannot justify.
-    return null;
-  }
-}
-
-/* The clock only matters on the free tier: a purchase outranks it, and
-   the web build has no paywall at all. Accounts read Firestore, guests
-   read the device. */
-async function readClock(state) {
-  if (state !== "free") return null;
-  const user = auth && auth.currentUser;
-  if (!user) return guestTrialStart();
-  try {
-    return await pathTrialStart(user.uid);
-  } catch {
-    // Fails open in pathTrialActive(); never strand someone on a paywall
-    // because a read threw.
-    return null;
-  }
-}
-
-/**
- * Remove this account's path trial record. Called on the way out of "Delete
- * account", before the auth user goes — once it is gone the client has
- * no credentials left to delete anything with.
- *
- * Losing the record does not hand anyone a free path trial: a new account
- * gets a new uid and its own fresh clock either way. Deleting it is
- * simply what the privacy policy promises.
- */
-export async function forgetPathTrial(uid) {
-  if (!isNative || !uid) return;
-  try {
-    const db = await getDb();
-    if (!db) return;
-    const { doc, deleteDoc } = await import("firebase/firestore");
-    await deleteDoc(doc(db, "users", uid));
-  } catch {
-    /* Best effort. Account deletion must not fail because of this. */
-  }
-  try {
-    localStorage.removeItem(cacheKey(uid));
-  } catch {
-    /* ignore */
-  }
-}
-
-/**
- * Work out the current state. Order matters: a purchase outranks
- * everything, and it is checked first so that a paying customer is
- * never shown an ad while the network decides what it thinks.
+ * Work out the current state. There is nothing to check but the store:
+ * no account, no guest, no clock — a subscription belongs to the Apple
+ * ID, not to a Firebase account, so signing in and out of the app does
+ * not change what StoreKit reports.
  */
 export async function resolve() {
   if (!isNative) return "web";
-
-  if (await isOwned()) return "paid";
-
-  const user = auth && auth.currentUser;
-  // Guests have no account to hang a path trial on. They still get the
-  // whole app except the path, same as free users after 24 hours.
-  if (!user) return "free";
-
-  // For free users, just return "free" — the path trial is checked
-  // separately in useEntitlement using pathTrialActive().
-  return "free";
+  const { owned, trialing } = await storeStatus();
+  return stateFor(owned, trialing);
 }
 
 /**
- * React binding. Re-resolves when the signed-in account changes, and
- * exposes refresh() for the moments that can change the answer
- * out-of-band: finishing a purchase, restoring one, coming back from
- * the background after a path trial has run out.
+ * React binding. Re-resolves on a timer while the app is visible — a
+ * trial can convert to a charge, or a subscription can lapse, without
+ * any action inside this app to hang a listener off — and exposes
+ * refresh() for the moments that can change the answer immediately:
+ * finishing a purchase, restoring one.
  */
 export function useEntitlement() {
   const [state, setState] = useState("loading");
-  /* Named trialStartMs, NOT pathTrialStart: that is the module-level
-     function just above, and a state variable of the same name would
-     shadow it here — every call would throw and leave the state stuck
-     on "loading", which means no ads and nothing ever gated. */
-  const [trialStartMs, setTrialStartMs] = useState(null);
-  /* Resolving hits the network, so two of them can be in flight at once —
-     a sign-in and a return-from-background, say. Without a token the
+  /* Resolving hits the store, so two of them can be in flight at once —
+     a launch and a return-from-background, say. Without a token the
      slower one wins by finishing last, which could put someone who has
      just paid back onto the free tier. Only the newest answer is kept. */
   const seq = useRef(0);
 
-  const settle = useCallback((token, next, startMs) => {
-    if (token === seq.current) {
-      setState(next);
-      setTrialStartMs(startMs);
-    }
+  const settle = useCallback((token, next) => {
+    if (token === seq.current) setState(next);
   }, []);
 
   const refresh = useCallback(async () => {
     const token = ++seq.current;
     const next = await resolve();
-    settle(token, next, await readClock(next));
+    settle(token, next);
     return next;
   }, [settle]);
 
   useEffect(() => {
     let live = true;
-    const run = async () => {
+    const run = () => {
       const token = ++seq.current;
-      const s = await resolve();
-      const startMs = await readClock(s);
-      if (live) settle(token, s, startMs);
+      resolve().then((s) => {
+        if (live) settle(token, s);
+      });
     };
 
-    /* Deliberately no resolve() before this point. Firebase restores the
-       session asynchronously, so calling resolve() on mount would read
-       currentUser as null and report a signed-in student as a guest —
-       ads on, path locked — until the listener corrected it a moment
-       later. onAuthStateChanged always fires once on subscribe, with
-       null or a user, which is exactly the signal we want to start from.
-       Until then the state stays "loading": nothing gated, no ads. */
-    const stop = auth ? onAuthStateChanged(auth, run) : null;
-    if (!auth) run();
+    run();
 
-    // A path trial can expire while the app sits in the background.
+    // A trial can convert, or a subscription can lapse, while the app
+    // sits in the background.
     const onShow = () => {
       if (document.visibilityState === "visible") run();
     };
@@ -250,16 +96,13 @@ export function useEntitlement() {
 
     return () => {
       live = false;
-      if (stop) stop();
       document.removeEventListener("visibilitychange", onShow);
     };
   }, [settle]);
 
-  const pathOpen = pathOpenFor(state, pathTrialActive(trialStartMs, Date.now()));
-
   return {
     state,
-    pathOpen,
+    pathOpen: pathOpenFor(state),
     adsOn: adsOnFor(state),
     loading: state === "loading",
     refresh,
