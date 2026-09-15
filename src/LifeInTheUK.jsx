@@ -3797,14 +3797,19 @@ export default function App() {
   };
 
   /* ── The unlock gate ──────────────────────────────────────────
-     Answering questions is what the £2.99 buys. Study notes,
-     flashcards, the path map, progress and the test-day guidance
-     stay free — so the free app is still a usable study app, just
-     without the self-testing.
+     Level 1 and the path map are free: a new student sees the whole
+     shape of the path and actually clears a level before being asked
+     for anything. Reaching for level 2 is the moment that matters
+     most to ask at — that's where the 3-day trial offer appears now,
+     not cold on the path tab before they've tried a single question.
+
+     Exam, quick quiz, chapter practice, mistakes and saved questions
+     were never part of this gate — only path levels are, and only
+     from the second one on.
 
      Nothing below applies on the web, where entitlement resolves
      to "web" and pathOpen is always true. */
-  const GATED = ["path"];
+  const FREE_LEVEL = 1;
 
   const navigate = (v) => {
     if (v === "practice") setPracticeChapter(null);
@@ -3830,26 +3835,32 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
+  // Nothing is gated just by navigating to a tab — see startLevel()
+  // below for the one place the paywall still appears on its own.
+  // Settings' own "Unlock the path" button reaches the paywall too,
+  // by calling setPending directly rather than going through here.
   const go = (v) => {
-    if (GATED.includes(v) && !ent.pathOpen) { setPending({ go: v }); return; }
     navigate(v);
   };
 
   const startLevel = (n) => {
     if (!isUnlocked(n, levelProgress)) return;   // the ladder is the point; no skipping
-    if (!ent.pathOpen) { setPending({ level: n }); return; }
+    if (n > FREE_LEVEL && !ent.pathOpen) { setPending({ level: n }); return; }
     openLevel(n);
   };
 
-  // Study notes link straight into that chapter's practice, so it is a
-  // third way into a gated screen and needs the same check.
+  // Chapter practice is free everywhere else in the app — the Practice
+  // tab itself is never gated — so this deep link in from Study Notes
+  // matches that now, rather than the whole-quiz gate it used to share
+  // back when every self-test screen sat behind one paywall.
   const practiseChapter = (n) => {
-    if (!ent.pathOpen) { setPending({ chapter: n }); return; }
     openChapterPractice(n);
   };
 
   /* Whatever they were trying to open when the paywall appeared, so that
-     buying drops them into it rather than back at the home screen. */
+     starting the trial drops them into it rather than back at the home
+     screen. p.go still matters: Settings' own unlock button reaches the
+     paywall by calling setPending directly, without going through go(). */
   const resumeAfterUnlock = async () => {
     await ent.refresh();
     const p = pending;
@@ -3857,7 +3868,6 @@ export default function App() {
     if (!p) return;
     if (p.go) navigate(p.go);
     else if (p.level != null) openLevel(p.level);
-    else if (p.chapter != null) openChapterPractice(p.chapter);
   };
 
   /* Everything a finished level touches: the per-question stats that feed
