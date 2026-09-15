@@ -24,6 +24,9 @@
    what this app shows — see there for why nothing here is farmable by
    reinstalling or signing out.
 
+   One exception: a single hard-coded owner account always resolves to
+   "paid", checked before StoreKit runs at all. See isOwner() below.
+
    This file does the talking — StoreKit and React. The decisions
    themselves live in entitlementLogic.js, which has no imports and is
    covered by entitlementLogic.test.js.
@@ -31,6 +34,8 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase.js";
 import { status as storeStatus } from "./storekit.js";
 import { stateFor, pathOpenFor, adsOnFor } from "./entitlementLogic.js";
 
@@ -38,14 +43,28 @@ const isNative = Capacitor.isNativePlatform();
 
 export { stateFor, pathOpenFor, adsOnFor };
 
+/* The one account that gets everything free, forever — no ads, path
+   always open, regardless of what StoreKit reports. Kept to exactly
+   one address on purpose: every entry here is a permanent free
+   account that no purchase check can ever see, so this must never
+   grow into a shared testers list. */
+const OWNER_EMAIL = "cccvhmd2001@gmail.com";
+
+function isOwner() {
+  const user = auth && auth.currentUser;
+  return Boolean(user && user.email === OWNER_EMAIL);
+}
+
 /**
- * Work out the current state. There is nothing to check but the store:
- * no account, no guest, no clock — a subscription belongs to the Apple
- * ID, not to a Firebase account, so signing in and out of the app does
- * not change what StoreKit reports.
+ * Work out the current state. The owner account outranks the store
+ * entirely — checked first so it never waits on a network call — and
+ * everyone else is whatever StoreKit says. A subscription otherwise
+ * belongs to the Apple ID, not to a Firebase account, so signing in
+ * and out changes nothing for anyone but the owner.
  */
 export async function resolve() {
   if (!isNative) return "web";
+  if (isOwner()) return "paid";
   const { owned, trialing } = await storeStatus();
   return stateFor(owned, trialing);
 }
@@ -85,10 +104,17 @@ export function useEntitlement() {
       });
     };
 
-    run();
+    /* Deliberately no resolve() before this point. Firebase restores the
+       session asynchronously, so calling resolve() on mount would read
+       currentUser as null and miss the owner account for a moment.
+       onAuthStateChanged always fires once on subscribe, with null or
+       a user, which is exactly the signal to start from. */
+    const stop = auth ? onAuthStateChanged(auth, run) : null;
+    if (!auth) run();
 
-    // A trial can convert, or a subscription can lapse, while the app
-    // sits in the background.
+    // A trial can convert, a subscription can lapse, or — for the one
+    // owner account — who's signed in can change, while the app sits
+    // in the background.
     const onShow = () => {
       if (document.visibilityState === "visible") run();
     };
@@ -96,6 +122,7 @@ export function useEntitlement() {
 
     return () => {
       live = false;
+      if (stop) stop();
       document.removeEventListener("visibilitychange", onShow);
     };
   }, [settle]);
