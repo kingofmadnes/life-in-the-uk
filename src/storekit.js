@@ -22,12 +22,34 @@ const isNative = Capacitor.isNativePlatform();
 // below are what actually keep the web build away from StoreKit.
 const StoreKit = registerPlugin("StoreKit");
 
-/** Does StoreKit say this account owns the unlock? */
+/* StoreKit can leave a call unanswered rather than failing it: a build
+   whose product does not exist in App Store Connect yet, no store
+   connection, a device part-way through signing in.
+
+   A try/catch is no help against a promise that never settles, and
+   entitlement.js awaits isOwned() before it can resolve anything at
+   all — so one unanswered call freezes the whole app on "loading",
+   which shows no ads, gates nothing and hides the buy button. The
+   failure looks exactly like the feature was never built.
+
+   Cap the wait and read silence as "not owned": the free tier is the
+   safe way to be wrong, and refresh() re-asks after a purchase. */
+function withTimeout(promise, ms, fallback) {
+  let timer;
+  const clock = new Promise((res) => {
+    timer = setTimeout(() => res(fallback), ms);
+  });
+  return Promise.race([promise, clock]).finally(() => clearTimeout(timer));
+}
+
+const STORE_TIMEOUT_MS = 4000;
+
+/** Does StoreKit say this Apple ID owns the unlock? */
 export async function isOwned() {
   if (!isNative) return false;
   try {
-    const { owned } = await StoreKit.entitlement();
-    return Boolean(owned);
+    const res = await withTimeout(StoreKit.entitlement(), STORE_TIMEOUT_MS, null);
+    return Boolean(res && res.owned);
   } catch {
     return false;
   }
@@ -42,7 +64,7 @@ export async function isOwned() {
 export async function product() {
   if (!isNative) return null;
   try {
-    const p = await StoreKit.product();
+    const p = await withTimeout(StoreKit.product(), STORE_TIMEOUT_MS, null);
     return p && p.id ? p : null;
   } catch {
     return null;
