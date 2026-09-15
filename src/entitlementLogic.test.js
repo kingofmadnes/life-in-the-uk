@@ -7,6 +7,7 @@ import {
   pathOpenFor,
   adsOnFor,
   pathTrialHoursLeft,
+  startedOrNow,
 } from './entitlementLogic.js';
 
 const NOW = Date.UTC(2026, 8, 13, 12, 0, 0);
@@ -73,6 +74,20 @@ test('only the free tier sees ads', () => {
 
 test('loading state has no ads', () => {
   assert.equal(adsOnFor('loading'), false);
+});
+
+test('a first-sight clock starts now and never moves afterwards', () => {
+  // Nothing stored yet: the trial starts at this moment.
+  assert.equal(startedOrNow(null, NOW), NOW);
+  assert.equal(startedOrNow(undefined, NOW), NOW);
+  assert.equal(startedOrNow(0, NOW), NOW);
+  assert.equal(startedOrNow(NaN, NOW), NOW);
+
+  // Something already stored: keep it, however old. This is the half
+  // that stops a guest restarting their own trial by reopening the app.
+  const earlier = NOW - hours(30);
+  assert.equal(startedOrNow(earlier, NOW), earlier);
+  assert.equal(pathTrialActive(startedOrNow(earlier, NOW), NOW), false);
 });
 
 test('path trial hours left counts down and floors at zero', () => {

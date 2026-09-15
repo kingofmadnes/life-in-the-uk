@@ -48,6 +48,16 @@ export function adsOnFor(state) {
   return state === "free";
 }
 
+/**
+ * The clock for a trial that starts on first sight: whatever was stored
+ * if it is a usable timestamp, otherwise now (which the caller then
+ * stores). Keeps "first launch starts the 24 hours, every launch after
+ * keeps the original start" in one tested place.
+ */
+export function startedOrNow(storedMs, nowMs) {
+  return Number.isFinite(storedMs) && storedMs > 0 ? storedMs : nowMs;
+}
+
 /** Whole hours of path trial left, for the countdown in Settings. */
 export function pathTrialHoursLeft(startedMs, nowMs) {
   if (!startedMs) return null;

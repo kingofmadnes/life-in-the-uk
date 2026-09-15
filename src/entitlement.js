@@ -30,11 +30,15 @@ import { auth, getDb } from "./firebase.js";
 import { isOwned } from "./storekit.js";
 import {
   PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft,
+  startedOrNow,
 } from "./entitlementLogic.js";
 
 const isNative = Capacitor.isNativePlatform();
 
-export { PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft };
+export {
+  PATH_TRIAL_MS, pathTrialActive, pathOpenFor, adsOnFor, pathTrialHoursLeft,
+  startedOrNow,
+};
 
 /* The last path trial start we successfully read from Firestore, per account.
    This is a cache, never the authority: it exists so that a student
@@ -95,6 +99,48 @@ async function pathTrialStart(uid) {
     // Offline, rules not deployed yet, quota — fall back to whatever
     // we last knew. See resolve() for what happens when that is nothing.
     return readCache(uid);
+  }
+}
+
+/* A guest has no account, so there is nowhere on the server to hang a
+   trial. They get the same 24 hours, kept on the device instead.
+
+   This is farmable by deleting and reinstalling the app, and that is a
+   deliberate trade rather than an oversight: the unlock is a one-off
+   £3.99, and the alternative — refusing anyone a look at the path until
+   they make an account — costs more in first-run drop-off than reinstall
+   farming could ever cost in revenue. Accounts still get the Firestore
+   clock, which is not farmable. */
+const GUEST_KEY = "uk2:pathTrial::guest";
+
+function guestTrialStart() {
+  try {
+    const stored = Number(localStorage.getItem(GUEST_KEY));
+    const start = startedOrNow(stored, Date.now());
+    if (start !== stored) localStorage.setItem(GUEST_KEY, String(start));
+    return start;
+  } catch {
+    // No storage at all — private mode, or a full disk. Returning null
+    // fails open in pathTrialActive(), which is the right way to be
+    // wrong: a guest keeps the path rather than meeting a paywall we
+    // cannot justify.
+    return null;
+  }
+}
+
+/* The clock only matters on the free tier: a purchase outranks it, and
+   the web build has no paywall at all. Accounts read Firestore, guests
+   read the device. */
+async function readClock(state) {
+  if (state !== "free") return null;
+  const user = auth && auth.currentUser;
+  if (!user) return guestTrialStart();
+  try {
+    return await pathTrialStart(user.uid);
+  } catch {
+    // Fails open in pathTrialActive(); never strand someone on a paywall
+    // because a read threw.
+    return null;
   }
 }
 
@@ -169,20 +215,6 @@ export function useEntitlement() {
       setTrialStartMs(startMs);
     }
   }, []);
-
-  /* The clock only matters on the free tier, and only for an account:
-     a purchase outranks it, and a guest has no uid to hang it on. */
-  const readClock = async (next) => {
-    const user = auth && auth.currentUser;
-    if (next !== "free" || !user) return null;
-    try {
-      return await pathTrialStart(user.uid);
-    } catch {
-      // Fails open in pathTrialActive(); never strand someone on a paywall
-      // because a read threw.
-      return null;
-    }
-  };
 
   const refresh = useCallback(async () => {
     const token = ++seq.current;
