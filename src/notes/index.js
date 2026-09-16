@@ -42,6 +42,8 @@ const LOADERS = {
   it: () => import("./it.js"),
   pt: () => import("./pt.js"),
   gu: () => import("./gu.js"),
+  ta: () => import("./ta.js"),
+  fa: () => import("./fa.js"),
 };
 
 /** Do translated study notes ship for this language? */
