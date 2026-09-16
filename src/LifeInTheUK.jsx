@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, createContext } from "react";
 import { hasBundle, loadBundle } from "./qtrans/index.js";
+import { hasNotesBundle, loadNotesBundle } from "./notes/index.js";
 import { auth } from "./firebase.js";
 import { useEntitlement } from "./entitlement.js";
 import { restore as storeRestore, manage as storeManage } from "./storekit.js";
@@ -1847,6 +1848,41 @@ async function ensureBundle(lang) {
   bundleWaiters.forEach((fn) => fn(lang));
 }
 
+/* Study notes translations — same lazy, fail-to-English pattern as the
+   question bundles above, kept as a separate cache because they load
+   on a different schedule (only once someone opens Study) and have a
+   different shape (whole chapters, not one entry per question id). */
+const noteBundles = {};
+const noteBundleWaiters = new Set();
+
+function notesBundleFor(lang) {
+  return noteBundles[lang] || null;
+}
+
+async function ensureNotesBundle(lang) {
+  if (lang === "en" || noteBundles[lang] || !hasNotesBundle(lang)) return;
+  const data = await loadNotesBundle(lang);
+  if (!data) return;
+  noteBundles[lang] = data;
+  noteBundleWaiters.forEach((fn) => fn(lang));
+}
+
+/* NOTES translated into the current language, falling back to English
+   while a bundle loads, if one was never fetched, or if the language
+   has no translated notes yet. */
+function useNotes() {
+  const [, bump] = useState(0);
+
+  useEffect(() => {
+    const fn = () => bump((n) => n + 1);
+    noteBundleWaiters.add(fn);
+    return () => { noteBundleWaiters.delete(fn); };
+  }, []);
+
+  if (LANG === "en") return NOTES;
+  return notesBundleFor(LANG) || NOTES;
+}
+
 /* A bundle entry is ["question", "opt|opt|opt|opt", "explanation"] — the pipe
    keeps the files readable and roughly a third smaller than nested JSON. */
 function expand(entry) {
@@ -3332,11 +3368,12 @@ function highlight(text, term) {
 
 function Study({ openChapter, setOpenChapter, back, practise, read, markRead }) {
   const [term, setTerm] = useState("");
+  const notes = useNotes();
 
   if (term.trim().length > 1) {
     const needle = term.trim().toLowerCase();
     const hits = [];
-    NOTES.forEach((n) => n.sections.forEach((s) => s.p.forEach((line) => {
+    notes.forEach((n) => n.sections.forEach((s) => s.p.forEach((line) => {
       if (line.toLowerCase().includes(needle)) hits.push({ c: n.c, h: s.h, line });
     })));
     return (
@@ -3379,7 +3416,7 @@ function Study({ openChapter, setOpenChapter, back, practise, read, markRead }) 
     );
   }
 
-  const note = NOTES.find((n) => n.c === openChapter);
+  const note = notes.find((n) => n.c === openChapter);
   return <Chapter note={note} back={() => setOpenChapter(null)} practise={() => practise(openChapter)}
     isRead={read.includes(openChapter)} markRead={() => markRead(openChapter)} />;
 }
@@ -3949,7 +3986,7 @@ export default function App() {
 
   // Pull in the chosen language's question bank. Mounted questions re-render
   // themselves when it lands, so nothing here has to wait on it.
-  useEffect(() => { ensureBundle(lang); }, [lang]);
+  useEffect(() => { ensureBundle(lang); ensureNotesBundle(lang); }, [lang]);
 
   const rtl = (LANGS.find((l) => l.id === lang) || {}).rtl ? "rtl" : "ltr";
 
