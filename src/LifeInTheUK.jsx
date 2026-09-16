@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useContext, createContext } from "react";
 import { hasBundle, loadBundle } from "./qtrans/index.js";
 import { hasNotesBundle, loadNotesBundle } from "./notes/index.js";
+import { VARIANT_Q } from "./questionVariants/index.js";
 import { auth } from "./firebase.js";
 import { useEntitlement } from "./entitlement.js";
 import { restore as storeRestore, manage as storeManage } from "./storekit.js";
@@ -368,7 +369,15 @@ const EXTRA_Q = [
   { i: 275, c: 5, q: "Which of these is a responsibility of every UK resident who works?", o: ["Paying income tax and National Insurance", "Joining a trade union", "Voting in every election", "Serving as a magistrate"], a: [0], e: "Tax pays for public services such as roads, schools, the armed forces and the NHS." },
 ];
 
-const QUESTIONS = [...BASE_Q, ...EXTRA_Q];
+/* VARIANT_Q holds generated rewordings of the 253 core questions above —
+   a rephrase, a true/false, a scenario framing and a "which is NOT"
+   framing for each — so the path, quick quiz and mistakes practice
+   are not just the same 253 exact sentences over and over. They join
+   the same pool everywhere: level building, the mock exam, quick quiz
+   and mistakes/saved all draw from QUESTIONS as a whole, with no
+   special-casing, because the difficulty model already treats
+   two-option and "NOT" questions as native formats (see quizLogic.js). */
+const QUESTIONS = [...BASE_Q, ...EXTRA_Q, ...VARIANT_Q];
 
 const FLASHCARDS = [
   { c: 3, f: "55 BC", b: "Julius Caesar's failed invasion of Britain" },

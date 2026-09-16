@@ -1,0 +1,19 @@
+/* ============================================================
+   QUESTION VARIANTS — aggregator
+
+   One file per chapter (each chapter's base questions are numerous
+   enough, and four variants apiece, that a single flat file would be
+   unwieldy). This file just concatenates them into one array for
+   LifeInTheUK.jsx to fold into the main question pool alongside
+   BASE_Q and EXTRA_Q.
+
+   A chapter appears here only once every base question in it has all
+   four variant types — variants.test.js enforces that, the same
+   "never ship partial" rule the qtrans and notes bundles follow.
+   ============================================================ */
+
+import CH1 from "./chapter1.js";
+
+export const VARIANT_Q = [
+  ...CH1,
+];
