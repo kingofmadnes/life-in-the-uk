@@ -13,7 +13,9 @@
    ============================================================ */
 
 import CH1 from "./chapter1.js";
+import CH2 from "./chapter2.js";
 
 export const VARIANT_Q = [
   ...CH1,
+  ...CH2,
 ];

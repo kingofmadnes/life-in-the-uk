@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import CH1 from './chapter1.js';
+import CH2 from './chapter2.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -52,7 +53,7 @@ const CORE_BY_ID = new Map(CORE.map((q) => [q.i, q]));
 
 /* Every chapter file gets added here as it's written. Import it above
    and list it here — that is the whole registration step. */
-const CHAPTERS = { 1: CH1 };
+const CHAPTERS = { 1: CH1, 2: CH2 };
 
 function assertWellFormedVariant(v) {
   const label = `variant ${v.i} (base ${v.base}, ${v.variant})`;
