@@ -24,6 +24,7 @@ import CH3A from './chapter3a.js';
 import CH3B from './chapter3b.js';
 import CH3C from './chapter3c.js';
 import CH3D from './chapter3d.js';
+import CH3E from './chapter3e.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -65,7 +66,7 @@ const CORE_BY_ID = new Map(CORE.map((q) => [q.i, q]));
    covered across all their files go here — this is what the "did we
    forget a base question" coverage check runs against, so a
    chapter appears in it exactly once, after its last sub-file. */
-const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A, chapter3b: CH3B, chapter3c: CH3C, chapter3d: CH3D };
+const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A, chapter3b: CH3B, chapter3c: CH3C, chapter3d: CH3D, chapter3e: CH3E };
 const CHAPTERS = { 1: CH1, 2: CH2 };
 
 function assertWellFormedVariant(v) {
