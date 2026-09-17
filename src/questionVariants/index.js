@@ -20,6 +20,7 @@ import CH3C from "./chapter3c.js";
 import CH3D from "./chapter3d.js";
 import CH3E from "./chapter3e.js";
 import CH3F from "./chapter3f.js";
+import CH3G from "./chapter3g.js";
 
 export const VARIANT_Q = [
   ...CH1,
@@ -30,4 +31,5 @@ export const VARIANT_Q = [
   ...CH3D,
   ...CH3E,
   ...CH3F,
+  ...CH3G,
 ];

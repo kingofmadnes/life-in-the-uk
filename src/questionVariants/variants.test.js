@@ -26,6 +26,7 @@ import CH3C from './chapter3c.js';
 import CH3D from './chapter3d.js';
 import CH3E from './chapter3e.js';
 import CH3F from './chapter3f.js';
+import CH3G from './chapter3g.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -67,7 +68,7 @@ const CORE_BY_ID = new Map(CORE.map((q) => [q.i, q]));
    covered across all their files go here — this is what the "did we
    forget a base question" coverage check runs against, so a
    chapter appears in it exactly once, after its last sub-file. */
-const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A, chapter3b: CH3B, chapter3c: CH3C, chapter3d: CH3D, chapter3e: CH3E, chapter3f: CH3F };
+const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A, chapter3b: CH3B, chapter3c: CH3C, chapter3d: CH3D, chapter3e: CH3E, chapter3f: CH3F, chapter3g: CH3G };
 const CHAPTERS = { 1: CH1, 2: CH2 };
 
 function assertWellFormedVariant(v) {
@@ -101,8 +102,11 @@ function assertWellFormedVariant(v) {
   });
 
   if (v.variant === 'exception') {
-    assert.ok(/\bNOT\b/.test(v.q) || v.q.trim().toLowerCase().startsWith('which of these is'),
-      `${label}: an exception variant should read as a "which is NOT" or "which IS" question`);
+    // Usually "which is NOT..."; occasionally the positive form ("which of
+    // these IS/WAS true, unlike the others") reads better, especially for
+    // past-tense historical facts ("which of these WAS under Roman rule").
+    assert.ok(/\bNOT\b/.test(v.q) || /^which of these (is|was)\b/i.test(v.q.trim()),
+      `${label}: an exception variant should read as a "which is NOT" or "which IS/WAS" question`);
   }
 }
 
