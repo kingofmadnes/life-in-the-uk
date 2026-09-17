@@ -35,6 +35,7 @@ import CH4D from './chapter4d.js';
 import CH4E from './chapter4e.js';
 import CH5A from './chapter5a.js';
 import CH5B from './chapter5b.js';
+import CH5C from './chapter5c.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -76,7 +77,7 @@ const CORE_BY_ID = new Map(CORE.map((q) => [q.i, q]));
    covered across all their files go here — this is what the "did we
    forget a base question" coverage check runs against, so a
    chapter appears in it exactly once, after its last sub-file. */
-const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A, chapter3b: CH3B, chapter3c: CH3C, chapter3d: CH3D, chapter3e: CH3E, chapter3f: CH3F, chapter3g: CH3G, chapter3h: CH3H, chapter4a: CH4A, chapter4b: CH4B, chapter4c: CH4C, chapter4d: CH4D, chapter4e: CH4E, chapter5a: CH5A, chapter5b: CH5B };
+const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A, chapter3b: CH3B, chapter3c: CH3C, chapter3d: CH3D, chapter3e: CH3E, chapter3f: CH3F, chapter3g: CH3G, chapter3h: CH3H, chapter4a: CH4A, chapter4b: CH4B, chapter4c: CH4C, chapter4d: CH4D, chapter4e: CH4E, chapter5a: CH5A, chapter5b: CH5B, chapter5c: CH5C };
 const CHAPTER3 = [...CH3A, ...CH3B, ...CH3C, ...CH3D, ...CH3E, ...CH3F, ...CH3G, ...CH3H];
 const CHAPTER4 = [...CH4A, ...CH4B, ...CH4C, ...CH4D, ...CH4E];
 const CHAPTERS = { 1: CH1, 2: CH2, 3: CHAPTER3, 4: CHAPTER4 };
