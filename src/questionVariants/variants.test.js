@@ -20,6 +20,7 @@ import { dirname, join } from 'node:path';
 
 import CH1 from './chapter1.js';
 import CH2 from './chapter2.js';
+import CH3A from './chapter3a.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -53,6 +54,15 @@ const CORE_BY_ID = new Map(CORE.map((q) => [q.i, q]));
 
 /* Every chapter file gets added here as it's written. Import it above
    and list it here — that is the whole registration step. */
+/* FILES: every source file, checked individually for well-formedness
+   and id uniqueness the moment it's written — this does not require a
+   chapter to be complete, so a chapter split across several files
+   (chapter 3, too big for one) is still checked file by file as each
+   lands. CHAPTERS: only chapters whose base questions are FULLY
+   covered across all their files go here — this is what the "did we
+   forget a base question" coverage check runs against, so a
+   chapter appears in it exactly once, after its last sub-file. */
+const FILES = { chapter1: CH1, chapter2: CH2, chapter3a: CH3A };
 const CHAPTERS = { 1: CH1, 2: CH2 };
 
 function assertWellFormedVariant(v) {
@@ -95,12 +105,14 @@ test('the core question bank parses and every variant chapter references real id
   assert.ok(CORE.length > 200, `only found ${CORE.length} core questions`);
 });
 
-for (const [chapterNum, variants] of Object.entries(CHAPTERS)) {
-  test(`chapter ${chapterNum} variants are individually well-formed`, () => {
-    assert.ok(variants.length > 0, `chapter ${chapterNum} has no variants`);
+for (const [fileName, variants] of Object.entries(FILES)) {
+  test(`${fileName} variants are individually well-formed`, () => {
+    assert.ok(variants.length > 0, `${fileName} has no variants`);
     variants.forEach(assertWellFormedVariant);
   });
+}
 
+for (const [chapterNum, variants] of Object.entries(CHAPTERS)) {
   test(`chapter ${chapterNum} variants cover all four types for every base question in the chapter`, () => {
     const baseIdsInChapter = CORE.filter((q) => q.c === Number(chapterNum)).map((q) => q.i);
     const byBase = new Map();
@@ -118,10 +130,10 @@ for (const [chapterNum, variants] of Object.entries(CHAPTERS)) {
   });
 }
 
-test('variant ids are unique across every chapter and do not collide with core ids', () => {
-  const allVariants = Object.values(CHAPTERS).flat();
+test('variant ids are unique across every file and do not collide with core ids', () => {
+  const allVariants = Object.values(FILES).flat();
   const ids = allVariants.map((v) => v.i);
-  assert.equal(new Set(ids).size, ids.length, 'duplicate id across variant chapters');
+  assert.equal(new Set(ids).size, ids.length, 'duplicate id across variant files');
   const collisions = ids.filter((id) => CORE_IDS.has(id));
   assert.equal(collisions.length, 0, `variant ids collide with core ids: ${collisions.join(', ')}`);
 });
