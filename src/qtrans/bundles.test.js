@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path';
 
 import { bundledLanguages, loadBundle } from './index.js';
 import { normaliseTranslation } from '../quizLogic.js';
+import { VARIANT_Q } from '../questionVariants/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -46,11 +47,21 @@ function loadQuestions() {
 }
 
 const QUESTIONS = loadQuestions();
-const byId = new Map(QUESTIONS.map((q) => [q.i, q]));
+
+/* A bundle can carry entries for the 253 core questions, the 1,012
+   generated variants (ids >= 1000), or both — a language is only
+   required to have finished the 253 core ones to be "supported" at
+   all (see the coverage test below); variant coverage is additional
+   and built up incrementally, language by language. Either kind of
+   id needs to resolve to its real source question here so a variant
+   translation gets checked against the variant's own options, not
+   rejected as unknown. */
+const ALL_KNOWN = [...QUESTIONS, ...VARIANT_Q];
+const byId = new Map(ALL_KNOWN.map((q) => [q.i, q]));
 
 test('the question bank parses and is non-trivial', () => {
   assert.ok(QUESTIONS.length > 200, `only found ${QUESTIONS.length} questions`);
-  assert.equal(byId.size, QUESTIONS.length, 'duplicate question ids in the bank');
+  assert.equal(byId.size, ALL_KNOWN.length, 'duplicate id across the core bank and the variants');
 });
 
 for (const lang of bundledLanguages()) {
