@@ -369,13 +369,22 @@ const EXTRA_Q = [
   { i: 275, c: 5, q: "Which of these is a responsibility of every UK resident who works?", o: ["Paying income tax and National Insurance", "Joining a trade union", "Voting in every election", "Serving as a magistrate"], a: [0], e: "Tax pays for public services such as roads, schools, the armed forces and the NHS." },
 ];
 
-/* VARIANT_Q holds generated rewordings of the 253 core questions above —
-   a rephrase, a true/false, a scenario framing and a "which is NOT"
-   framing for each — so the path, quick quiz and mistakes practice
-   are not just the same 253 exact sentences over and over. They join
-   the same pool everywhere: level building, the mock exam, quick quiz
-   and mistakes/saved all draw from QUESTIONS as a whole, with no
-   special-casing, because the difficulty model already treats
+/* VARIANT_Q holds ONE double for each of the 253 core questions above —
+   a second question on the same fact, worded differently — so the path,
+   quick quiz and mistakes practice are not just the same 253 exact
+   sentences over and over. 253 + 253 = a 506-question pool.
+
+   It used to hold four doubles apiece (1,012 variants, a 1,265-question
+   pool). That was cut back to one: the bank was large enough to be slow
+   to work through and repetitive to sit, and 216 of the 253 "rephrase"
+   variants turned out to repeat their base question word for word, so a
+   good part of the size bought nothing. The double each question kept is
+   the one that reads least like it — see variants.test.js, which now
+   fails if any double repeats the question it doubles.
+
+   They join the same pool everywhere: level building, the mock exam,
+   quick quiz and mistakes/saved all draw from QUESTIONS as a whole, with
+   no special-casing, because the difficulty model already treats
    two-option and "NOT" questions as native formats (see quizLogic.js). */
 const QUESTIONS = [...BASE_Q, ...EXTRA_Q, ...VARIANT_Q];
 

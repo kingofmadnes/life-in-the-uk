@@ -1,15 +1,17 @@
 /* ============================================================
    QUESTION VARIANTS — aggregator
 
-   One file per chapter (each chapter's base questions are numerous
-   enough, and four variants apiece, that a single flat file would be
-   unwieldy). This file just concatenates them into one array for
-   LifeInTheUK.jsx to fold into the main question pool alongside
-   BASE_Q and EXTRA_Q.
+   One double per base question: a second question on the same fact,
+   worded differently. One file per chapter — the split dates from when
+   each base question carried four variants and a flat file would have
+   been unwieldy; it is kept because the chapter files line up with the
+   qtrans bundles and the study notes. This file just concatenates them
+   into one array for LifeInTheUK.jsx to fold into the main question
+   pool alongside BASE_Q and EXTRA_Q. 253 doubles, 506 questions total.
 
-   A chapter appears here only once every base question in it has all
-   four variant types — variants.test.js enforces that, the same
-   "never ship partial" rule the qtrans and notes bundles follow.
+   A chapter appears here only once every base question in it has its
+   double — variants.test.js enforces that, the same "never ship
+   partial" rule the qtrans and notes bundles follow.
    ============================================================ */
 
 import CH1 from "./chapter1.js";

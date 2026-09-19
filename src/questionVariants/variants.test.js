@@ -136,22 +136,54 @@ for (const [fileName, variants] of Object.entries(FILES)) {
 }
 
 for (const [chapterNum, variants] of Object.entries(CHAPTERS)) {
-  test(`chapter ${chapterNum} variants cover all four types for every base question in the chapter`, () => {
+  test(`chapter ${chapterNum} gives every base question exactly one double`, () => {
     const baseIdsInChapter = CORE.filter((q) => q.c === Number(chapterNum)).map((q) => q.i);
     const byBase = new Map();
     variants.forEach((v) => {
-      if (!byBase.has(v.base)) byBase.set(v.base, new Set());
-      byBase.get(v.base).add(v.variant);
+      if (!byBase.has(v.base)) byBase.set(v.base, []);
+      byBase.get(v.base).push(v);
     });
     for (const baseId of baseIdsInChapter) {
-      const types = byBase.get(baseId);
-      assert.ok(types, `base question ${baseId} (chapter ${chapterNum}) has no variants at all`);
-      for (const type of ['rephrase', 'truefalse', 'scenario', 'exception']) {
-        assert.ok(types.has(type), `base question ${baseId} is missing its ${type} variant`);
-      }
+      const doubles = byBase.get(baseId);
+      assert.ok(doubles, `base question ${baseId} (chapter ${chapterNum}) has no double`);
+      assert.equal(doubles.length, 1,
+        `base question ${baseId} has ${doubles.length} doubles — the bank carries exactly one per question`);
+    }
+    /* Nothing in the chapter may double a base question that is not in it. */
+    for (const v of variants) {
+      assert.ok(baseIdsInChapter.includes(v.base),
+        `variant ${v.i} doubles base ${v.base}, which is not in chapter ${chapterNum}`);
     }
   });
 }
+
+/* A double that repeats its base word for word is not a second question — it
+   is the same question twice, and a student meets it twice in one session
+   with nothing new to learn. This is the check that decided which variant
+   type each base question kept when the bank was cut from four to one. */
+test('no double repeats the question it doubles, and no two questions in the bank read the same', () => {
+  const allVariants = Object.values(FILES).flat();
+  const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[?.!]+$/, '');
+
+  for (const v of allVariants) {
+    const base = CORE_BY_ID.get(v.base);
+    assert.notEqual(norm(v.q), norm(base.q),
+      `variant ${v.i} repeats base question ${v.base} word for word`);
+  }
+
+  const seen = new Map();
+  for (const q of [...CORE, ...allVariants]) {
+    const key = norm(q.q);
+    const prior = seen.get(key);
+    /* i:153 and i:178 are two different core questions that both open
+       "Which of these statements is correct?" — a real format in the bank,
+       and they carry different options. Everything else must be unique. */
+    if (prior && !(prior === 153 && q.i === 178)) {
+      assert.fail(`questions ${prior} and ${q.i} read the same: "${q.q}"`);
+    }
+    seen.set(key, q.i);
+  }
+});
 
 test('variant ids are unique across every file and do not collide with core ids', () => {
   const allVariants = Object.values(FILES).flat();
