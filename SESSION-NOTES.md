@@ -1,6 +1,7 @@
 # Life in the UK — Session Notes
 
-A record of what was built, why, and what's left. Written 19 September 2026.
+A record of what was built, why, and what's left. Written 19 September 2026,
+updated 20 September 2026 when the last language landed.
 
 ---
 
@@ -170,26 +171,38 @@ With `.osub` on options, `.wsub` on explanations, and RTL handling in CSS. `useS
 does a plain `bundle[q.i]` lookup — so **variants work with zero code changes**. The
 job was purely translation data.
 
-### Progress
+### Progress — finished
 
 | Language | Core | Doubles | Total | Status |
 |---|---|---|---|---|
 | Hindi | 253 | 253 | 506 | ✅ **Complete** |
 | Urdu | 253 | 253 | 506 | ✅ **Complete** |
-| Punjabi | 253 | 147 | 400 | 🔄 79% |
-| Bengali | 253 | 0 | 253 | 50% |
-| Arabic | 253 | 0 | 253 | 50% |
-| Romanian | 253 | 0 | 253 | 50% |
-| Polish | 253 | 0 | 253 | 50% |
-| Portuguese | 253 | 0 | 253 | 50% |
-| Gujarati | 253 | 0 | 253 | 50% |
-| Italian, Tamil, Farsi, Chinese, Tagalog | 0 | 0 | 0 | Notes only |
+| Punjabi | 253 | 253 | 506 | ✅ **Complete** |
+| Bengali | 253 | 253 | 506 | ✅ **Complete** |
+| Arabic | 253 | 253 | 506 | ✅ **Complete** |
+| Romanian | 253 | 253 | 506 | ✅ **Complete** |
+| Polish | 253 | 253 | 506 | ✅ **Complete** |
+| Portuguese | 253 | 253 | 506 | ✅ **Complete** |
+| Gujarati | 253 | 253 | 506 | ✅ **Complete** |
+| Italian | 253 | 253 | 506 | ✅ **Complete** |
+| Tamil | 253 | 253 | 506 | ✅ **Complete** |
+| Farsi | 253 | 253 | 506 | ✅ **Complete** |
+| Chinese | 253 | 253 | 506 | ✅ **Complete** |
+| Tagalog | 253 | 253 | 506 | ✅ **Complete** |
+
+**All 14 languages are at 506/506** and all 14 are registered in `LOADERS`. Every
+language the app offers a UI for now also ships a translated question bank, so no
+language falls back to English questions any more.
 
 **The cut paid for itself here.** Every surviving question kept the translation it
 already had; only entries orphaned by a deleted question were removed. Against the
-smaller bank the same work goes much further — Hindi and Urdu went from 1,265/1,265
-to **100% of 506**, Punjabi from 66% to **79%**, and the six core-only languages from
-20% to **50%** — without a single new translation written.
+smaller bank the same work went much further — Hindi and Urdu went from 1,265/1,265
+to **100% of 506** at a stroke, Punjabi from 66% to **79%**, and the six core-only
+languages from 20% to **50%**, before a single new translation was written. The
+remaining gap was then closed language by language.
+
+Verification per language: the production guard on every entry (below), `npm test`
+green, and the built `.app` bundle counted — not just the source — before each commit.
 
 ### How each batch is verified
 
@@ -234,12 +247,14 @@ language falls back to English rather than showing a half-translated quiz.
 
 - Question pool: **506** (253 core + 253 doubles).
 - iOS Xcode project committed (`ios/`), SPM not CocoaPods, builds and runs on device.
-- `npm test` — 86/86 passing.
+- `npm test` — 96/96 passing.
 - `npm run build` — clean. `npx cap sync ios` run, so `ios/App/App/public` carries the
   506-question bundle.
+- Translations: **all 14 languages at 506/506**, all registered in `LOADERS`.
 - Verified in a real browser, not just in tests: guest mode past the Firebase gate,
   into the path, through a complete 15-question level in Hindi — 15/15 distinct
-  questions, 15/15 with Hindi subtitles, every option 4-way, zero console errors.
+  questions, 15/15 with Hindi subtitles, every option 4-way, zero console errors —
+  and the same run in Arabic to confirm RTL (`direction: rtl` computed on subtitles).
 - All work committed to `main`.
 
 A note for whoever reads this next: `optSub()` in `LifeInTheUK.jsx` deliberately
