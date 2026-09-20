@@ -25,7 +25,7 @@ async function bootNative() {
     .uk .top { padding-top: calc(14px + env(safe-area-inset-top)); }
     .uk:has(.pathwrap) .top { padding-top: calc(14px + env(safe-area-inset-top)); }
     .auth-root { padding-top: calc(40px + env(safe-area-inset-top)); }
-    .acct-fab { bottom: calc(64px + env(safe-area-inset-bottom)); }
+    .acct-fab { bottom: calc(87px + env(safe-area-inset-bottom) + var(--ad-h, 0px)); }
   `;
   document.head.appendChild(shim);
 

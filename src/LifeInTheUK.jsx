@@ -2102,15 +2102,50 @@ const CSS = `
   src:local('Apple Symbols');
   unicode-range:U+203A,U+2302,U+25B6,U+25C6,U+25D4,U+2600,U+2605,U+2606,U+2630,U+263E,U+2699,U+2713;
 }
+
+/* ============================================================
+   THE LOOK
+
+   The Path screen earned its feel from three things, and the rest
+   of the app now uses the same three:
+
+     lip      a solid offset shadow under a surface, so it reads as
+              a physical thing sitting on the page rather than a
+              rectangle drawn on it
+     press    that lip collapsing as the surface travels down, so a
+              tap is felt and not just registered
+     sheen    a one-pixel inset highlight along the top edge, which
+              is what stops a flat fill looking like paper
+
+   Everything else — the warm paper ground, the ink scale, the
+   accent hues — is unchanged. This is the same app, built out of
+   solid objects instead of outlines.
+   ============================================================ */
 .uk{
-  --bg:#F7F4EF; --card:#FFFFFF; --soft:#EFEBE3; --line:#E0DAD0;
+  --bg:#F4F0E8; --card:#FFFFFF; --soft:#EFEBE3; --line:#E2DCD2;
   --ink:#141A24; --ink2:#5B6472; --ink3:#8A93A0;
   --brand:#2F6BFF; --brand-d:#1E4FD0; --brand-soft:#E8EFFF;
   --hot:#FF6A3D; --hot-soft:#FFEDE6;
   --go:#0E9F6E; --go-soft:#E4F6EF;
   --stop:#E02424; --stop-soft:#FDECEC;
   --amber:#F59E0B; --amber-soft:#FEF3DC;
-  min-height:100vh;background:var(--bg);color:var(--ink);
+
+  /* The lip under a raised surface, and the sheen along its top edge. */
+  --lip:#E3DCD0; --lip-d:#CFC5B5;
+  --sheen:rgba(255,255,255,.9);
+  --glass:rgba(250,247,242,.82);
+
+  /* Ambient depth, kept soft — the lip does the structural work. */
+  --e1:0 1px 2px rgba(31,26,18,.05);
+  --e2:0 4px 14px rgba(31,26,18,.07);
+  --e3:0 14px 34px rgba(31,26,18,.13);
+
+  --ease:cubic-bezier(.2,.8,.3,1);
+
+  min-height:100vh;color:var(--ink);
+  background:
+    radial-gradient(1200px 520px at 50% -180px,rgba(47,107,255,.08),transparent 70%),
+    var(--bg);
   /* No system-ui here on purpose. In the iOS WKWebView, system-ui claims every
      character and then draws .notdef for anything outside Latin, and WebKit
      stops at the first family that claims a character rather than walking the
@@ -2123,203 +2158,328 @@ const CSS = `
   padding-bottom:env(safe-area-inset-bottom);
 }
 .uk[data-dark="1"]{
-  --bg:#0C1017; --card:#151B24; --soft:#1D242F; --line:#28303C;
+  --bg:#0A0E15; --card:#161D27; --soft:#1F2733; --line:#2A3340;
   --ink:#EDF1F6; --ink2:#9AA5B4; --ink3:#6C7684;
   --brand:#5B8CFF; --brand-d:#3D74F5; --brand-soft:#1A2438;
   --hot:#FF8256; --hot-soft:#2E1D18;
   --go:#2BC48D; --go-soft:#12291F;
   --stop:#FF5C5C; --stop-soft:#2C1618;
   --amber:#FFBB3D; --amber-soft:#2C2214;
+
+  --lip:#070A0F; --lip-d:#04060A;
+  --sheen:rgba(255,255,255,.07);
+  --glass:rgba(16,21,29,.82);
+
+  --e1:0 1px 2px rgba(0,0,0,.4);
+  --e2:0 4px 16px rgba(0,0,0,.45);
+  --e3:0 16px 38px rgba(0,0,0,.6);
+
+  background:
+    radial-gradient(1200px 520px at 50% -180px,rgba(91,140,255,.13),transparent 70%),
+    var(--bg);
 }
 .uk *{box-sizing:border-box}
 .uk button{font-family:inherit;color:inherit}
-.uk :focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.uk :focus-visible{outline:3px solid var(--brand);outline-offset:3px;border-radius:4px}
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 
-.top{position:sticky;top:0;z-index:40;background:var(--bg);display:flex;align-items:center;gap:10px;padding:14px 18px 10px}
-.logo{width:30px;height:30px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:800;flex:0 0 auto}
-.wordmark{font-size:16px;font-weight:800;letter-spacing:-0.02em}
-/* Onboarding has no sticky header of its own, so the first screen carries the mark. */
+/* One rule drives every raised, tappable surface in the app. */
+.row,.tile,.opt,.lang,.toggle,.sec,.qcard,.wlist,.ring-wrap,.flash,.search,.field input{
+  box-shadow:0 2px 0 var(--lip),var(--e1);
+}
+.row,.tile,.opt,.lang,.toggle{
+  transition:transform .13s var(--ease),box-shadow .13s var(--ease),
+             border-color .13s var(--ease),background .13s var(--ease);
+}
+.row:active,.tile:active,.opt:active,.lang:active,.toggle:active{
+  transform:translateY(2px);box-shadow:0 0 0 var(--lip);
+}
+
+/* ---- header ---------------------------------------------------- */
+.top{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;
+  padding:14px 18px 11px;background:var(--glass);
+  -webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);
+  border-bottom:1px solid transparent}
+.logo{width:32px;height:32px;border-radius:11px;color:#fff;display:grid;place-items:center;
+  font-size:14px;font-weight:800;flex:0 0 auto;letter-spacing:-.02em;
+  background:linear-gradient(160deg,var(--brand),var(--brand-d));
+  box-shadow:0 2px 0 var(--brand-d),0 6px 16px rgba(47,107,255,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.wordmark{font-size:16.5px;font-weight:800;letter-spacing:-0.03em}
 .obmark{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+
 /* The "what's inside" list on the welcome step. One card, hairline-separated
    rows — it is a description, not four separate things to tap. */
-.wlist{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.wlist{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .wrow{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
 .wrow:last-child{border-bottom:none}
-.wrow .ic{width:34px;height:34px;font-size:15px;border-radius:10px}
+.wrow .ic{width:34px;height:34px;font-size:15px;border-radius:11px}
 .wrow .row-t{font-size:14.5px}
 .wrow .row-s{font-size:12.5px}
-.iconbtn{margin-left:auto;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:15px}
+
+.iconbtn{margin-left:auto;width:36px;height:36px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:15px;
+  box-shadow:0 2px 0 var(--lip),var(--e1);
+  transition:transform .13s var(--ease),box-shadow .13s var(--ease)}
+.iconbtn:active{transform:translateY(2px);box-shadow:0 0 0 var(--lip)}
 .iconbtn+.iconbtn{margin-left:0}
-.page{max-width:560px;margin:0 auto;padding:4px 18px calc(110px + var(--ad-h,0px))}
+.page{max-width:560px;margin:0 auto;padding:6px 18px calc(128px + var(--ad-h,0px))}
 
-.hero{background:var(--brand);border-radius:22px;padding:20px;color:#fff;position:relative;overflow:hidden}
-.hero.win{background:var(--go)} .hero.lose{background:var(--stop)}
-.hero h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-0.03em;line-height:1.1}
-.hero p{margin:8px 0 0;font-size:14px;color:rgba(255,255,255,.88)}
-.hero-stats{display:flex;gap:20px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.25)}
-.hs b{display:block;font-size:20px;font-weight:800;letter-spacing:-0.02em}
-.hs span{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.75)}
+/* ---- hero ------------------------------------------------------- */
+.hero{border-radius:26px;padding:22px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(150deg,#4C86FF 0%,var(--brand) 45%,var(--brand-d) 100%);
+  box-shadow:0 4px 0 var(--brand-d),0 18px 40px rgba(47,107,255,.34),inset 0 1px 0 rgba(255,255,255,.28)}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(420px 220px at 88% -30%,rgba(255,255,255,.32),transparent 62%)}
+.hero.win{background:linear-gradient(150deg,#2FD39B,var(--go) 50%,#0A7E57);
+  box-shadow:0 4px 0 #0A7E57,0 18px 40px rgba(14,159,110,.34),inset 0 1px 0 rgba(255,255,255,.28)}
+.hero.lose{background:linear-gradient(150deg,#FF6B6B,var(--stop) 50%,#B01B1B);
+  box-shadow:0 4px 0 #B01B1B,0 18px 40px rgba(224,36,36,.3),inset 0 1px 0 rgba(255,255,255,.28)}
+.hero h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-0.035em;line-height:1.1;position:relative}
+.hero p{margin:9px 0 0;font-size:14px;color:rgba(255,255,255,.9);position:relative}
+.hero-stats{display:flex;gap:20px;margin-top:18px;padding-top:16px;position:relative;
+  border-top:1px solid rgba(255,255,255,.28)}
+.hs b{display:block;font-size:21px;font-weight:800;letter-spacing:-0.03em}
+.hs span{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.78)}
 
-.ring-wrap{display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:12px}
+/* ---- progress ring ---------------------------------------------- */
+.ring-wrap{display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--line);
+  border-radius:22px;padding:18px;margin-top:12px}
 .ring{flex:0 0 auto;position:relative;width:88px;height:88px}
-.ring svg{transform:rotate(-90deg)}
-.ring-val{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:800;letter-spacing:-0.03em}
+.ring svg{transform:rotate(-90deg);overflow:visible}
+.ring-val{position:absolute;inset:0;display:grid;place-items:center;font-size:23px;font-weight:800;letter-spacing:-0.03em}
 .ring-txt b{display:block;font-size:15px;font-weight:700;margin-bottom:3px}
 .ring-txt span{font-size:13px;color:var(--ink2);line-height:1.45;display:block}
 
-.chips{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:4px;scrollbar-width:none}
+/* ---- chips ------------------------------------------------------ */
+.chips{display:flex;gap:8px;overflow-x:auto;margin-top:14px;padding:2px 0 6px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
-.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;
+  padding:9px 15px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;
+  box-shadow:0 2px 0 var(--lip);transition:transform .13s var(--ease),box-shadow .13s var(--ease)}
+.chip:active{transform:translateY(2px);box-shadow:0 0 0 var(--lip)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.35)}
 
-.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--ink3);font-weight:700;margin:26px 0 10px}
-.h2{font-size:22px;font-weight:800;letter-spacing:-0.03em;margin:0 0 6px}
+/* ---- typography ------------------------------------------------- */
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);font-weight:800;margin:28px 0 11px}
+.h2{font-size:23px;font-weight:800;letter-spacing:-0.035em;margin:0 0 6px}
 .lede{font-size:14px;color:var(--ink2);margin:0 0 18px;line-height:1.55}
 
+/* ---- rows and tiles --------------------------------------------- */
 .row{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);
-  border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:transform .1s,border-color .1s}
-.row:hover{border-color:var(--brand);transform:translateY(-1px)}
+  border:1px solid var(--line);border-radius:18px;padding:14px;cursor:pointer}
+.row:hover{border-color:var(--brand)}
 .row.big{padding:16px}
-.row.fill{background:var(--brand);border-color:var(--brand);color:#fff}
-.row.fill .row-s{color:rgba(255,255,255,.8)}
-.ic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:17px;background:var(--soft)}
-.row-t{font-weight:700;font-size:15px;display:block;letter-spacing:-0.01em}
+.row.fill{color:#fff;border-color:transparent;
+  background:linear-gradient(150deg,#4C86FF,var(--brand) 55%,var(--brand-d));
+  box-shadow:0 3px 0 var(--brand-d),0 10px 24px rgba(47,107,255,.3),inset 0 1px 0 rgba(255,255,255,.26)}
+.row.fill:active{box-shadow:0 0 0 var(--brand-d),inset 0 1px 0 rgba(255,255,255,.26)}
+.row.fill .row-s{color:rgba(255,255,255,.84)}
+.row.fill .ic{background:rgba(255,255,255,.18)}
+.ic{flex:0 0 auto;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:17px;
+  background:var(--soft);box-shadow:inset 0 1px 0 var(--sheen)}
+.row-t{font-weight:700;font-size:15px;display:block;letter-spacing:-0.015em}
 .row-s{font-size:12.5px;color:var(--ink2);display:block;margin-top:2px}
-.row-go{margin-left:auto;color:var(--ink3);font-size:19px;flex:0 0 auto}
-.row.fill .row-go{color:rgba(255,255,255,.7)}
+.row-go{margin-left:auto;color:var(--ink3);font-size:19px;flex:0 0 auto;transition:transform .13s var(--ease)}
+.row:hover .row-go{transform:translateX(2px)}
+.row.fill .row-go{color:rgba(255,255,255,.75)}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 
-.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;cursor:pointer}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;text-align:left;cursor:pointer}
 .tile:hover{border-color:var(--brand)}
-.tile b{display:block;font-size:22px;font-weight:800;letter-spacing:-0.03em}
+.tile b{display:block;font-size:23px;font-weight:800;letter-spacing:-0.035em}
 .tile span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
 
-.btn{border:none;border-radius:14px;padding:14px 18px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:-0.01em}
-.btn.btn-p{background:var(--brand);color:#fff}
-.btn.btn-d{background:var(--ink);color:var(--bg)}
-.btn-g{background:transparent;border:1px solid var(--line);color:var(--ink)}
+/* ---- buttons ---------------------------------------------------- */
+.btn{border:none;border-radius:16px;padding:15px 18px;font-size:15px;font-weight:800;cursor:pointer;
+  letter-spacing:-0.015em;transition:transform .13s var(--ease),box-shadow .13s var(--ease),filter .13s var(--ease)}
+.btn.btn-p{color:#fff;background:linear-gradient(150deg,#4C86FF,var(--brand) 55%,var(--brand-d));
+  box-shadow:0 4px 0 var(--brand-d),0 10px 24px rgba(47,107,255,.32),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn.btn-d{background:var(--ink);color:var(--bg);box-shadow:0 4px 0 rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.12)}
+.btn-g{background:var(--card);border:1px solid var(--line);color:var(--ink);box-shadow:0 3px 0 var(--lip),var(--e1)}
 .btn-g:hover{border-color:var(--ink2)}
-.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn:hover:not(:disabled){filter:brightness(1.05)}
+.btn:active:not(:disabled){transform:translateY(4px)}
+.btn.btn-p:active:not(:disabled){box-shadow:0 0 0 var(--brand-d),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn.btn-d:active:not(:disabled){box-shadow:0 0 0 rgba(0,0,0,.42)}
+.btn-g:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--lip)}
+.btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}
 .btnrow{display:flex;gap:10px;margin-top:18px}
 .btnrow .btn{flex:1}
 
-.examhead{position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 0 10px;border-bottom:1px solid var(--line);margin-bottom:18px}
+/* ---- exam chrome ------------------------------------------------ */
+.examhead{position:sticky;top:0;z-index:30;padding:12px 0 11px;margin-bottom:18px;
+  background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(16px);
+  backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid var(--line)}
 .examtop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.count{font-size:13px;font-weight:700}
-.clock{margin-left:auto;font-size:14px;font-weight:700;padding:5px 11px;border-radius:9px;background:var(--soft)}
-.clock.low{background:var(--stop);color:#fff}
-.bar{height:6px;background:var(--soft);border-radius:4px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--brand);transition:width .25s}
-.strip{display:flex;gap:4px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
+.count{font-size:13px;font-weight:800;letter-spacing:-.01em}
+.clock{margin-left:auto;font-size:14px;font-weight:800;padding:6px 12px;border-radius:11px;
+  background:var(--soft);box-shadow:inset 0 1px 0 var(--sheen)}
+.clock.low{background:var(--stop);color:#fff;box-shadow:0 0 0 4px var(--stop-soft);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px transparent}}
+.bar{height:7px;background:var(--soft);border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+.bar i{display:block;height:100%;border-radius:999px;transition:width .35s var(--ease);
+  background:linear-gradient(90deg,var(--brand),#7FA9FF)}
+/* padding, then a matching negative margin: the .tick.at ring is drawn
+   outside the tick's box, and without room inside the scroll container it
+   was being clipped into a pair of brackets. */
+.strip{display:flex;gap:4px;overflow-x:auto;margin:10px -3px 0;padding:3px 3px 5px;scrollbar-width:none}
 .strip::-webkit-scrollbar{display:none}
-.tick{flex:1 0 auto;min-width:24px;height:24px;border-radius:7px;border:1px solid var(--line);background:var(--card);
-  color:var(--ink3);font-size:10px;font-weight:700;cursor:pointer;padding:0;display:grid;place-items:center}
+.tick{flex:1 0 auto;min-width:25px;height:25px;border-radius:8px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink3);font-size:10px;font-weight:800;cursor:pointer;padding:0;display:grid;place-items:center;
+  transition:transform .13s var(--ease)}
+.tick:active{transform:scale(.9)}
 .tick.done{background:var(--brand);border-color:var(--brand);color:#fff}
 .tick.flag{border-color:var(--amber);border-width:2px}
-.tick.at{outline:2px solid var(--ink);outline-offset:1px}
+.tick.at{outline:2px solid var(--ink);outline-offset:2px;border-radius:9px}
 
-.qcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
-.qtag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-  padding:4px 10px;border-radius:999px;background:var(--soft);color:var(--ink2)}
-.qtext{font-size:19px;font-weight:700;line-height:1.35;margin:12px 0 4px;letter-spacing:-0.02em}
-.qhint{font-size:12.5px;color:var(--brand);font-weight:700;margin-bottom:12px}
+/* ---- the question card ------------------------------------------ */
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:21px}
+.qtag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.11em;padding:5px 11px;border-radius:999px;background:var(--soft);color:var(--ink2);
+  box-shadow:inset 0 1px 0 var(--sheen)}
+.qtext{font-size:19px;font-weight:700;line-height:1.35;margin:13px 0 4px;letter-spacing:-0.025em}
+.qhint{font-size:12.5px;color:var(--brand);font-weight:800;margin-bottom:12px}
 .opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:var(--card);
-  border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-top:9px;cursor:pointer;
-  font-size:15px;line-height:1.4;transition:border-color .1s}
+  border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px;cursor:pointer;
+  font-size:15px;line-height:1.4}
 .opt:hover{border-color:var(--brand)}
-.opt.sel{border-color:var(--brand);border-width:2px;background:var(--brand-soft)}
-.opt.right{border-color:var(--go);border-width:2px;background:var(--go-soft)}
-.opt.wrong{border-color:var(--stop);border-width:2px;background:var(--stop-soft)}
-.key{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;
-  font-size:12px;font-weight:800;margin-top:-1px}
+.opt.sel{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 2px 0 var(--brand-d)}
+.opt.right{border-color:var(--go);background:var(--go-soft);box-shadow:0 2px 0 var(--go)}
+.opt.wrong{border-color:var(--stop);background:var(--stop-soft);box-shadow:0 2px 0 var(--stop)}
+.key{flex:0 0 auto;width:27px;height:27px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;
+  font-size:12px;font-weight:800;margin-top:-1px;transition:background .15s var(--ease),color .15s var(--ease);
+  box-shadow:inset 0 1px 0 var(--sheen)}
 .opt.sel .key{background:var(--brand);border-color:var(--brand);color:#fff}
 .opt.right .key{background:var(--go);border-color:var(--go);color:#fff}
 .opt.wrong .key{background:var(--stop);border-color:var(--stop);color:#fff}
-.why{margin-top:14px;padding:14px;border-radius:14px;background:var(--soft);font-size:14px;line-height:1.55}
-.why b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:5px}
+.why{margin-top:15px;padding:15px;border-radius:16px;background:var(--soft);font-size:14px;line-height:1.55;
+  box-shadow:inset 0 1px 0 var(--sheen)}
+.why b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--ink3);margin-bottom:5px}
 .linkbtn{background:none;border:none;color:var(--ink2);font-size:13px;font-weight:700;cursor:pointer;padding:9px 0;margin-top:4px}
 .linkbtn.on{color:var(--amber)}
 
+/* ---- chapter breakdown ------------------------------------------ */
 .brk{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
-.dot{flex:0 0 auto;width:10px;height:10px;border-radius:3px}
+.dot{flex:0 0 auto;width:11px;height:11px;border-radius:4px;box-shadow:0 1px 0 rgba(0,0,0,.14)}
 .brk-n{font-size:14px;font-weight:600;flex:1}
-.brk-b{flex:0 0 76px;height:7px;background:var(--soft);border-radius:4px;overflow:hidden}
-.brk-b i{display:block;height:100%}
-.brk-s{font-size:13px;flex:0 0 46px;text-align:right;color:var(--ink2);font-weight:600}
+.brk-b{flex:0 0 76px;height:8px;background:var(--soft);border-radius:999px;overflow:hidden;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+.brk-b i{display:block;height:100%;border-radius:999px;transition:width .35s var(--ease)}
+.brk-s{font-size:13px;flex:0 0 46px;text-align:right;color:var(--ink2);font-weight:700}
 
-.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:9px;overflow:hidden}
-.sech{width:100%;display:flex;align-items:center;gap:10px;background:none;border:none;padding:15px 16px;
-  cursor:pointer;text-align:left;font-size:15px;font-weight:700;letter-spacing:-0.01em}
-.chev{margin-left:auto;color:var(--ink3);font-size:14px;transition:transform .18s}
+/* ---- notes sections --------------------------------------------- */
+.sec{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:10px;overflow:hidden}
+.sech{width:100%;display:flex;align-items:center;gap:10px;background:none;border:none;padding:16px;
+  cursor:pointer;text-align:left;font-size:15px;font-weight:700;letter-spacing:-0.015em}
+.chev{margin-left:auto;color:var(--ink3);font-size:14px;transition:transform .2s var(--ease)}
 .chev.open{transform:rotate(90deg)}
 .secb{padding:0 16px 16px}
 .secb ul{margin:0;padding-left:19px}
 .secb li{font-size:14.5px;line-height:1.6;margin-bottom:9px}
-.secb li mark{background:var(--amber-soft);color:inherit;padding:1px 2px;border-radius:3px}
+.secb li mark{background:var(--amber-soft);color:inherit;padding:1px 3px;border-radius:4px}
 
-.search{width:100%;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px 14px;
+.search{width:100%;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px;
   font-size:15px;font-family:inherit;color:var(--ink);margin-bottom:14px}
 .search::placeholder{color:var(--ink3)}
 
-.flash{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:32px 22px;min-height:210px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer}
-.flash-f{font-size:28px;font-weight:800;letter-spacing:-0.03em;line-height:1.2}
+/* ---- flashcards -------------------------------------------------- */
+.flash{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:34px 22px;min-height:214px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;
+  transition:transform .13s var(--ease),box-shadow .13s var(--ease)}
+.flash:active{transform:translateY(2px);box-shadow:0 0 0 var(--lip)}
+.flash-f{font-size:29px;font-weight:800;letter-spacing:-0.035em;line-height:1.2}
 .flash-b{font-size:17px;line-height:1.45;color:var(--ink)}
 .flash-hint{font-size:12px;color:var(--ink3);margin-top:16px}
 
+/* ---- history ----------------------------------------------------- */
 .hist{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
-.badge{font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;letter-spacing:.02em}
+.badge{font-size:11px;font-weight:800;padding:5px 11px;border-radius:999px;letter-spacing:.02em}
 .badge.p{background:var(--go-soft);color:var(--go)}
 .badge.f{background:var(--stop-soft);color:var(--stop)}
 .spark{display:flex;align-items:flex-end;gap:3px;height:60px;margin:6px 0 2px}
-.spark i{flex:1;background:var(--brand);border-radius:3px 3px 0 0;min-height:3px}
-.spark i.f{background:var(--stop)}
+.spark i{flex:1;border-radius:4px 4px 2px 2px;min-height:3px;
+  background:linear-gradient(180deg,#7FA9FF,var(--brand))}
+.spark i.f{background:linear-gradient(180deg,#FF8A8A,var(--stop))}
 
 .empty{text-align:center;color:var(--ink2);font-size:14px;padding:34px 12px;line-height:1.65}
 .foot{margin-top:24px;font-size:12px;color:var(--ink3);line-height:1.65}
-.note{background:var(--amber-soft);border-radius:14px;padding:13px 14px;font-size:13px;line-height:1.55;margin-top:14px}
+.note{background:var(--amber-soft);border-radius:16px;padding:14px;font-size:13px;line-height:1.55;margin-top:14px;
+  box-shadow:inset 0 1px 0 var(--sheen)}
 
-/* --ad-h is the measured height of the AdMob banner, published by
-   AdBanner.jsx. It is 0px unless a banner is actually on screen, so
-   the paid and trial tiers — and the whole web build — are laid out
+/* ---- tab bar ------------------------------------------------------
+   Lifted off the bottom edge and rounded, so it reads as a control
+   sitting on the app rather than a strip welded to the screen. It
+   still sits above the ad banner: --ad-h is the measured banner
+   height published by AdBanner.jsx, 0px when no banner is on screen,
+   so the paid and trial tiers and the whole web build are laid out
    exactly as they were before ads existed. */
-.nav{position:fixed;left:0;right:0;bottom:var(--ad-h,0px);z-index:50;background:var(--card);border-top:1px solid var(--line);
-  display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
-.navi{flex:1;background:none;border:none;cursor:pointer;display:grid;justify-items:center;gap:3px;color:var(--ink3);padding:4px 0}
-.navi.on{color:var(--brand)}
-.navi span{font-size:10.5px;font-weight:700}
-.navi em{font-size:18px;font-style:normal;line-height:1}
+.nav{position:fixed;left:14px;right:14px;z-index:50;
+  bottom:calc(var(--ad-h,0px) + env(safe-area-inset-bottom) + 12px);
+  max-width:532px;margin:0 auto;display:flex;gap:2px;padding:7px;
+  background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  border:1px solid var(--line);border-radius:24px;
+  box-shadow:0 3px 0 var(--lip),var(--e3)}
+.navi{flex:1;background:none;border:none;cursor:pointer;display:grid;justify-items:center;gap:3px;
+  color:var(--ink3);padding:8px 0 7px;border-radius:17px;
+  transition:color .16s var(--ease),background .16s var(--ease),transform .13s var(--ease)}
+.navi:active{transform:scale(.94)}
+.navi.on{color:var(--brand);background:var(--brand-soft)}
+.navi span{font-size:10.5px;font-weight:800;letter-spacing:-.01em}
+.navi em{font-size:18px;font-style:normal;line-height:1;transition:transform .2s var(--ease)}
+.navi.on em{transform:translateY(-1px) scale(1.08)}
 
+/* ---- forms -------------------------------------------------------- */
 .field{margin-bottom:16px}
 .field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
-.field input{width:100%;border:1px solid var(--line);background:var(--card);border-radius:13px;padding:13px 14px;
+.field input{width:100%;border:1px solid var(--line);background:var(--card);border-radius:15px;padding:14px;
   font-size:16px;font-family:inherit;color:var(--ink)}
 .toggle{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
-  border-radius:16px;padding:15px;width:100%;cursor:pointer;text-align:left}
-.sw{margin-left:auto;width:46px;height:27px;border-radius:999px;background:var(--soft);position:relative;flex:0 0 auto;transition:background .15s}
-.sw i{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.sw.on{background:var(--go)} .sw.on i{left:22px}
+  border-radius:18px;padding:16px;width:100%;cursor:pointer;text-align:left}
+.sw{margin-left:auto;width:48px;height:28px;border-radius:999px;background:var(--soft);position:relative;
+  flex:0 0 auto;transition:background .2s var(--ease);box-shadow:inset 0 1px 3px rgba(0,0,0,.14)}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;
+  transition:left .2s var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.28)}
+.sw.on{background:var(--go)} .sw.on i{left:23px}
 
-@media (max-width:400px){ .hero h1{font-size:23px} .qtext{font-size:17.5px} }
-@media (prefers-reduced-motion:reduce){ .uk *{transition:none!important} }
+/* ---- language picker ---------------------------------------------- */
+.lang-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lang{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px 13px;cursor:pointer;text-align:left}
+.lang.on{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 2px 0 var(--brand-d)}
+.lang b{display:block;font-size:15px;font-weight:700}
+.lang span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
 
+@media (max-width:400px){ .hero h1{font-size:23px} .qtext{font-size:17.5px} .h2{font-size:21px} }
+@media (prefers-reduced-motion:reduce){
+  .uk *{transition:none!important;animation:none!important}
+  .row:active,.tile:active,.opt:active,.lang:active,.toggle:active,.btn:active,.flash:active{transform:none}
+}
+
+/* ---- right-to-left -------------------------------------------------
+   Urdu, Arabic and Farsi. Everything that is anchored to one side,
+   or points one way, has to be mirrored by hand. */
 .uk[dir="rtl"] .row-go{transform:scaleX(-1)}
+.uk[dir="rtl"] .row:hover .row-go{transform:scaleX(-1) translateX(2px)}
 .uk[dir="rtl"] .chev{transform:rotate(180deg)}
 .uk[dir="rtl"] .chev.open{transform:rotate(90deg)}
-.uk[dir="rtl"] .clock,.uk[dir="rtl"] .row-go{margin-left:0;margin-right:auto}
+.uk[dir="rtl"] .clock,.uk[dir="rtl"] .row-go,.uk[dir="rtl"] .sw{margin-left:0;margin-right:auto}
 .uk[dir="rtl"] .iconbtn{margin-left:0}
 .uk[dir="rtl"] .top .iconbtn:first-of-type{margin-right:auto}
 .uk[dir="rtl"] .secb ul{padding-left:0;padding-right:19px}
 .uk[dir="rtl"] .linkbtn{text-align:right}
 .uk[dir="rtl"] .brk-s{text-align:left}
 .uk[dir="rtl"] .qtext,.uk[dir="rtl"] .lede,.uk[dir="rtl"] .why{text-align:right}
-.uk[dir="rtl"] .opt,.uk[dir="rtl"] .row,.uk[dir="rtl"] .toggle{text-align:right}
+.uk[dir="rtl"] .opt,.uk[dir="rtl"] .row,.uk[dir="rtl"] .toggle,.uk[dir="rtl"] .lang{text-align:right}
+.uk[dir="rtl"] .sw i{left:auto;right:3px}
+.uk[dir="rtl"] .sw.on i{left:auto;right:23px}
+
+/* ---- the translation subtitles under each question ------------------ */
 .qsub{font-size:15.5px;line-height:1.45;color:var(--ink2);margin:6px 0 2px;font-weight:600}
 .qsub.dim{color:var(--ink3);letter-spacing:.2em}
 .osub{display:block;font-size:13.5px;line-height:1.4;color:var(--ink2);margin-top:3px}
 .wsub{display:block;font-size:13.5px;line-height:1.5;color:var(--ink2);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .uk[dir="rtl"] .qsub,.uk[dir="rtl"] .osub,.uk[dir="rtl"] .wsub{text-align:right;direction:rtl}
+
 /* ============================================================
    THE PATH — its own screen: a violet night-sky trail of the
    eight levels, in the spirit of a language-app skill tree.
@@ -2331,15 +2491,24 @@ const CSS = `
 .uk:has(.pathwrap){
   background:
     radial-gradient(circle at 1px 1px,rgba(255,255,255,.06) 1.5px,transparent 1.7px) 0 0/24px 24px,
+    radial-gradient(760px 340px at 50% 0,rgba(255,203,61,.10),transparent 68%),
     linear-gradient(180deg,#2A2059 0%,#1C1548 50%,#140F35 100%);
 }
-.uk:has(.pathwrap) .top{background:transparent}
+.uk:has(.pathwrap) .top{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
 .uk:has(.pathwrap) .wordmark{color:#F3F0FF}
-.uk:has(.pathwrap) .logo{background:#B9A8FF;color:#241653}
-.uk:has(.pathwrap) .iconbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.18);color:#F3F0FF}
-.uk:has(.pathwrap) .nav{background:#1B1547;border-top-color:rgba(255,255,255,.08)}
+.uk:has(.pathwrap) .logo{background:linear-gradient(160deg,#CDBEFF,#B9A8FF);color:#241653;
+  box-shadow:0 2px 0 #7A5FD8,0 6px 16px rgba(185,168,255,.34),inset 0 1px 0 rgba(255,255,255,.5)}
+.uk:has(.pathwrap) .iconbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.18);
+  color:#F3F0FF;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.uk:has(.pathwrap) .iconbtn:active{box-shadow:0 0 0 rgba(0,0,0,.35)}
+.uk:has(.pathwrap) .nav{background:rgba(27,21,71,.86);border-color:rgba(255,255,255,.12);
+  box-shadow:0 3px 0 rgba(0,0,0,.4),0 16px 38px rgba(0,0,0,.5)}
 .uk:has(.pathwrap) .navi{color:#8B82C4}
-.uk:has(.pathwrap) .navi.on{color:#FFCB3D}
+.uk:has(.pathwrap) .navi.on{color:#FFCB3D;background:rgba(255,203,61,.14)}
+/* The account button is a sibling of .uk rather than a child, so it never
+   sees this screen's colour world and stayed a white disc on the night sky. */
+body:has(.pathwrap) .acct-fab{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.22);
+  color:#F3F0FF;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 
 .pathwrap{
   --pw-ink:#F3F0FF; --pw-dim:#B4AAE0; --pw-line:#3C3374;
@@ -2347,7 +2516,7 @@ const CSS = `
   --pw-here:#FFCB3D; --pw-here-lip:#CB9013; --pw-here-ink:#3B2A00;
   --pw-lock:#2A2358; --pw-lock-lip:#1B1740; --pw-lock-ink:#7E74B4;
   position:relative;z-index:1;max-width:560px;margin:0 auto;
-  padding:6px 18px 124px;overflow-x:clip;color:var(--pw-ink);
+  padding:6px 18px 128px;overflow-x:clip;color:var(--pw-ink);
 }
 .pathwrap :focus-visible{outline-color:#FFCB3D}
 
@@ -2355,10 +2524,11 @@ const CSS = `
   display:grid;gap:11px;border:1px solid rgba(255,255,255,.11);border-radius:20px;
   background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.035));
   padding:15px 17px;margin:4px 0 6px;
+  box-shadow:0 2px 0 rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1);
 }
 .pw-unit h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-0.02em}
 .pw-unit p{margin:3px 0 0;font-size:13px;font-weight:600;color:var(--pw-dim)}
-.pw-meter{height:9px;border-radius:999px;background:rgba(0,0,0,.30)}
+.pw-meter{height:9px;border-radius:999px;background:rgba(0,0,0,.30);box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
 .pw-meter i{display:block;height:100%;border-radius:999px;
   background:linear-gradient(90deg,#FFCB3D,#FFE49A);transition:width .45s ease}
 
@@ -2413,45 +2583,52 @@ const CSS = `
 @media (prefers-reduced-motion:reduce){.pw-lines path{animation:none;stroke-dashoffset:0}}
 .uk[dir="rtl"] .pw-cap,.uk[dir="rtl"] .pw-call span{direction:rtl}
 .pathbar{display:flex;gap:4px;margin:2px 0 0}
-.pathbar i{flex:1;height:7px;border-radius:3px;background:var(--soft)}
+.pathbar i{flex:1;height:7px;border-radius:999px;background:var(--soft)}
 .pathbar i.ok{background:var(--go)}
 .pathbar i.at{background:var(--brand)}
-.ready{background:var(--go);border-radius:22px;padding:22px 20px;color:#fff;margin-top:14px}
-.ready h1{margin:0;font-size:25px;font-weight:800;letter-spacing:-0.03em;line-height:1.15}
-.ready p{margin:10px 0 0;font-size:14px;line-height:1.6;color:rgba(255,255,255,.9)}
-.ready a{display:block;text-align:center;margin-top:18px;background:#fff;color:#0E9F6E;text-decoration:none;
-  font-weight:800;font-size:15px;padding:14px 18px;border-radius:14px}
-.lang-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.lang{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:13px 12px;cursor:pointer;text-align:left}
-.lang.on{border-color:var(--brand);border-width:2px;background:var(--brand-soft)}
-.lang b{display:block;font-size:15px;font-weight:700}
-.lang span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
+.ready{border-radius:26px;padding:24px 20px;color:#fff;margin-top:14px;
+  background:linear-gradient(150deg,#2FD39B,var(--go) 55%,#0A7E57);
+  box-shadow:0 4px 0 #0A7E57,0 18px 40px rgba(14,159,110,.32),inset 0 1px 0 rgba(255,255,255,.28)}
+.ready h1{margin:0;font-size:25px;font-weight:800;letter-spacing:-0.035em;line-height:1.15}
 
 /* Unlock screen. Sits over the app rather than replacing it, so "Not now"
    puts you back exactly where you were. */
 .pw{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
-  padding:20px;background:rgba(8,12,20,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
-  overflow-y:auto}
+  padding:20px;background:rgba(8,12,20,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  overflow-y:auto;animation:pw-fade .22s var(--ease) both}
 .pw-card{width:100%;max-width:400px;margin:auto;background:var(--card);border:1px solid var(--line);
-  border-radius:22px;padding:24px 20px;box-shadow:0 18px 50px rgba(0,0,0,.28)}
-.pw-mark{width:44px;height:44px;border-radius:13px;background:var(--brand-soft);color:var(--brand);
-  display:grid;place-items:center;font-size:20px;margin-bottom:16px}
-.pw-title{margin:0 0 6px;font-size:23px;font-weight:800;letter-spacing:-0.03em;line-height:1.2}
+  border-radius:26px;padding:26px 22px;box-shadow:0 4px 0 var(--lip),0 24px 60px rgba(0,0,0,.34);
+  animation:pw-pop .3s var(--ease) both}
+@keyframes pw-fade{from{opacity:0}}
+@keyframes pw-pop{from{opacity:0;transform:translateY(14px) scale(.97)}}
+/* Scoped: .pw-mark is also the Path's tick and padlock glyph, and an
+   unscoped rule here was landing a 44px tinted box behind those SVGs. */
+.pw-card .pw-mark{width:48px;height:48px;border-radius:15px;color:var(--brand);
+  background:var(--brand-soft);display:grid;place-items:center;font-size:21px;margin-bottom:16px;
+  box-shadow:inset 0 1px 0 var(--sheen)}
+.pw-node .pw-mark{width:27px;height:27px;display:block;background:none;border-radius:0;box-shadow:none}
+.pw-title{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:-0.035em;line-height:1.2}
 .pw-lead{margin:0 0 18px;font-size:14px;line-height:1.6;color:var(--ink2)}
 .pw-list{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;gap:11px}
 .pw-list li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;line-height:1.45}
-.pw-tick{flex:0 0 auto;width:20px;height:20px;border-radius:50%;background:var(--go-soft);color:var(--go);
+.pw-tick{flex:0 0 auto;width:21px;height:21px;border-radius:50%;background:var(--go-soft);color:var(--go);
   display:grid;place-items:center;font-size:11px;margin-top:1px}
-.pw-msg{margin:0 0 14px;background:var(--amber-soft);color:var(--ink);border-radius:12px;
-  padding:11px 13px;font-size:13.5px;line-height:1.5}
-.pw-buy{width:100%;border:none;border-radius:14px;padding:15px 18px;font-size:15.5px;font-weight:800;
-  letter-spacing:-0.01em;cursor:pointer;background:var(--brand);color:#fff}
-.pw-once{margin:9px 0 4px;text-align:center;font-size:12px;color:var(--ink3)}
+.pw-msg{margin:0 0 14px;background:var(--amber-soft);color:var(--ink);border-radius:14px;
+  padding:12px 14px;font-size:13.5px;line-height:1.5;box-shadow:inset 0 1px 0 var(--sheen)}
+.pw-buy{width:100%;border:none;border-radius:16px;padding:16px 18px;font-size:15.5px;font-weight:800;
+  letter-spacing:-0.015em;cursor:pointer;color:#fff;
+  background:linear-gradient(150deg,#4C86FF,var(--brand) 55%,var(--brand-d));
+  box-shadow:0 4px 0 var(--brand-d),0 10px 24px rgba(47,107,255,.32),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .13s var(--ease),box-shadow .13s var(--ease),filter .13s var(--ease)}
+.pw-buy:hover:not(:disabled){filter:brightness(1.05)}
+.pw-buy:active:not(:disabled){transform:translateY(4px);
+  box-shadow:0 0 0 var(--brand-d),inset 0 1px 0 rgba(255,255,255,.3)}
+.pw-once{margin:10px 0 4px;text-align:center;font-size:12px;color:var(--ink3)}
 .pw-alt{width:100%;border:none;background:none;cursor:pointer;font:inherit;font-size:14px;font-weight:700;
-  color:var(--ink);padding:11px;border-radius:12px;margin-top:4px}
+  color:var(--ink);padding:12px;border-radius:14px;margin-top:4px}
 .pw-alt:hover{background:var(--soft)}
 .pw-quiet{color:var(--ink2);font-weight:600}
-.pw button:disabled{opacity:.55;cursor:not-allowed}
+.pw button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;transform:none}
 `;
 
 /* ============================================================
