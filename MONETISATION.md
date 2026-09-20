@@ -1,245 +1,473 @@
 # Life in the UK: Test Prep — Monetisation Setup
 
-**Status:** Built and running on your iPhone. Three console setups remain to turn on revenue.
+What is built, and the console work still left to you. Rewritten 20 September 2026
+to match the code that actually ships — the earlier version of this file described
+a design that was replaced and would have walked you into creating the wrong
+product type.
 
-**Commit:** `[refactored]` (feat: simplify to path-trial + free-with-ads, £3.99 unlock)
+The web app is untouched by all of this: free, ad-free, no paywall, no trial.
+Everything below is native iOS only.
 
 ---
 
-## How It Works
+## Read this first: the product type
 
-**User journey:**
-1. Sign in → **24 hours of free path access** (trial), ads on everything
-2. After 24 hours → **path locked, everything else free with ads**
-3. Pay £3.99 → **path unlocked, ads off forever**
+You described what you want as **a one-time purchase that expires after a year,
+with a 3-day free trial that takes card details up front.**
 
-**What locks:** path levels only
-**What stays free:** mock test, quick quiz, chapter practice, mistakes, saved questions, study notes, flashcards, progress, booking & test-day guidance (all with ads in free tier)
+Apple does not allow those two things on the same product. This is worth
+understanding before you open App Store Connect, because the console will not
+explain it to you — it will just quietly not offer you the option.
 
-**Web:** Completely untouched — free, ad-free, no paywall, no trial. All of this is native-only.
+| What you want | Apple's product type | Can it take a card before a free trial? |
+|---|---|---|
+| One payment, access expires after 1 year, never auto-charges again | **Non-Renewing Subscription** | **No.** Introductory offers do not exist on this type. |
+| One payment, access forever | **Non-Consumable** | **No.** Same reason. |
+| Charged yearly until cancelled, 3-day free trial first | **Auto-Renewable Subscription** | **Yes.** This is the only type with introductory offers. |
+
+A free trial in Apple's world *is* an "introductory offer", and introductory
+offers only exist on auto-renewable subscriptions. The card requirement comes
+free with that: Apple takes the payment method when the trial starts, precisely
+because something is scheduled to be charged when it ends.
+
+So a card-gated 3-day trial and a non-renewing purchase are mutually exclusive.
+You can have either one, not both.
+
+**What the app currently ships** is the auto-renewable route — it was the only
+way to get the card-gated trial you asked for:
+
+| Thing | Value |
+|---|---|
+| Product ID | `com.kingofmadnes.lifeintheuk.path.annual` |
+| Type | Auto-renewable subscription, 1 year |
+| Price | £3.99 |
+| Introductory offer | 3-day free trial |
+
+In practice this behaves very close to what you described. The person pays £3.99,
+gets a year, and can cancel at any point in that year — cancelling still leaves
+them the full year they paid for. The single difference from a non-renewing
+purchase is that if they do nothing, year two is charged automatically.
+
+**If you would rather have the non-renewing version**, that is a legitimate choice
+and the trade is simple: you lose the card-gated trial. You would either drop the
+trial entirely, or run the 3 days on your own clock inside the app with no card
+taken (which people can reset by reinstalling — an earlier version of this app did
+exactly that, and it is why the design was changed). Say the word and I will make
+the change; it touches `StoreKitPlugin.swift`, `storekit.js`, `entitlementLogic.js`
+and the paywall copy. **Nothing below assumes you will.**
+
+---
+
+## How it works
+
+**User journey**
+1. Install → path locked, everything else free, ads on
+2. Start the trial → card taken by Apple, **3 days** of path access, ads still on
+3. Don't cancel → charged £3.99, path stays open, **ads off**
+4. Cancel inside 3 days → nothing charged, path locks again
+
+**What locks:** the eight path levels, and nothing else.
+
+**What stays free, always:** mock test, quick quiz, chapter practice, mistakes
+list, saved questions, study notes, flashcards, progress, booking and test-day
+guidance. All of it with ads in the free tier.
+
+Note that ads stay on *during* the trial. Only a converted, paid subscription
+turns them off — that is deliberate, it gives the trial somewhere to improve to.
 
 ---
 
 ## Architecture
 
-### Trial Clock (Firestore)
-- One document per account: `users/{uid}` with field `trialStartedAt`
-- Written once on first sign-in, never updated (security rules forbid it)
-- Cached locally in `localStorage` for offline resilience
-- Deleting your account removes the document (fixed in `b399160`)
+### The trial is Apple's, not ours
 
-### Entitlements
-- Four states: `loading | web | paid | free`
-- Path trial tracked separately: 24h window per account in Firestore
-- Pure logic in `src/entitlementLogic.js` (tested, 46 tests pass)
-- React hook in `src/entitlement.js` with race-condition handling
+There is no trial clock in this codebase. No Firestore document, no device
+timestamp, no `localStorage` key. StoreKit reports whether the current entitlement
+is the introductory period or a real charge, and that is the whole source of
+truth.
 
-### Purchases (StoreKit 2)
-- Local Swift plugin: `ios/App/App/StoreKitPlugin.swift`
-- Non-consumable: `com.kingofmadnes.lifeintheuk.unlock` at £3.99
-- `ios/App/LifeInTheUK.storekit` config file for sandbox testing
-- Direct StoreKit 2 — no third-party SDK, no receipt server
+This matters because it is not farmable. Reinstalling, signing out of the app,
+deleting the account, clearing storage, changing the device date — none of it
+gives anyone a second trial, because none of it is where the trial lives. Apple
+ties the introductory offer to the Apple ID.
 
-### Ads (Google AdMob)
-- Banners on: home, study, progress, path, testday
-- Interstitials on navigation (throttled: one every 3 minutes)
-- Never on a screen with a question
-- UMP consent form required first (UK GDPR), then ATT prompt
-- Test units now (`ca-app-pub-3940256099942544/…`), swap for real ones later
-- `src/ads/ads.js` declares `LIVE = false` and empty `REAL` object
+### Entitlement states
 
----
+Five, resolved in `src/entitlement.js`:
 
-## Three Setup Steps
+| State | Meaning | Path | Ads |
+|---|---|---|---|
+| `loading` | still resolving | open | off |
+| `web` | not the native app | open | off |
+| `free` | no subscription | **locked** | **on** |
+| `trialing` | inside the 3-day trial | open | **on** |
+| `paid` | trial converted to a charge | open | off |
 
-### Step 1: Enable Firestore (5–10 minutes)
-- **Console:** firebase.google.com
-- Create database in `europe-west2` (London)
-- Paste security rules (see below)
-- Path trial clock will start recording immediately
+The decisions themselves are in `src/entitlementLogic.js` — no imports, fully
+unit-tested:
 
-**Security Rules:**
-```
-rules_version = '2';
-
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null
-                    && request.auth.uid == uid
-                    && request.resource.data.keys().hasOnly(['pathTrialStartedAt'])
-                    && request.resource.data.pathTrialStartedAt == request.time;
-      allow update: if false;
-      allow delete: if request.auth != null && request.auth.uid == uid;
-    }
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
+```js
+export function stateFor(owned, trialing) {
+  if (!owned) return "free";
+  return trialing ? "trialing" : "paid";
 }
+export function pathOpenFor(state) { return state !== "free"; }
+export function adsOnFor(state)    { return state === "free" || state === "trialing"; }
 ```
 
-**Test it:** Sign into the app on your phone, go to Firestore Data tab. Within seconds you should see `users/{your-account-id}` with `pathTrialStartedAt` timestamp.
+`loading` deliberately leaves the path open. Resolving hits the store, and gating
+the app behind a spinner to save three seconds of path access is the worse trade.
+
+### Purchases — StoreKit 2, no third-party SDK
+
+`ios/App/App/StoreKitPlugin.swift` is a local Capacitor plugin. StoreKit 2 hands
+back a `VerificationResult` that Apple has already checked cryptographically, so
+there is no receipt to validate and therefore no receipt server to get wrong or
+to pay for.
+
+It listens to `Transaction.updates`, which is how the trial converting to a charge,
+a renewal, an Ask to Buy approval, a purchase on another device, or a refund all
+reach the app without the app asking.
+
+Every method resolves. A store that cannot be reached reports "not owned" and the
+app carries on in its free tier — it never strands anyone on a spinner.
+
+### The owner account
+
+`cccvhmd2001@gmail.com` is hard-coded in `src/entitlement.js` and always resolves
+to `paid`, checked before StoreKit runs at all.
+
+**If that is not an address you control, change it.** It is a permanent free
+account that no purchase check can ever see.
+
+### Ads — Google AdMob
+
+- Banners on: home, study, progress, path, test-day
+- Interstitials on navigation, throttled to one per 3 minutes
+- **Never on a screen with a question on it**
+- UMP consent form first (UK GDPR), then the ATT prompt, then `initialize()`
+
+Currently on Google's official test units with `LIVE = false` in `src/ads/ads.js`.
+Test units serve real-looking ads that pay nothing and cannot get an account
+flagged.
 
 ---
 
-### Step 2: Create the £3.99 IAP (10–15 minutes)
-- **Console:** appstoreconnect.apple.com
-- **Business section first** (see below — Paid Apps agreement, bank, tax)
-- **Apps → Life in the UK: Test Prep → Monetization → In-App Purchases**
-- Type: **Non-Consumable**
-- Reference Name: `Unlock the path`
-- Product ID: `com.kingofmadnes.lifeintheuk.unlock` (exact match, one "s" in "madnes")
-- Price: £3.99 (UK)
-- Display Name: `Unlock the path`
-- Description: `Unlocks all eight path levels and removes ads from the entire app. One payment, not a subscription.`
-- Review screenshot: any iPhone screenshot of the paywall screen
-- Review notes: `New accounts get a 24-hour free trial of the path. After 24 hours the path locks. To see the locked state and this purchase, either use the sandbox tester account in App Review Information, or set the device date forward 24 hours. Restore purchase is in Settings and on the unlock screen.`
+## Step 1 — Paid Applications Agreement (do this first)
 
-**Test with sandbox tester:** Create one in **Users and Access → Sandbox → Test Accounts**, then sign in at **Settings → Developer → Sandbox Apple Account** on the phone.
+Nothing can be sold until this is signed, and it gates the other steps.
+
+1. **appstoreconnect.apple.com → Business**
+2. Sign the **Paid Applications Agreement**
+3. Add **banking details** (a UK account for GBP payouts)
+4. Complete **tax forms** — UK residents need the US W-8BEN, which is in the
+   same flow
+
+Status must read **Active**, not "Pending". Until it does, in-app purchases will
+not load even in sandbox, and the paywall will show the product as unavailable.
+
+This can take a few days if the bank details need verifying. Start it before
+anything else.
 
 ---
 
-### Step 3: Make the Ads Pay (10–15 minutes)
-- **Console:** admob.google.com
-- Sign up, complete payments profile (this takes weeks for PIN verification — start now)
-- **Apps → Add app → iOS → No, not listed → Name: `Life in the UK: Test Prep`**
-- Copy the App ID (has a tilde: `ca-app-pub-…~…`)
-- **Ad units → Banner:** `LITUK iOS banner` — copy the ID (has a slash)
-- **Ad units → Interstitial:** `LITUK iOS interstitial` — copy the ID
+## Step 2 — Create the subscription
 
-**Then edit the code:**
+**appstoreconnect.apple.com → Apps → Life in the UK: Test Prep → Monetization →
+Subscriptions**
 
-In `ios/App/App/Info.plist`, find `GADApplicationIdentifier` and replace the value below it with your App ID.
+### 2a. Create the subscription group
 
-In `src/ads/ads.js` (lines 31 and 38–41):
+Groups exist so people can move between tiers. You have one tier, but the group
+is still required.
+
+- **Reference Name:** `Path Access`
+
+### 2b. Create the subscription
+
+Inside that group, **＋**:
+
+| Field | Value |
+|---|---|
+| Reference Name | `Path Annual` |
+| Product ID | `com.kingofmadnes.lifeintheuk.path.annual` |
+
+**Check the Product ID character by character.** It is `kingofmadnes` — one `s`,
+not two. It must match `StoreKitPlugin.swift` exactly, it is case-sensitive, and
+**it can never be changed or reused once created.** A typo here means creating a
+second product and abandoning the first forever.
+
+Then:
+
+- **Subscription Duration:** 1 Year
+- **Price:** £3.99 (GB) — set the UK price and let Apple generate the rest
+- **Localization (English UK):**
+  - Display Name: `Path Access`
+  - Description: `Unlocks all eight path levels and removes ads. 3 days free, then £3.99 a year.`
+- **Review Information:** a screenshot of the paywall screen
+
+### 2c. Add the 3-day free trial
+
+This is the part that matters, and it is a *separate* step from creating the
+subscription. It is easy to miss and the subscription looks finished without it.
+
+Still inside the subscription → **Subscription Prices → Introductory Offers → ＋**
+
+| Field | Value |
+|---|---|
+| Countries | All (or at least United Kingdom) |
+| Start Date | today |
+| End Date | leave empty (runs indefinitely) |
+| Type | **Free** |
+| Duration | **3 Days** |
+
+Save. The subscription should now show a "Free trial, 3 days" row under its price.
+
+**If the Type dropdown offers you no "Free" option**, the Paid Applications
+Agreement is not Active yet. Go back to Step 1.
+
+### 2d. Review notes
+
+Reviewers need to be able to reach the locked state, or they will reject for
+"cannot locate the in-app purchase":
+
+```
+The eight-level Path is the only locked feature. Everything else in the app
+is free.
+
+To see the paywall: open the app, tap Path in the bottom navigation, and tap
+any level. The subscription sheet appears with the 3-day free trial.
+
+Restore Purchase is on that same screen and in Settings.
+
+All other features (mock test, quick quiz, chapter practice, study notes,
+flashcards, progress) are free and need no purchase.
+```
+
+---
+
+## Step 3 — Check the trial is legitimate
+
+You asked for this to be verified rather than assumed. Two different things are
+worth confirming, and they are confirmed in different places.
+
+### 3a. That a card is genuinely required
+
+This is Apple's behaviour, not the app's, and it is not configurable — but you
+should see it once with your own eyes.
+
+1. **Users and Access → Sandbox → Test Accounts → ＋** — create a tester with an
+   email address you control that has **never** been used as an Apple ID
+2. On the iPhone: **Settings → Developer → Sandbox Apple Account** → sign in as
+   that tester
+3. Open the app, tap Path, tap a level
+4. The sheet should read **"3 days free, then £3.99/year"**
+
+In sandbox no real card is charged, so what you are checking is the *wording and
+the flow*: Apple presents it as a subscription with a trial that converts, and
+confirming requires an authenticated Apple ID. In production that Apple ID must
+have a valid payment method on file or the purchase fails — which is exactly the
+gate you wanted.
+
+Sandbox runs on an accelerated clock: a 1-year subscription renews every hour,
+and the 3-day trial passes in minutes. That is how you watch `trialing` become
+`paid` without waiting three days.
+
+### 3b. That the app enforces it
+
+This is our code, and it is the part that could actually be wrong.
+
+| Check | Expected |
+|---|---|
+| Fresh install, no purchase | Path locked, ads showing |
+| Start trial | Path opens, **ads still showing** |
+| Let the sandbox trial convert | Path open, **ads stop** |
+| Cancel during trial | Path locks again |
+| Delete app, reinstall, do not repurchase | Path still open if subscription live — the entitlement is on the Apple ID, not the device |
+| Sign out of the Firebase account entirely | No change to path or ads — the subscription is not tied to it |
+| Aeroplane mode, cold start | Free tier, no spinner, no crash |
+
+That last row is the one people forget. The store being unreachable must degrade
+to the free tier, not to a hang.
+
+### 3c. The known problem you will hit first
+
+`ios/App/LifeInTheUK.storekit` — the local sandbox config — **is stale.** It still
+describes the old design: a £2.99 non-consumable called
+`com.kingofmadnes.lifeintheuk.unlock`, with an empty subscription group.
+
+The Swift code looks for `com.kingofmadnes.lifeintheuk.path.annual` as a
+subscription, so **testing against that file will fail to find the product** and
+the paywall will report it unavailable.
+
+It needs replacing with a subscription group containing the annual product and its
+3-day introductory offer. I have left it alone because you asked me not to change
+anything else — say the word and it is a two-minute fix.
+
+Note this only affects local Xcode testing with the StoreKit configuration file
+selected in the scheme. Testing against a real sandbox tester account (3a above)
+does not use this file and is unaffected.
+
+---
+
+## Step 4 — AdMob
+
+Budget real time for this. The account setup is quick; **getting paid is not** —
+address verification is a physical postcard, and that alone is 2–4 weeks. Start
+it now even if the app is months from launch.
+
+### 4a. Create the account
+
+1. **admob.google.com** → sign in with a Google account
+2. Country: **United Kingdom**, currency **GBP**, accept terms
+3. Use an account you will keep. AdMob is tied to it permanently and cannot be
+   transferred.
+
+### 4b. Payments profile — start it immediately
+
+**Payments → Settings**
+
+- **Name and address must match your bank exactly.** Mismatches are the single
+  most common reason payouts fail months later.
+- **Tax info:** UK individuals complete a **W-8BEN**. You will need your
+  National Insurance number or UTR. Getting this wrong means 30% US withholding
+  on your earnings.
+- **Address verification:** once earnings pass a threshold (about £7), Google
+  posts a **PIN on a physical postcard** to that address. It takes 2–4 weeks to
+  arrive, and you have to enter it before any payout. Three failed attempts and
+  the process needs support intervention.
+- **Payment threshold:** £60 (or local equivalent). Nothing is paid out below it;
+  it just rolls over month to month.
+
+### 4c. Register the app
+
+**Apps → Add app**
+
+- Platform: **iOS**
+- "Is the app listed on a store?" — **No** for now; you can link it after release
+- App name: `Life in the UK: Test Prep`
+
+Copy the **App ID**. It looks like `ca-app-pub-1234567890123456~1234567890` and
+**contains a tilde `~`**.
+
+### 4d. Create the two ad units
+
+**Apps → Life in the UK: Test Prep → Ad units → Add ad unit**
+
+| Format | Name | Settings |
+|---|---|---|
+| **Banner** | `LITUK iOS banner` | defaults are fine |
+| **Interstitial** | `LITUK iOS interstitial` | defaults are fine |
+
+Copy both IDs. They look like `ca-app-pub-1234567890123456/9876543210` and
+**contain a slash `/`**.
+
+The tilde/slash distinction is the thing to get right: **App ID has a tilde, ad
+unit IDs have a slash.** Putting an App ID where an ad unit ID belongs fails
+silently with a blank space where the ad should be.
+
+New ad units typically serve nothing for a few hours to a day. A blank banner
+immediately after creating a unit is normal, not a bug.
+
+### 4e. Put the IDs in the code
+
+**`ios/App/App/Info.plist`** — find `GADApplicationIdentifier` and replace the
+string under it with your **App ID** (the tilde one):
+
+```xml
+<key>GADApplicationIdentifier</key>
+<string>ca-app-pub-1234567890123456~1234567890</string>
+```
+
+If this is missing or wrong, **the app crashes on launch.** Google's SDK asserts
+on it deliberately.
+
+**`src/ads/ads.js`** — two edits, around lines 31 and 38:
+
 ```javascript
-const LIVE = true;  // line 31
+const LIVE = true;                                       // was false
 
-const REAL = {      // lines 38–41
-  banner: "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX",
-  interstitial: "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX",
+const REAL = {
+  banner:       "ca-app-pub-1234567890123456/1111111111",
+  interstitial: "ca-app-pub-1234567890123456/2222222222",
 };
 ```
 
-**Never tap your own live ads.** Not once. Google reads it as click fraud and suspends permanently with earnings forfeited.
+The file picks real units only when `LIVE` is true *and* `REAL.banner` is
+non-empty, so a half-finished edit falls back to test units rather than breaking.
+
+Then rebuild and re-sync:
+
+```sh
+npm run build && npx cap sync ios
+```
+
+### 4f. app-ads.txt
+
+Once the app is on the App Store, create a file at the domain listed on your App
+Store page — `https://yourdomain.com/app-ads.txt` — containing the line AdMob
+gives you under **Apps → app-ads.txt**:
+
+```
+google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0
+```
+
+This is optional but costs nothing and meaningfully raises what advertisers will
+pay, because it proves the inventory is genuinely yours.
+
+### 4g. Register your own device as a test device
+
+**Do this before you build with `LIVE = true`.**
+
+Run the app once with live IDs and watch the Xcode console for:
+
+```
+<Google> To get test ads on this device, set: GADMobileAds.sharedInstance
+         .requestConfiguration.testDeviceIdentifiers = @[ @"ABCDEF012345..." ]
+```
+
+Add that identifier in **AdMob → Settings → Test devices**.
+
+### 4h. Never tap your own live ads
+
+Not once, not "just to check it works". Google reads it as click fraud and the
+penalty is permanent account suspension with all accrued earnings forfeited.
+There is no appeal worth counting on.
+
+This is what 4g is for: a registered test device serves ads that look real and are
+safe to interact with.
 
 ---
 
-## What You Can Reuse (Your Existing App)
+## Gotchas
 
-You already have:
-- **Team:** `CA566K4T2P` (Mohamed fares Rebah) — same team, same certificate
-- **Paid Apps agreement:** Active
-- **Bank account:** Already on file
-- **Tax forms:** Already filed
+**Bundle ID.** `com.kingofmadnes.lifeintheuk` — one `s` in `madnes`. It has to
+match across Xcode, App Store Connect and every product ID. It cannot be changed
+after the first upload.
 
-**New work only:**
-1. Register the explicit bundle ID `com.kingofmadnes.lifeintheuk` in developer.apple.com (Certificates, IDs & Profiles → Identifiers → + → App IDs → Explicit → enable In-App Purchase)
-2. Create the app record in App Store Connect
-3. Create the £3.99 IAP
+**In-app purchases need a build.** Products stay in "Waiting for Review" and will
+not load in production until a build containing them has been submitted. Sandbox
+works before that; production does not.
 
-Everything else is reused.
+**The first submission carries a lot at once** — IAP, ads, ATT, UMP consent and a
+privacy-label change all in one review. Expect a round trip, and answer the
+privacy questionnaire carefully: you must declare identifier collection for
+advertising, or it is rejected on a technicality.
 
----
-
-## Code Files
-
-### New Files
-- `src/entitlementLogic.js` — pure free/paid + path trial decision logic
-- `src/entitlementLogic.test.js` — 15 tests covering boundaries and fail-open
-- `src/entitlement.js` — React hook, Firestore reads, StoreKit integration
-- `src/storekit.js` — StoreKit 2 bridge to the Swift plugin
-- `src/paywall/Paywall.jsx` — the £3.99 unlock screen
-- `src/ads/ads.js` — AdMob init, banner, interstitial, consent/ATT
-- `src/ads/AdBanner.jsx` — renders nothing, manages the native banner
-- `ios/App/App/StoreKitPlugin.swift` — local Capacitor plugin, ~150 lines
-
-### Modified Files
-- `src/LifeInTheUK.jsx` — imports entitlement, gating at `go()` and `startLevel()`, paywall render, ad banner render, Settings Purchase section
-- `src/firebase.js` — lazy Firestore import, `getDb()` function
-- `src/auth/AuthGate.jsx` — calls `forgetPathTrial(uid)` on account deletion
-- `src/auth/auth.css` — account button and paywall positioned above the banner
-- `public/privacy.html` — rewritten to disclose Firestore, AdMob, ATT, UMP
-- `ios/App/App/Info.plist` — `GADApplicationIdentifier`, `SKAdNetworkItems`, `NSUserTrackingUsageDescription`
-- `ios/App/App.xcodeproj/project.pbxproj` — StoreKitPlugin.swift added to build
-- `package.json` — `@capacitor-community/admob@8.1.0` added
+**Ads before consent resolves** is what gets an AdMob account limited. Every entry
+point in `ads.js` already waits on `ready()` — do not add one that does not.
 
 ---
 
-## Testing Checklist
+## Where things stand
 
-Before you submit:
-- [ ] New account shows ads but path is open
-- [ ] A `users` document appeared in Firestore with `pathTrialStartedAt`
-- [ ] Reinstalling the app does NOT restart the path trial
-- [ ] Device clock set 24h forward shows paywall and path locked
-- [ ] Sandbox purchase unlocks path and kills ads
-- [ ] Restore Purchase works on a fresh install
-- [ ] No ad appears on any question screen
-- [ ] Ads appear on home, study, progress, testday screens
-- [ ] Website still has no ads, no paywall
-- [ ] App Privacy answers: Identifiers + Usage Data, tracking **Yes**
-- [ ] Paid Apps agreement shows **Active**
-- [ ] Sandbox tester credentials in App Review Information
+| | |
+|---|---|
+| Code | **Done.** Entitlement, StoreKit plugin, paywall, ads, consent, ATT. |
+| Paid Applications Agreement | **Yours.** Step 1. |
+| Subscription + 3-day trial | **Yours.** Step 2. |
+| `LifeInTheUK.storekit` | **Stale** — see 3c. Ask and I'll fix it. |
+| AdMob account, units, IDs | **Yours.** Step 4. |
+| `OWNER_EMAIL` | **Check it** — see above. Not your address. |
 
----
-
-## Step-by-Step Interactive Guide
-
-Full guide with click-to-copy values and a checklist:
-**https://claude.ai/code/artifact/49fdef74-43de-4477-8e4e-30a7c48ac193**
-
----
-
-## Key Gotchas
-
-### Bundle ID Registration
-- Product ID must be `com.kingofmadnes.lifeintheuk.unlock` — exactly one "s" in "madnes"
-- It is **permanent** once saved
-- The bundle ID must be registered as **Explicit** (not wildcard) to support IAP
-- Only one team can own a bundle ID
-
-### Firestore Rules
-- `allow update: if false` is the whole point — without it anyone resets their trial
-- Must be deployed to Firestore, not just drafted in the editor
-- Test by signing in and checking the Data tab within 5 seconds
-
-### Ads
-- Google test units are safe to ship and pay nothing
-- Swap them for real ones with `LIVE = true` and the real unit IDs
-- **Never tap your own live ads** — click fraud suspension is permanent
-- Start the AdMob payments profile now; PIN verification takes weeks
-
-### App Store Review
-- First submission with IAP, ads, ATT and consent all at once raises rejection odds
-- Budget for a possible round-trip
-- Provide a sandbox tester account or tell them to set the device clock forward 24h
-
----
-
-## Commits in This Session
-
-- `3bf3ddd` — feat: 24-hour trial, ads after it, £2.99 to unlock the quiz
-- `b399160` — fix: actually delete the trial record when an account is deleted
-
----
-
-## What Happens Now
-
-1. You enable Firestore and deploy the rules → trial clock starts recording
-2. You register the explicit App ID and create the app record → in-app purchases become possible
-3. You create the £2.99 IAP → reviewers can see what you built
-4. You create AdMob ad units and swap the IDs → ads start paying
-5. You rebuild, re-sync iOS, and submit → the App Store reviews everything together
-
-Each step gates the next, but they can all be done in a few hours once you have the three console accounts open.
-
----
-
-## Questions?
-
-- Guide URL: https://claude.ai/code/artifact/49fdef74-43de-4477-8e4e-30a7c48ac193
-- All files in this repo; tests pass (`npm test`); builds succeed (`npm run build` + `npx cap sync ios`)
-- Once you have your three AdMob IDs, I can rebuild and re-sync for you
+For the wider picture of what was built and why, see `SESSION-NOTES.md`.
