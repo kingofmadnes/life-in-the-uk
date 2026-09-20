@@ -37,11 +37,15 @@ stay as digits. `normaliseTranslation()` in `src/quizLogic.js` rejects any entry
 count doesn't match the English question, so a bad bundle falls back to plain English rather than
 putting the wrong text under the wrong answer.
 
-**Hindi is complete (all 253 questions).** The other thirteen languages the interface offers are
-not yet bundled — for those, questions simply stay in English and the translation toggle is
-hidden in Settings. To add a language: write `src/qtrans/<code>.js` in the same shape as
-`hi.js`, add one line to the `LOADERS` map in `src/qtrans/index.js`, and run `npm test` — the
-bundle test fails loudly and names every missing or malformed entry until the file is complete.
+**All fourteen languages are complete — 506 of 506 questions each** (the 253 core questions and
+their 253 doubles): Hindi, Urdu, Punjabi, Bengali, Arabic, Romanian, Polish, Portuguese,
+Gujarati, Italian, Tamil, Farsi, Chinese and Tagalog. Every one is registered in the `LOADERS`
+map in `src/qtrans/index.js`, so no language falls back to English questions.
+
+To add another: write `src/qtrans/<code>.js` in the same shape as `hi.js`, add one line to
+`LOADERS`, and run `npm test` — the bundle test fails loudly and names every missing or
+malformed entry until the file is complete. A language is only added to `LOADERS` once its
+bundle is finished, because a half-translated bank looks broken in a way plain English does not.
 
 The interface itself (menus, buttons, the path, results) is fully translated into all fourteen
 languages in `src/LifeInTheUK.jsx`.

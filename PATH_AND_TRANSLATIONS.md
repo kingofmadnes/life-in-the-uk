@@ -187,28 +187,36 @@ the entry is rejected and the question simply falls back to English rather
 than showing mismatched text under the wrong answer. This runs both at
 render time and in a dedicated test suite.
 
-### Status: five languages complete, nine still to translate
+### Status: all fourteen languages complete (506/506 each)
 
-Complete and registered in `src/qtrans/index.js` (each **all 253
-questions**, hand-translated with the rules above, verified against the
-English bank by `bundles.test.js`):
+All of these are complete and registered in `src/qtrans/index.js` — each
+carries **all 506 questions** (the 253 core questions and their 253
+doubles), hand-translated with the rules above and verified against the
+English bank by `bundles.test.js`:
 
 - `hi.js` — Hindi
-- `ur.js` — Urdu
+- `ur.js` — Urdu (RTL)
 - `pa.js` — Punjabi
 - `bn.js` — Bengali
 - `ar.js` — Arabic (RTL)
+- `ro.js` — Romanian
+- `pl.js` — Polish
+- `pt.js` — Portuguese
+- `gu.js` — Gujarati
+- `it.js` — Italian
+- `ta.js` — Tamil
+- `fa.js` — Farsi (RTL)
+- `zh.js` — Chinese (Simplified)
+- `tl.js` — Tagalog
 
-Still to do (not yet bundled, fall back to English questions with the
-toggle hidden): **Romanian, Polish, Italian, Portuguese, Gujarati,
-Tamil, Persian, Chinese, Filipino**. Adding one is: write
+Nothing falls back to English any more. To add a fifteenth: write
 `src/qtrans/<code>.js` in the same shape as `hi.js` (chapter-banner
 comments, `id: ["question", "opt|opt|opt|opt", "explanation"]`), add one
 line to the `LOADERS` map in `index.js`, run `npm test` — the bundle
 suite fails loudly and specifically (which ids are missing, which entries
 have the wrong option count) until the file is complete — then rebuild
-with `npm run build -- --base=/life-in-the-uk/` and redeploy the
-`gh-pages` branch (see [[deploy-web-and-ios]] in memory).
+and redeploy. A language is only added to `LOADERS` once it is finished:
+a half-translated bank looks broken in a way plain English does not.
 
 ### New files
 
@@ -248,11 +256,12 @@ printed a second time underneath the English line.
 ## Verifying it
 
 ```sh
-npm test    # node --test "src/**/*.test.js" — 19 quizLogic tests + bundle tests
+npm test    # node --test "src/**/*.test.js" — quiz logic, variants and bundle checks
 npm run build
 ```
 
-`npm test` passes fully (19 quizLogic tests + the Hindi bundle checks);
+`npm test` passes fully (110 tests: quiz logic, question doubles, and the
+bundle checks for all fourteen languages);
 `npm run build` produces a separate `hi-*.js` chunk alongside the main
 bundle, confirming the per-language code-splitting works as intended.
 
