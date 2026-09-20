@@ -103,6 +103,52 @@ for (const lang of bundledLanguages()) {
     }
   });
 
+  /* True/False options carry no meaning of their own — the student picks a
+     position, and the app scores that position. So the translated pair has to
+     be in the SAME order as the English pair. Reversed, the subtitle tells a
+     Polish or Arabic speaker to tap the option that scores wrong, and nothing
+     else in the app would ever notice. */
+  test(`bundle "${lang}" keeps True/False options in the English order`, async () => {
+    const bundle = await loadBundle(lang);
+    const tf = QUESTIONS.filter(
+      (q) => q.o.length === 2 && q.o.every((o) => /^(true|false)$/i.test(o.trim())),
+    );
+    assert.ok(tf.length > 0, 'expected some True/False questions in the bank');
+
+    for (const q of tf) {
+      const entry = bundle[q.i];
+      if (!entry) continue;
+      const options = String(entry[1]).split('|');
+      assert.equal(options.length, 2, `${lang}/${q.i}: expected exactly 2 options`);
+      /* Both translations must be distinct, and whichever of them means "true"
+         has to sit where "True" sits in the English. We cannot read the target
+         language, but we can check the pair is consistent across every
+         True/False question in the bundle: the same translated word must always
+         line up with the same English word. */
+      assert.notEqual(options[0].trim(), options[1].trim(),
+        `${lang}/${q.i}: both options translate to the same word`);
+    }
+
+    /* The consistency check: build the English-word -> translated-word mapping
+       from every True/False question and assert it never contradicts itself. */
+    const seen = new Map();
+    for (const q of tf) {
+      const entry = bundle[q.i];
+      if (!entry) continue;
+      const options = String(entry[1]).split('|');
+      q.o.forEach((english, k) => {
+        const key = english.trim().toLowerCase();
+        const got = options[k].trim();
+        if (seen.has(key)) {
+          assert.equal(got, seen.get(key),
+            `${lang}/${q.i}: "${english}" is translated as "${got}" here but "${seen.get(key)}" elsewhere — one of the two questions has its options reversed`);
+        } else {
+          seen.set(key, got);
+        }
+      });
+    }
+  });
+
   test(`bundle "${lang}" covers every question`, async () => {
     const bundle = await loadBundle(lang);
     const missing = QUESTIONS.filter((q) => !bundle[q.i]).map((q) => q.i);

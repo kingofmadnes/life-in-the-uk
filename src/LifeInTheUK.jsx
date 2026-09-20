@@ -39,7 +39,7 @@ const BASE_Q = [
   { i: 4, c: 1, q: "At a citizenship ceremony, new citizens take an oath (or affirmation) of allegiance and also make what?", o: ["A pledge to respect the rights, freedoms and laws of the UK", "A promise to serve in the armed forces", "A donation to charity", "A statement renouncing all other nationalities"], a: [0], e: "New citizens swear or affirm allegiance to the monarch and pledge to respect the UK's rights, freedoms and laws." },
   { i: 5, c: 1, q: "Is this statement TRUE or FALSE? The UK offers freedom of belief and religion.", o: ["True", "False"], a: [0], e: "Freedom of belief and religion is one of the rights and freedoms shared by everyone in the UK." },
   { i: 6, c: 1, q: "Which of these is NOT a right or freedom shared by everyone in the UK?", o: ["The right to avoid paying tax", "A right to a fair trial", "Freedom from unfair discrimination", "Freedom of speech"], a: [0], e: "Paying tax is a responsibility, not a freedom. Rights include free speech, freedom of belief, a fair trial and freedom from unfair discrimination." },
-  { i: 7, c: 1, q: "Where do citizenship ceremonies usually take place?", o: ["Arranged by the local authority", "At the Houses of Parliament", "At a royal palace", "At the applicant's home"], a: [0], e: "Local authorities arrange citizenship ceremonies, normally within three months of the application being approved." },
+  { i: 7, c: 1, q: "Where do citizenship ceremonies usually take place?", o: ["At a ceremony arranged by the local authority", "At the Houses of Parliament", "At a royal palace", "At the applicant's home"], a: [0], e: "Local authorities arrange citizenship ceremonies, normally within three months of the application being approved." },
   { i: 8, c: 1, q: "Which TWO must applicants for permanent residence or citizenship normally show? (Choose two answers)", o: ["They can speak and read English", "They have a good understanding of life in the UK", "They own property in the UK", "They have lived in London"], a: [0, 1], e: "Applicants must show they can speak and read English and that they have a good understanding of life in the UK." },
   { i: 9, c: 1, q: "Taking part in community life is best described as what?", o: ["A fundamental principle of British life", "A legal requirement for all residents", "Something only citizens may do", "A condition of employment"], a: [0], e: "Participation in community life is listed among the fundamental principles of British life." },
   { i: 10, c: 1, q: "Is this statement TRUE or FALSE? Everyone in the UK has a duty to respect and obey the law.", o: ["True", "False"], a: [0], e: "Respecting and obeying the law is a core responsibility of everyone living in the UK." },
@@ -176,7 +176,7 @@ const BASE_Q = [
   { i: 135, c: 4, q: "Which is the established Church in England?", o: ["The Church of England", "The Church of Scotland", "The Roman Catholic Church", "The Methodist Church"], a: [0], e: "The Church of England is Anglican; the monarch is its head and the Archbishop of Canterbury its spiritual leader." },
   { i: 136, c: 4, q: "What is the national church of Scotland?", o: ["The Church of Scotland, a Presbyterian church", "The Church of England", "The Roman Catholic Church", "There is no national church"], a: [0], e: "The Church of Scotland is governed by its General Assembly, chaired by the Moderator." },
   { i: 137, c: 4, q: "At what age can you legally buy alcohol in a pub in the UK?", o: ["18", "16", "21", "17"], a: [0], e: "You must be 18 to buy alcohol. Under-18s may enter a pub with an adult in some circumstances but generally cannot drink alcohol." },
-  { i: 138, c: 4, q: "Which TWO are languages spoken in parts of the UK besides English? (Choose two answers)", o: ["Welsh", "Gaelic", "Latin", "Cornish Norse"], a: [0, 1], e: "Welsh is widely spoken in Wales; Gaelic is spoken in parts of Scotland and Northern Ireland." },
+  { i: 138, c: 4, q: "Which TWO are languages spoken in parts of the UK besides English? (Choose two answers)", o: ["Welsh", "Gaelic", "Latin", "Norse"], a: [0, 1], e: "Welsh is widely spoken in Wales; Gaelic is spoken in parts of Scotland and Northern Ireland." },
 
   /* ---------- CHAPTER 5: GOVERNMENT AND LAW ---------- */
   { i: 139, c: 5, q: "What kind of system of government does the UK have?", o: ["A constitutional monarchy with a parliamentary democracy", "An absolute monarchy", "A federal republic", "A one-party state"], a: [0], e: "The monarch is head of state but the elected government runs the country." },
@@ -387,6 +387,20 @@ const EXTRA_Q = [
    no special-casing, because the difficulty model already treats
    two-option and "NOT" questions as native formats (see quizLogic.js). */
 const QUESTIONS = [...BASE_Q, ...EXTRA_Q, ...VARIANT_Q];
+
+/* Every question, by id. The deck hands each card a *shuffled* copy of its
+   question, so anything that needs the original option order — the translation
+   lookup, which is stored in English source order — has to find the source
+   question by id. That happens on every render of every option, so it is a
+   Map, not a 506-long scan. */
+const QUESTION_BY_ID = new Map(QUESTIONS.map((q) => [q.i, q]));
+
+/* Per-chapter totals, counted once instead of re-filtering the whole bank
+   inside the chapter list on every render. */
+const CHAPTER_COUNT = QUESTIONS.reduce((acc, q) => {
+  acc[q.c] = (acc[q.c] || 0) + 1;
+  return acc;
+}, {});
 
 const FLASHCARDS = [
   { c: 3, f: "55 BC", b: "Julius Caesar's failed invasion of Britain" },
@@ -1924,7 +1938,7 @@ function useSub(q) {
   if (!bundle) return { sub: null, busy: hasBundle(LANG) };
 
   const meta = LANGS.find((l) => l.id === LANG);
-  const base = QUESTIONS.find((x) => x.i === q.i);
+  const base = QUESTION_BY_ID.get(q.i);
   // normaliseTranslation is the guard: an entry with the wrong number of
   // options would print the wrong text under the wrong answer, so a bad
   // one fails closed and the question simply stays in English.
@@ -2463,7 +2477,7 @@ function Q({ q, chosen, onChoose, revealed, bookmarked, onBookmark }) {
   const multi = q.a.length > 1;
   const keys = ["A", "B", "C", "D", "E"];
   const { sub, busy } = useSub(q);
-  const base = QUESTIONS.find((x) => x.i === q.i);
+  const base = QUESTION_BY_ID.get(q.i);
   // A translated string that comes back identical to the English — a proper noun
   // like "Magna Carta" or "Alfred the Great" that the house rules keep in English —
   // adds nothing under the English line, so it is not shown twice.
@@ -2508,12 +2522,13 @@ function Q({ q, chosen, onChoose, revealed, bookmarked, onBookmark }) {
           if (q.a.includes(i)) cls += " right";
           else if (chosen.includes(i)) cls += " wrong";
         } else if (chosen.includes(i)) cls += " sel";
+        const osub = optSub(text);
         return (
           <button key={i} className={cls} onClick={() => pick(i)}>
             <span className="key">{keys[i]}</span>
             <span>
               {text}
-              {optSub(text) && <span className="osub">{optSub(text)}</span>}
+              {osub && <span className="osub">{osub}</span>}
             </span>
           </button>
         );
@@ -3305,7 +3320,7 @@ function Practice({ mode, chapter, ids, back, record, bookmarks, toggleBookmark,
               <span className="ic" style={{ background: CH_COLOR[c.n] + "22", color: CH_COLOR[c.n], fontWeight: 800 }}>{c.n}</span>
               <span>
                 <span className="row-t">{t("ch" + c.n)}</span>
-                <span className="row-s">{QUESTIONS.filter((q) => q.c === c.n).length} {t("questions")}</span>
+                <span className="row-s">{CHAPTER_COUNT[c.n]} {t("questions")}</span>
               </span>
               <span className="row-go">›</span>
             </button>
@@ -3424,7 +3439,7 @@ function Study({ openChapter, setOpenChapter, back, practise, read, markRead }) 
               <span className="ic" style={{ background: CH_COLOR[c.n] + "22", color: CH_COLOR[c.n], fontWeight: 800 }}>{c.n}</span>
               <span>
                 <span className="row-t">{c.name}</span>
-                <span className="row-s">{read.includes(c.n) ? t("isRead") + " · " : ""}{QUESTIONS.filter((q) => q.c === c.n).length} {t("questions")}</span>
+                <span className="row-s">{read.includes(c.n) ? t("isRead") + " · " : ""}{CHAPTER_COUNT[c.n]} {t("questions")}</span>
               </span>
               <span className="row-go">{read.includes(c.n) ? "✓" : "›"}</span>
             </button>
