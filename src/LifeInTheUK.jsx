@@ -2444,6 +2444,12 @@ const CSS = `
 
 /* ---- language picker ---------------------------------------------- */
 .lang-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+/* The collapsed row: the language you are on, in its own script with the
+   English name under it. */
+.lang-cur{display:block;min-width:0}
+.lang-cur b{display:block;font-size:15px;font-weight:700;line-height:1.3}
+.lang-cur span{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-top:2px}
+.sec .secb .lang-grid{margin-top:2px}
 .lang{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px 13px;cursor:pointer;text-align:left}
 .lang.on{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 2px 0 var(--brand-d)}
 .lang b{display:block;font-size:15px;font-weight:700}
@@ -2731,6 +2737,33 @@ function LangPicker({ value, onPick }) {
           <span>{l.name}</span>
         </button>
       ))}
+    </div>
+  );
+}
+
+/* Settings carries fifteen languages, and laid out flat the grid filled the
+   whole screen — everything below it, name and test date included, was a
+   scroll away. Collapsed behind the current choice it is one row, using the
+   same disclosure the study notes use, and it closes again on picking so you
+   land back where you were. Onboarding still shows the grid open: there the
+   list IS the screen, and hiding it behind a tap would be a step backwards. */
+function LangSection({ value, onPick }) {
+  const [open, setOpen] = useState(false);
+  const cur = LANGS.find((l) => l.id === value) || LANGS[0];
+  return (
+    <div className="sec">
+      <button className="sech" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <span className="lang-cur">
+          <b dir={cur.rtl ? "rtl" : "ltr"}>{cur.native}</b>
+          <span>{cur.name}</span>
+        </span>
+        <span className={"chev" + (open ? " open" : "")}>›</span>
+      </button>
+      {open && (
+        <div className="secb">
+          <LangPicker value={value} onPick={(id) => { onPick(id); setOpen(false); }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -3896,7 +3929,7 @@ function Settings({ profile, setProfile, dark, setDark, lang, setLang, subs, set
       <p className="lede">{t("localOnly")}</p>
       <Purchase ent={ent} onUnlock={onUnlock} />
       <div className="eyebrow">{t("language")}</div>
-      <LangPicker value={lang} onPick={setLang} />
+      <LangSection value={lang} onPick={setLang} />
       <div className="eyebrow">{t("yourName")}</div>
       <div className="field">
         <label htmlFor="s-name">{t("yourName")}</label>
