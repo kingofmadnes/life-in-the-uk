@@ -1,28 +1,59 @@
 {
   "identifier" : "A1B2C3D0-2FE9-0000-0000-000000000003",
-  "nonRenewingSubscriptions" : [],
+  "nonRenewingSubscriptions" : [
+
+  ],
   "products" : [
-    {
-      "displayPrice" : "2.99",
-      "familyShareable" : false,
-      "internalID" : "A1B2C3D0-2FE9-0000-0000-000000000004",
-      "localizations" : [
-        {
-          "description" : "Unlocks every mock test, quick quiz and chapter practice, your mistakes list and saved questions, and removes all ads. One payment, not a subscription.",
-          "displayName" : "Unlock the quiz",
-          "locale" : "en_GB"
-        }
-      ],
-      "productID" : "com.kingofmadnes.lifeintheuk.unlock",
-      "referenceName" : "Unlock the quiz",
-      "type" : "NonConsumable"
-    }
+
   ],
   "settings" : {
     "_askToBuyEnabled" : false,
-    "_storeKitErrors" : []
+    "_locale" : "en_GB",
+    "_storeKitErrors" : [
+
+    ],
+    "_storefront" : "GBR"
   },
-  "subscriptionGroups" : [],
+  "subscriptionGroups" : [
+    {
+      "id" : "A1B2C3D0-2FE9-0000-0000-000000000010",
+      "localizations" : [
+
+      ],
+      "name" : "Path Access",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "3.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "A1B2C3D0-2FE9-0000-0000-000000000011",
+          "introductoryOffer" : {
+            "internalID" : "A1B2C3D0-2FE9-0000-0000-000000000012",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Unlocks all eight path levels and removes ads. 3 days free, then £3.99 a year.",
+              "displayName" : "Path Access",
+              "locale" : "en_GB"
+            }
+          ],
+          "productID" : "com.kingofmadnes.lifeintheuk.path.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Path Annual",
+          "subscriptionGroupID" : "A1B2C3D0-2FE9-0000-0000-000000000010",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
   "version" : {
     "major" : 3,
     "minor" : 0

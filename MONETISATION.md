@@ -290,23 +290,26 @@ This is our code, and it is the part that could actually be wrong.
 That last row is the one people forget. The store being unreachable must degrade
 to the free tier, not to a hang.
 
-### 3c. The known problem you will hit first
+### 3c. Testing against the local StoreKit file
 
-`ios/App/LifeInTheUK.storekit` — the local sandbox config — **is stale.** It still
-describes the old design: a £2.99 non-consumable called
-`com.kingofmadnes.lifeintheuk.unlock`, with an empty subscription group.
+`ios/App/LifeInTheUK.storekit` describes the subscription for local testing, and
+the App scheme loads it (`App.xcscheme` → Run → Options → StoreKit Configuration).
+It now matches the code: one subscription group, `Path Access`, holding
+`com.kingofmadnes.lifeintheuk.path.annual` at £3.99/year with a 3-day free
+introductory offer, storefront GBR.
 
-The Swift code looks for `com.kingofmadnes.lifeintheuk.path.annual` as a
-subscription, so **testing against that file will fail to find the product** and
-the paywall will report it unavailable.
+This is the fastest way to exercise the paywall, because it needs no sandbox
+tester and no App Store Connect record — the whole product is simulated locally.
+**Run from Xcode** (⌘R) for it to apply; an app installed any other way ignores it
+and talks to the real store.
 
-It needs replacing with a subscription group containing the annual product and its
-3-day introductory offer. I have left it alone because you asked me not to change
-anything else — say the word and it is a two-minute fix.
+With it selected you can drive the trial from Xcode's **Debug → StoreKit** menu:
+approve or decline purchases, expire a subscription, force a refund, and change
+the subscription renewal rate so the 3-day trial passes in seconds.
 
-Note this only affects local Xcode testing with the StoreKit configuration file
-selected in the scheme. Testing against a real sandbox tester account (3a above)
-does not use this file and is unaffected.
+Note this file is *only* for local testing. It has no bearing on what you create
+in App Store Connect in Step 2, and the two do not sync — if you change the price
+or trial length in one, change it in the other by hand.
 
 ---
 
@@ -466,8 +469,8 @@ point in `ads.js` already waits on `ready()` — do not add one that does not.
 | Code | **Done.** Entitlement, StoreKit plugin, paywall, ads, consent, ATT. |
 | Paid Applications Agreement | **Yours.** Step 1. |
 | Subscription + 3-day trial | **Yours.** Step 2. |
-| `LifeInTheUK.storekit` | **Stale** — see 3c. Ask and I'll fix it. |
+| `LifeInTheUK.storekit` | **Done.** Matches the code — see 3c. |
 | AdMob account, units, IDs | **Yours.** Step 4. |
-| `OWNER_EMAIL` | **Check it** — see above. Not your address. |
+| `OWNER_EMAIL` | **Confirmed yours.** Leave as is. |
 
 For the wider picture of what was built and why, see `SESSION-NOTES.md`.
