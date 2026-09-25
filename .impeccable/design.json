@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T00:00:00Z",
+  "title": "Design System: Life in the UK — Test Prep",
+  "extensions": {
+    "colorMeta": {
+      "postal-red": { "role": "primary", "displayName": "Postal Red", "canonical": "#C8102E", "darkCounterpart": "#F0526A", "tonalRamp": ["#2B0308","#4A060F","#6B0919","#8D1023","#C8102E","#E2445A","#F0899A","#FBDDE2"] },
+      "postal-red-fill": { "role": "primary", "displayName": "Postal Red (field)", "canonical": "#C8102E", "darkCounterpart": "#A81530", "note": "Field value for white type. Identical to the ink in light; deliberately deeper in dark.", "tonalRamp": ["#2B0308","#4A060F","#6B0919","#8D1023","#A81530","#C8102E","#DE6273","#F6D9DE"] },
+      "airmail-blue": { "role": "primary", "displayName": "Airmail Blue", "canonical": "#14387F", "darkCounterpart": "#7FA0EC", "tonalRamp": ["#060F24","#0A1A3C","#0D2657","#14387F","#1D4392","#3A63BC","#7FA0EC","#DEE4F2"] },
+      "franking-green": { "role": "secondary", "displayName": "Franking Green", "canonical": "#1F6F4A", "darkCounterpart": "#4FC08A", "tonalRamp": ["#04150D","#0A2A1B","#123F29","#1F6F4A","#2C8F61","#4FC08A","#8CDBB5","#DDEBE0"] },
+      "ochre": { "role": "tertiary", "displayName": "Ochre", "canonical": "#B07908", "darkCounterpart": "#E0A93C", "tonalRamp": ["#1C1301","#382603","#5A3C05","#B07908","#C9911C","#E0A93C","#EEC97F","#F5E9CE"] },
+      "manila": { "role": "neutral", "displayName": "Manila Envelope", "canonical": "#E7DCC2", "darkCounterpart": "#14161C", "note": "Also set on body in index.html so the overscroll area never flashes cream.", "tonalRamp": ["#1B1710","#332C1F","#4E4430","#6B5E45","#948569","#BCAC8B","#E7DCC2","#F7F2E6"] },
+      "laid-paper": { "role": "neutral", "displayName": "Laid Writing Paper", "canonical": "#FAF6EC", "darkCounterpart": "#1E212A", "tonalRamp": ["#1E212A","#343845","#4E5361","#6E7380","#9BA0AB","#C6CAD2","#E8E4DA","#FAF6EC"] },
+      "gummed-label": { "role": "neutral", "displayName": "Gummed Label", "canonical": "#EDE4D0", "darkCounterpart": "#272B36", "tonalRamp": ["#1A1710","#302B20","#4A4232","#685E48","#928765","#BBB093","#EDE4D0","#F8F3E8"] },
+      "pencil-rule": { "role": "neutral", "displayName": "Pencil Rule", "canonical": "#CFC0A0", "darkCounterpart": "#3A4052", "note": "Every border and divider in the system, always 1.5px.", "tonalRamp": ["#181509","#2F2916","#494026","#675B38","#8E7F55","#B3A37C","#CFC0A0","#EDE5D4"] },
+      "stamp-ink": { "role": "neutral", "displayName": "Stamp Ink", "canonical": "#1C1A17", "darkCounterpart": "#F0E9D8", "tonalRamp": ["#0C0B09","#1C1A17","#332F28","#4A443A","#6A6050","#8E8571","#B9B1A0","#E7E1D4"] },
+      "sky-mid": { "role": "tertiary", "displayName": "Sorting-Office Sky", "canonical": "#14387F", "note": "The Path commits to this sky in BOTH light and dark; it is a different room, not a theme.", "tonalRamp": ["#050C1E","#091634","#0F2A62","#14387F","#1A4593","#2A5CB8","#5C86DA","#B9CBF0"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Screen titles and the day's greeting. Archivo 800 with tight negative tracking; drops to 23px under 400px." },
+      "headline": { "displayName": "Section Head", "purpose": "Stands alone above a list with a 1.5px rule under it. Nothing sits above it — no kicker." },
+      "title": { "displayName": "Row Title", "purpose": "Rows, tiles and accordion heads. 800 weight is the rank, not size." },
+      "body": { "displayName": "Body", "purpose": "The English: questions, options, explanations. Plus Jakarta Sans only, never Archivo." },
+      "body-translated": { "displayName": "Translation", "purpose": "The reader's own language, under the dashed fold rule, in --ink2 at 600. Never smaller than 13.5px." },
+      "label": { "displayName": "Label", "purpose": "Stamped states, field labels, stat captions, source tags. Uppercase, heavily tracked." },
+      "numeral": { "displayName": "Postal Numeral", "purpose": "Scores, clock, level numbers. Archivo with tabular-nums so digits never reflow." }
+    },
+    "shadows": [
+      { "name": "e1", "value": "0 1px 2px rgba(60,44,18,.10)", "dark": "0 1px 2px rgba(0,0,0,.5)", "purpose": "Paper lift: rows, tiles, chips, fields, icon buttons. A sheet resting on the counter." },
+      { "name": "e2", "value": "0 3px 10px -2px rgba(60,44,18,.16)", "dark": "0 3px 12px -2px rgba(0,0,0,.55)", "purpose": "Letter lift: the day's card, the question card, flashcards, primary buttons." },
+      { "name": "e3", "value": "0 14px 34px -8px rgba(60,44,18,.30)", "dark": "0 16px 38px -8px rgba(0,0,0,.7)", "purpose": "Held aloft: the auth card and the account popover." },
+      { "name": "stamp-keyline", "value": "inset 0 0 0 1.5px rgba(255,255,255,.55)", "purpose": "The logo stamp's inner white keyline. An inset shadow, never a mask — mask-composite differs across WebKit and punched holes through the mark." },
+      { "name": "sheet", "value": "0 22px 56px rgba(0,0,0,.4)", "purpose": "The unlock sheet over the scrim." }
+    ],
+    "motion": [
+      { "name": "ease", "value": "cubic-bezier(.2,.8,.3,1)", "purpose": "The one easing curve in the system." },
+      { "name": "press", "value": "120ms", "purpose": "Transform on press: translateY(1–2px) and box-shadow removed." },
+      { "name": "state", "value": "150ms", "purpose": "Border-color, color and background on hover and selection." },
+      { "name": "meter", "value": "350–500ms", "purpose": "Progress bars, rings and the Path meter (scaleX / stroke-dasharray)." },
+      { "name": "reduced-motion", "value": "@media (prefers-reduced-motion:reduce){ .uk *{transition:none!important;animation:none!important} }", "purpose": "Every transition, animation and press-translate is removed; the auth spinner slows to 2s." }
+    ],
+    "breakpoints": [
+      { "name": "narrow", "value": "400px", "note": "max-width: display drops 27→23px, question 19→17.5px." },
+      { "name": "wide-phone", "value": "720px", "note": "Column grows to 620px." },
+      { "name": "tablet", "value": "720–1023.98px", "note": "Tab bar centres and its items hold to flex: 0 1 128px." },
+      { "name": "desk", "value": "1024px", "note": "The position board: fixed 252px left rail, column 720px, 40px gutters." },
+      { "name": "desk-wide", "value": "1180px", "note": "Home splits two columns; .page.wide is 1040px." }
+    ],
+    "materials": [
+      { "name": "chevron", "value": "repeating-linear-gradient(-45deg, var(--red) 0 7px, transparent 7px 14px, var(--blue) 14px 21px, transparent 21px 28px)", "purpose": "11px edge = this is a letter. 4px band = a chrome boundary (under the header, over the tab bar). 7px on the desk rail's inner edge, because 4px of a -45deg stripe on a vertical edge reads as dots." },
+      { "name": "laid-paper-tooth", "value": "repeating-linear-gradient(0deg, rgba(120,96,50,.045) 0 1px, transparent 1px 4px)", "dark": "repeating-linear-gradient(0deg, rgba(255,255,255,.017) 0 1px, transparent 1px 4px)", "purpose": "Gives manila a tooth so it reads as paper rather than beige. On .uk, .auth-root and .auth-boot." },
+      { "name": "perforation", "value": "radial-gradient(circle 4px at 4px 50%, var(--pw-ground) 3px, transparent 3.4px) left/8px 11px repeat-y, (same) right, radial-gradient(circle 4px at 50% 4px, ...) top/11px 8px repeat-x, (same) bottom", "purpose": "A stamp's edge, bitten out of all four sides by four radial-gradients on an inset:-4px pseudo-element. Never a mask: mask-composite differs between WebKit and the spec and punched holes through the stamps." },
+      { "name": "fold-rule", "value": "border-top: 1.5px dashed var(--line)", "purpose": "Between the English and the translation (.qsub, .wsub); 1px dashed var(--line-soft) inside an option (.osub). The product, made visible." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Franked Block (primary button)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The primary action. Postal-red fill, white type, squared, pressed onto the counter on touch.",
+      "html": "<button class=\"ds-btn-primary\">Start the mock test</button>",
+      "css": ".ds-btn-primary{background:#C8102E;color:#fff;border:1.5px solid #C8102E;border-radius:3px;padding:15px 18px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;letter-spacing:.01em;cursor:pointer;box-shadow:0 3px 10px -2px rgba(60,44,18,.16);transition:transform .12s cubic-bezier(.2,.8,.3,1),box-shadow .15s cubic-bezier(.2,.8,.3,1),background .15s cubic-bezier(.2,.8,.3,1)}.ds-btn-primary:hover{background:#A50D26;border-color:#A50D26}.ds-btn-primary:focus-visible{outline:2.5px solid #14387F;outline-offset:3px}.ds-btn-primary:active{transform:translateY(1.5px);box-shadow:none}.ds-btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "The secondary action: laid paper on a pencil rule. Hover darkens the rule only — never adds a shadow.",
+      "html": "<button class=\"ds-btn-ghost\">Not now</button>",
+      "css": ".ds-btn-ghost{background:#FAF6EC;color:#1C1A17;border:1.5px solid #CFC0A0;border-radius:3px;padding:15px 18px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;letter-spacing:.01em;cursor:pointer;box-shadow:0 1px 2px rgba(60,44,18,.10);transition:transform .12s cubic-bezier(.2,.8,.3,1),border-color .15s cubic-bezier(.2,.8,.3,1)}.ds-btn-ghost:hover{border-color:#57503F}.ds-btn-ghost:focus-visible{outline:2.5px solid #14387F;outline-offset:3px}.ds-btn-ghost:active{transform:translateY(1.5px);box-shadow:none}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A filter in a scrolling row. Selected is a reversal in stamp ink, never a tint.",
+      "html": "<div style=\"display:flex;gap:7px\"><button class=\"ds-chip ds-chip-on\">All chapters</button><button class=\"ds-chip\">The UK today</button></div>",
+      "css": ".ds-chip{flex:0 0 auto;background:#FAF6EC;color:#57503F;border:1.5px solid #CFC0A0;border-radius:3px;padding:8px 13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;transition:border-color .15s cubic-bezier(.2,.8,.3,1),color .15s cubic-bezier(.2,.8,.3,1),background .15s cubic-bezier(.2,.8,.3,1)}.ds-chip:hover{border-color:#6A6050;color:#1C1A17}.ds-chip:focus-visible{outline:2.5px solid #14387F;outline-offset:3px}.ds-chip-on{background:#1C1A17;color:#FAF6EC;border-color:#1C1A17}"
+    },
+    {
+      "name": "The Letter (question card)",
+      "kind": "card",
+      "refersTo": "card-letter",
+      "description": "The signature surface: laid paper with the airmail chevron down its inline-start edge, a ruled source tag, the English question, and the translation under the dashed fold rule.",
+      "html": "<div class=\"ds-letter\"><span class=\"ds-letter-tag\"><i></i>The UK today</span><p class=\"ds-letter-q\">Which of these is a British overseas territory?</p><p class=\"ds-letter-sub\">इनमें से कौन सा एक ब्रिटिश विदेशी क्षेत्र है?</p></div>",
+      "css": ".ds-letter{position:relative;background:#FAF6EC;color:#1C1A17;border:1.5px solid #CFC0A0;border-radius:4px;padding:22px 20px 20px 28px;box-shadow:0 3px 10px -2px rgba(60,44,18,.16);overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif}.ds-letter::before{content:\"\";position:absolute;left:0;top:0;bottom:0;width:10px;background:repeating-linear-gradient(-45deg,#C8102E 0 7px,transparent 7px 14px,#14387F 14px 21px,transparent 21px 28px)}.ds-letter-tag{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:#57503F;padding:0 0 7px;border-bottom:1.5px solid #CFC0A0;margin-bottom:13px}.ds-letter-tag i{width:8px;height:8px;border-radius:2px;background:#1C1A17;display:inline-block}.ds-letter-q{font-size:19px;font-weight:700;line-height:1.38;letter-spacing:-.02em;margin:0 0 4px}.ds-letter-sub{font-size:15.5px;font-weight:600;line-height:1.5;color:#57503F;margin:9px 0 2px;padding-top:9px;border-top:1.5px dashed #CFC0A0}"
+    },
+    {
+      "name": "Answer Option",
+      "kind": "custom",
+      "refersTo": "option",
+      "description": "A paper block with a squared key. Selection thickens the border to 2.5px, tints with the -soft token and fills the key with the -fill token; padding drops 1px so nothing shifts.",
+      "html": "<div style=\"font-family:'Plus Jakarta Sans',sans-serif\"><button class=\"ds-opt\"><span class=\"ds-key\">A</span><span>Gibraltar</span></button><button class=\"ds-opt ds-opt-sel\"><span class=\"ds-key\">B</span><span>Isle of Man</span></button></div>",
+      "css": ".ds-opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:#FAF6EC;color:#1C1A17;border:1.5px solid #CFC0A0;border-radius:3px;padding:13px 14px;margin-top:9px;cursor:pointer;font-family:inherit;font-size:15px;line-height:1.42;box-shadow:0 1px 2px rgba(60,44,18,.10);transition:border-color .15s cubic-bezier(.2,.8,.3,1),background .15s cubic-bezier(.2,.8,.3,1),transform .12s cubic-bezier(.2,.8,.3,1)}.ds-opt:hover{border-color:#57503F}.ds-opt:focus-visible{outline:2.5px solid #14387F;outline-offset:3px}.ds-opt:active{transform:translateY(1px);box-shadow:none}.ds-key{flex:0 0 auto;width:26px;height:26px;border-radius:2px;border:1.5px solid #CFC0A0;display:grid;place-items:center;font-family:'Archivo','Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:800;color:#57503F;margin-top:-1px}.ds-opt-sel{border-color:#14387F;border-width:2.5px;background:#DEE4F2;padding:12px 13px}.ds-opt-sel .ds-key{background:#14387F;border-color:#14387F;color:#fff}"
+    },
+    {
+      "name": "Ruled Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "A labelled, ruled, squared field. 16px type is a floor — anything smaller makes iOS zoom. Focus turns the rule airmail blue.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-i1\">Test date</label><input id=\"ds-i1\" placeholder=\"Choose a date\" /></div>",
+      "css": ".ds-field{margin-bottom:16px;font-family:'Plus Jakarta Sans',sans-serif}.ds-field label{display:block;font-size:12px;font-weight:800;margin-bottom:7px;text-transform:uppercase;letter-spacing:.11em;color:#57503F}.ds-field input{width:100%;border:1.5px solid #CFC0A0;background:#FAF6EC;border-radius:3px;padding:13px 14px;font-size:16px;font-family:inherit;color:#1C1A17;caret-color:#C8102E;box-shadow:0 1px 2px rgba(60,44,18,.10)}.ds-field input::placeholder{color:#6A6050}.ds-field input:focus{border-color:#14387F;outline:none}.ds-field input:focus-visible{outline:none}"
+    },
+    {
+      "name": "The Position Board (desk rail nav)",
+      "kind": "nav",
+      "refersTo": "rail-item-active",
+      "description": "From 1024px the tab bar becomes a fixed 252px rail with the chevron down its inner edge at 7px. The active item is a reversal in --red-fill, not a tint, so it still reads in greyscale.",
+      "html": "<nav class=\"ds-rail\"><button class=\"ds-rail-i ds-rail-on\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"M3 10.2 12 3l9 7.2M5.6 8.6V20h12.8V8.6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg><span>Home</span></button><button class=\"ds-rail-i\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"M12 3.2 20 12l-8 8.8L4 12z\" fill=\"currentColor\"/></svg><span>Path</span></button><button class=\"ds-rail-i\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"M4 6.5h16M4 12h16M4 17.5h11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg><span>Notes</span></button></nav>",
+      "css": ".ds-rail{position:relative;width:252px;display:flex;flex-direction:column;gap:2px;padding:12px;background:#FAF6EC;border-inline-end:1.5px solid #CFC0A0;font-family:'Plus Jakarta Sans',sans-serif}.ds-rail::before{content:\"\";position:absolute;inset-inline-end:0;top:0;bottom:0;width:7px;background:repeating-linear-gradient(-45deg,#C8102E 0 7px,transparent 7px 14px,#14387F 14px 21px,transparent 21px 28px)}.ds-rail-i{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;justify-items:start;gap:12px;padding:11px 13px;border:none;background:none;color:#6A6050;border-radius:3px;cursor:pointer;text-align:start;transition:color .15s cubic-bezier(.2,.8,.3,1),background .15s cubic-bezier(.2,.8,.3,1)}.ds-rail-i span{font-size:13.5px;font-weight:800;letter-spacing:-.01em}.ds-rail-i:hover{background:#EDE4D0;color:#1C1A17}.ds-rail-i:focus-visible{outline:2.5px solid #14387F;outline-offset:3px}.ds-rail-on,.ds-rail-on:hover{background:#C8102E;color:#fff}"
+    },
+    {
+      "name": "Stamped State",
+      "kind": "custom",
+      "refersTo": "stamp-state",
+      "description": "A struck rubber-stamp word. No background, a 2px currentColor rule, rotated -1.6deg. Three variants: ok / no / wait. Its point is that every state reads in greyscale.",
+      "html": "<div style=\"display:flex;gap:10px;font-family:'Archivo','Plus Jakarta Sans',sans-serif\"><span class=\"ds-stamped ds-stamped-ok\">Passed</span><span class=\"ds-stamped ds-stamped-no\">Missed</span><span class=\"ds-stamped ds-stamped-wait\">In progress</span></div>",
+      "css": ".ds-stamped{display:inline-flex;align-items:center;gap:6px;font-family:'Archivo','Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:5px 9px;border:2px solid currentColor;border-radius:3px;transform:rotate(-1.6deg)}.ds-stamped-ok{color:#1F6F4A}.ds-stamped-no{color:#C8102E}.ds-stamped-wait{color:#B07908}"
+    },
+    {
+      "name": "Path Stamp",
+      "kind": "custom",
+      "refersTo": "path-node-done",
+      "description": "A level on the route: a 66px squared stamp whose perforation is four radial-gradients biting the sky back out of its edges. Cleared carries the drawn postmark; the current one is struck in red.",
+      "html": "<div class=\"ds-path-ground\"><button class=\"ds-node ds-node-done\"><svg class=\"ds-pmark\" viewBox=\"0 0 100 100\" aria-hidden=\"true\"><circle cx=\"50\" cy=\"50\" r=\"46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\"/><circle cx=\"50\" cy=\"50\" r=\"39\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.1\"/><text x=\"50\" y=\"45\" text-anchor=\"middle\" class=\"ds-pmark-t\">1</text><text x=\"50\" y=\"64\" text-anchor=\"middle\" class=\"ds-pmark-s\">CLEARED</text></svg></button><button class=\"ds-node ds-node-here\"><span class=\"ds-node-n\">2</span></button><button class=\"ds-node\"><span class=\"ds-node-n\">3</span></button></div>",
+      "css": ".ds-path-ground{--pw-ground:#14387F;display:flex;gap:26px;padding:22px;background:linear-gradient(180deg,#1A4593 0%,#14387F 54%,#0F2A62 100%)}.ds-node{position:relative;width:66px;height:66px;border:0;padding:0;border-radius:2px;background:#26468F;color:#A8BCE4;display:grid;place-items:center;cursor:pointer;font-family:'Archivo','Plus Jakarta Sans',sans-serif;transition:transform .12s cubic-bezier(.2,.8,.3,1),filter .12s cubic-bezier(.2,.8,.3,1)}.ds-node::after{content:\"\";position:absolute;inset:-4px;pointer-events:none;background:radial-gradient(circle 4px at 4px 50%,var(--pw-ground) 3px,transparent 3.4px) left/8px 11px repeat-y,radial-gradient(circle 4px at 4px 50%,var(--pw-ground) 3px,transparent 3.4px) right/8px 11px repeat-y,radial-gradient(circle 4px at 50% 4px,var(--pw-ground) 3px,transparent 3.4px) top/11px 8px repeat-x,radial-gradient(circle 4px at 50% 4px,var(--pw-ground) 3px,transparent 3.4px) bottom/11px 8px repeat-x}.ds-node:hover{transform:translateY(-1px);filter:brightness(1.06)}.ds-node:active{transform:translateY(2px)}.ds-node:focus-visible{outline:2.5px solid #E7DCC2;outline-offset:3px}.ds-node-n{font-size:23px;font-weight:800;line-height:1}.ds-node-done{background:#E7DCC2;color:#14387F}.ds-node-here{background:#C8102E;color:#fff}.ds-pmark{width:26px;height:26px;display:block;transform:rotate(-13deg)}.ds-pmark-t{font-size:19px;font-weight:800;fill:currentColor;letter-spacing:.06em}.ds-pmark-s{font-size:10px;font-weight:700;fill:currentColor;letter-spacing:.14em}"
+    },
+    {
+      "name": "Drawn Icon Set",
+      "kind": "custom",
+      "refersTo": "nav-item",
+      "description": "Every icon in the app is drawn on one 24-unit viewBox rendered at 20px, 1.7 stroke, round caps and joins. Three are filled instead of stroked (path, play, star). No Unicode glyphs, no icon font.",
+      "html": "<div class=\"ds-icons\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\"><path d=\"M3 10.2 12 3l9 7.2M5.6 8.6V20h12.8V8.6\"/></svg><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\"><path d=\"M4 6.5h16M4 12h16M4 17.5h11\"/></svg><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\"><path d=\"M4.5 12.6 9.4 17.5 19.5 6.9\"/></svg><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\"><path d=\"M6.6 10.4V8a5.4 5.4 0 0 1 10.8 0v2.4M5.4 10.4h13.2V21H5.4z\"/></svg><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\"><path d=\"M9 4.8 16.2 12 9 19.2\"/></svg><svg class=\"ds-ico-fill\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\"><path d=\"M12 3.2 20 12l-8 8.8L4 12z\"/></svg></div>",
+      "css": ".ds-icons{display:flex;gap:14px;align-items:center;color:#1C1A17}.ds-icons svg path{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.ds-icons .ds-ico-fill path{fill:currentColor;stroke-width:0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Airmail Counter",
+    "overview": "This is a post-office counter, not an app screen. Manila envelope ground, laid writing paper laid on top of it, three postal inks, and a chevron-striped airmail edge down anything that is a letter. Every question is a piece of post: the English address on top, the reader's own language below a fold rule, and a postmark struck on the envelope when a level is cleared. The world was chosen because the airmail chevron is the one object all fourteen of these language communities already recognise — it needs no translation, which is exactly the problem this product exists to solve.\n\nDensity is calm and printed. Surfaces are flat paper with hairline pencil rules (1.5px #CFC0A0) and real, blurred paper lift — never a plastic block shadow. Corners are nearly square (2–4px) because a stamp and an envelope have corners. Rank is carried by weight, rule and reversal rather than by size, because half the scripts in play have no capitals to rank with and inflating type is what breaks a fourteen-language layout fastest. Colour never carries meaning alone: every state also says its own name in struck uppercase, so the whole system survives greyscale, colour blindness, and a bad screen in a test-centre car park.\n\nThe two rejections are explicit and shipped: the pastel card deck this category always ships (rounded tiles, soft tints, a gold accent), and its predictable opposite, government grey. Dark mode is not a filter but a second place — the night sorting office, ink-blue with one desk lamp overhead. The Path screen commits to a single airmail-blue sky in both modes, because it is a different room.",
+    "keyCharacteristics": [
+      "Manila and laid paper, never white; a 1px repeating gradient gives both a tooth.",
+      "The airmail chevron as a structural material: an 11px edge on a letter, a 4–7px band on a chrome boundary.",
+      "A dashed fold rule wherever two language layers meet — the product made visible.",
+      "Three type tiers, ranked by weight and rule; two Latin faces, system-ui never named.",
+      "Every state is a struck word, legible in greyscale; squared corners throughout (2–4px).",
+      "Full logical-property mirroring for Urdu, Arabic and Farsi."
+    ],
+    "rules": [
+      { "name": "The Two-Red Rule", "body": "--red/--blue are ink values for type, strokes and marks. --red-fill/--blue-fill are field values for anything carrying white type. In light they are identical (#C8102E, #14387F); in dark they deliberately diverge — the ink brightens to #F0526A/#7FA0EC for legibility on a dark ground, while the fill darkens to #A81530/#1D4392 so white type on it still clears 4.5:1. Never put white type on an ink token.", "section": "colors" },
+      { "name": "The Greyscale Rule", "body": "No state may be communicated by colour alone. Every colour-coded state is accompanied by a struck uppercase word, a border-weight change (1.5px → 2.5px), a numeral, or an icon. Test: desaturate the screen; if any state becomes ambiguous, it is broken.", "section": "colors" },
+      { "name": "The Ink-Not-Wash Rule", "body": "Chapters, categories and taxonomies rank in ink (CH_COLOR is var(--ink) for all five chapters), identified by numeral and title. No tinted category chips, no per-chapter hue, no gold.", "section": "colors" },
+      { "name": "The Three-Tier Rule", "body": "Rank is weight, rule and reversal — not size. There are three legible tiers (display ≈27/25/23, reading ≈15/14.5, label ≈10.5–12.5) and the ramp must not be widened to signal importance. A heading earns its rank at 800 weight with a rule under it.", "section": "typography" },
+      { "name": "The No-system-ui Rule", "body": "system-ui must never appear in any font stack, anywhere, including index.html and auth.css. In the iOS WKWebView it claims every codepoint and then draws .notdef for anything outside Latin, turning all fourteen non-English languages into tofu boxes while the web build looks fine. Any stack must end in a concrete generic (sans-serif).", "section": "typography" },
+      { "name": "The Postal Voice Rule", "body": "Archivo leads the stack only on the display/postal tier — the selector list is .mono, .stamped, .wordmark, .pmark text, .count, .clock, .tile b, .hs b, .ring-val, .pw-node-n, .flash-f, .lvl-n, .hero h1, .h2, .pw-unit h2, .pw-title, .sechead, .ic.num. Body text, options, explanations and every translated subtitle are Jakarta only. Archivo is never used alone: 'Plus Jakarta Sans', sans-serif must follow it so a non-Latin glyph falls through instead of tofuing.", "section": "typography" },
+      { "name": "The Fold Rule", "body": "English above, the reader's language below, separated by a dashed rule (1.5px dashed var(--line), or 1px dashed var(--line-soft) inside an option). This is the product made visible and it is never inverted, never dropped, never replaced with a solid rule. A translation identical to its English is not printed twice.", "section": "typography" },
+      { "name": "The Measured-Track Rule", "body": "The Path's track width is measured with a ResizeObserver and the SVG viewBox is that measured pixel width, so the dashed route is drawn in real pixels and never stretches between a 320px phone and a 780px desk. Caption width is allocated first (CAP = clamp(76, W × 0.29, 172)) and the route's swing amplitude takes whatever lateral room is left. Never give an SVG route a fixed viewBox and let it scale.", "section": "layout" },
+      { "name": "The Beside-Not-Under Rule", "body": "A level's name sits beside its stamp (.cap-e / .cap-w at calc(100% + 13px)), never under it — under it is where the route runs, and a dashed line through the middle of a word is the one thing a route map may never do. The sides are physical, not logical, because the swing itself is already mirrored.", "section": "layout" },
+      { "name": "The Real-Shadow Rule", "body": "Every shadow has a real offset and a real blur, and is tinted with the paper's own warmth (rgba(60,44,18,…)) in light and pure black in dark. A zero-blur hard-offset block shadow is a costume; this world is printed matter, not plastic. Hard offset shadows are banned outright.", "section": "elevation" },
+      { "name": "The Press Rule", "body": "Depth answers touch. Pressing a row, tile, option, button, flashcard or Path node translates it 1–2px down and removes its shadow — the sheet gets pressed onto the counter. It never grows a shadow on hover; hover only darkens the border.", "section": "elevation" },
+      { "name": "The Chrome-Fade Rule", "body": "The tab bar fades the page out beneath it with a 28px linear-gradient(to top, var(--bg), transparent) rather than a shadow. Chrome boundaries are marked with the chevron band and a 1.5px rule, never with elevation.", "section": "elevation" },
+      { "name": "The Chevron Rule", "body": "The airmail chevron has exactly two jobs. As an 11px inline-start edge (10px on the question card, 9px on a Path unit, 8px across the top of a flashcard) it says this is a letter. As a 4px band it marks a chrome boundary, and 7px down the rail's inner edge on a desk. It is never decoration, never a background, and never applied to something that is not either a letter or a chrome edge.", "section": "shapes" },
+      { "name": "The Perforation Rule", "body": "A stamp's perforation is built from four radial-gradients painting the ground colour back into the stamp's edges (.pw-node::after, inset: -4px). It is never a mask or mask-composite: those differ between WebKit and the spec and punched holes straight through the stamps. This means the perforation must know its ground (--pw-ground).", "section": "shapes" },
+      { "name": "The Keyline Rule", "body": "The logo stamp's inner white keyline is box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.55), not a mask, for the same reason.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do use the chevron for exactly two jobs: an 11px edge on a letter, or a 4px (7px vertical) band on a chrome boundary.",
+      "Do put a dashed fold rule between the English and the translation, every time, in that order.",
+      "Do name a state in words as well as colour — the greyscale test is the acceptance test.",
+      "Do use --red-fill / --blue-fill under white type and --red / --blue for ink, strokes and marks.",
+      "Do keep every font stack Latin-first with a concrete sans-serif at the end, and follow Archivo with 'Plus Jakarta Sans', sans-serif.",
+      "Do draw icons on the 20px grid with 1.7 stroke and round caps/joins (function I), adding new paths to the ICON map.",
+      "Do rank with weight (800), a 1.5px rule, or a reversal — not with a bigger size.",
+      "Do mirror with logical properties, and mirror anything outside the app root from body:has(.uk[dir=\"rtl\"]).",
+      "Do guard desk layout offsets with :has() so a chromeless screen stays centred.",
+      "Do give every shadow a real offset and a real blur, warm-tinted in light."
+    ],
+    "donts": [
+      "Don't ever name system-ui in a font stack — iOS WKWebView draws .notdef for every non-Latin script behind it.",
+      "Don't use a mask or mask-composite for perforation or keylines; use radial-gradients and inset shadows.",
+      "Don't ship a Unicode glyph, a dingbat, an emoji or a symbol @font-face as an icon — a symbol family in the stack is one bad fallback from eating Devanagari, Arabic, Bengali or Tamil.",
+      "Don't use a hard offset shadow with zero blur; this world is printed matter, not plastic.",
+      "Don't tint a category, chapter or taxonomy. They rank in ink, identified by numeral and title.",
+      "Don't put a kicker or eyebrow above a heading — a small line that restates, teases or labels the heading below it. A heading stands alone at 800 with a rule under it. (A source tag carrying different information, like the chapter a question came from, is not a kicker.)",
+      "Don't signal a selected state with a tint alone on the desk rail or on chips; use the reversal.",
+      "Don't introduce a fifth radius, a fourth type tier, or a colour outside the four postal inks and the paper neutrals.",
+      "Don't give an SVG route a fixed viewBox — measure the track and draw in real pixels.",
+      "Don't put a caption under a Path stamp; the route runs there.",
+      "Don't use gold (#F2C300), pastel tinted cards, confetti, or government grey. All three are the named anti-references."
+    ]
+  }
+}

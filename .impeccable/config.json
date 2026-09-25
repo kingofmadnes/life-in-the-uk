@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "createdAt": "2026-09-23T09:27:59.597Z",
+        "reason": "user confirmed: Airmail Counter design system body font, documented in DESIGN.md"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "public/support.html"
+        ],
+        "createdAt": "2026-09-25T00:07:01.772Z",
+        "reason": "user confirmed: Airmail Counter design system button styling, white on postal red"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "public/marketing.html"
+        ],
+        "createdAt": "2026-09-25T00:09:37.328Z",
+        "reason": "user confirmed: Airmail Counter design system button styling"
+      }
+    ]
+  }
+}
