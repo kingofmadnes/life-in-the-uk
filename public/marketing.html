@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Life in the UK: Test Prep — Official App</title>
+    <meta name="description" content="Master the UK citizenship test with 506 official questions in 14 languages. Study guides, mock exams, and expert explanations." />
+    <style>
+      :root {
+        --paper: #FAF6EC;
+        --manila: #E7DCC2;
+        --ink: #1C1A17;
+        --ink2: #57503F;
+        --blue: #14387F;
+        --red: #C8102E;
+        --fold: #CFC0A0;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --paper: #1E212A;
+          --manila: #14161C;
+          --ink: #F0E9D8;
+          --ink2: #A79F8C;
+          --blue: #7FA0EC;
+          --red: #F0526A;
+          --fold: #3A4052;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--manila);
+        color: var(--ink);
+        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.65;
+        color-scheme: light dark;
+      }
+      .hero {
+        background: var(--manila);
+        padding: 3rem 1.5rem;
+        text-align: center;
+      }
+      .hero h1 {
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 1rem;
+        font-family: "Archivo", -apple-system, sans-serif;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero p {
+        font-size: 18px;
+        color: var(--ink2);
+        max-width: 600px;
+        margin: 1rem auto 2rem;
+      }
+      .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-block;
+        background: var(--red);
+        color: #fff;
+        padding: 14px 28px;
+        border-radius: 3px;
+        text-decoration: none;
+        font-weight: 800;
+        border: 1.5px solid var(--red);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      }
+      .btn:hover { opacity: 0.85; }
+      .btn-alt {
+        background: transparent;
+        color: var(--ink);
+        border-color: var(--fold);
+      }
+      .btn-alt:hover { background: var(--paper); }
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+      .features {
+        background: var(--paper);
+        padding: 3rem 1.5rem;
+      }
+      .features h2 {
+        text-align: center;
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 2rem;
+        font-family: "Archivo", -apple-system, sans-serif;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+      .feature-card {
+        padding: 1.5rem;
+        border: 1.5px solid var(--fold);
+        border-radius: 4px;
+        background: var(--paper);
+      }
+      .feature-card h3 {
+        font-size: 17px;
+        font-weight: 800;
+        margin: 0 0 0.5rem;
+        font-family: "Archivo", -apple-system, sans-serif;
+      }
+      .feature-card p {
+        margin: 0;
+        color: var(--ink2);
+        font-size: 14px;
+      }
+      .stats {
+        background: var(--paper);
+        padding: 2rem 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 2rem;
+        text-align: center;
+      }
+      .stat {
+        padding: 1rem;
+      }
+      .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--red);
+        font-family: "Archivo", -apple-system, sans-serif;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: var(--ink2);
+        margin-top: 0.5rem;
+      }
+      .footer {
+        background: var(--paper);
+        padding: 2rem 1.5rem;
+        text-align: center;
+        border-top: 1.5px dashed var(--fold);
+        color: var(--ink2);
+        font-size: 12px;
+      }
+      a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+      a:hover { text-decoration: underline; }
+      @media (max-width: 600px) {
+        .hero h1 { font-size: 24px; }
+        .hero p { font-size: 16px; }
+        .btn-group { flex-direction: column; }
+        .btn { width: 100%; text-align: center; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hero">
+      <h1>Master the UK Citizenship Test</h1>
+      <p>506 official questions, 14 languages, proven results. Study with confidence.</p>
+      <div class="btn-group">
+        <a href="https://apps.apple.com/app/id6670545623" class="btn">Download on App Store</a>
+        <a href="#features" class="btn btn-alt">Learn More</a>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number">506</div>
+        <div class="stat-label">Official Questions</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">14</div>
+        <div class="stat-label">Languages</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">8</div>
+        <div class="stat-label">Learning Levels</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">24h</div>
+        <div class="stat-label">Free Trial</div>
+      </div>
+    </div>
+
+    <div class="features" id="features">
+      <div class="wrap">
+        <h2>Features</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>📚 Complete Study Path</h3>
+            <p>8-level progressive learning path matching the official handbook structure.</p>
+          </div>
+          <div class="feature-card">
+            <h3>🎯 Practice Mode</h3>
+            <p>Practice by chapter with unlimited attempts and detailed explanations.</p>
+          </div>
+          <div class="feature-card">
+            <h3>📝 Mock Exam</h3>
+            <p>Full 24-question timed exam simulating the real test experience.</p>
+          </div>
+          <div class="feature-card">
+            <h3>⚡ Quick Quiz</h3>
+            <p>5-minute focused quizzes to test your knowledge on any topic.</p>
+          </div>
+          <div class="feature-card">
+            <h3>📖 Study Notes</h3>
+            <p>Comprehensive study materials and flashcards for revision.</p>
+          </div>
+          <div class="feature-card">
+            <h3>🌍 14 Languages</h3>
+            <p>Questions in English with answers in your chosen language.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap" style="padding: 3rem 1.5rem; text-align: center;">
+      <h2 style="font-size: 24px; font-weight: 800; margin: 0 0 1rem; font-family: 'Archivo', -apple-system, sans-serif;">Ready to Pass?</h2>
+      <p style="color: var(--ink2); margin: 0 0 1.5rem;">Get 3 days free, then £3.99/year. Cancel anytime.</p>
+      <a href="https://apps.apple.com/app/id6670545623" class="btn">Download Now</a>
+    </div>
+
+    <div class="footer">
+      <p>Life in the UK: Test Prep is an independent study aid for the official Home Office handbook.<br>
+      Not affiliated with the UK Home Office or UKVI.<br>
+      <a href="/privacy.html">Privacy Policy</a> · <a href="/support.html">Support</a></p>
+    </div>
+  </body>
+</html>
