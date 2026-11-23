@@ -74,21 +74,4 @@ if (isFirebaseConfigured) {
   }
 }
 
-/* Firestore holds exactly one thing: when each account's free trial
-   started. Only the native app has a trial, so only the native app ever
-   asks for a database — and the import is lazy so the web bundle never
-   carries the Firestore SDK at all. Memoised: getDb() is called on every
-   entitlement check. */
-let dbPromise = null;
-
-export function getDb() {
-  if (!isNative || !firebaseApp) return Promise.resolve(null);
-  if (!dbPromise) {
-    dbPromise = import("firebase/firestore")
-      .then(({ getFirestore }) => getFirestore(firebaseApp))
-      .catch(() => null);
-  }
-  return dbPromise;
-}
-
 export { auth, googleProvider };

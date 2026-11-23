@@ -2,17 +2,9 @@
    STOREKIT BRIDGE
 
    Thin JS side of the local Swift plugin in
-   ios/App/App/StoreKitPlugin.swift. One auto-renewable subscription:
-   a 3-day free trial that requires a payment method up front, and —
-   unless cancelled inside those 3 days — converts to one charge of
-   £3.99 for a year of the path with no ads.
-
-   A card-gated free trial only exists on a subscription in Apple's
-   system; there is no such thing on a one-time purchase. The yearly
-   period is what keeps the recurring part of "auto-renewable" as
-   distant as StoreKit allows — the disclosure text still has to say
-   it renews, because it does, but the next charge is a year away
-   rather than a month.
+   ios/App/App/StoreKitPlugin.swift. One non-consumable unlock:
+   bought once for £3.99, kept for good. No trial, no renewal, no
+   subscription management.
 
    Every method resolves rather than throws: a study app should never
    lose a screen because the store was unreachable. The caller decides
@@ -23,7 +15,7 @@
 
 import { registerPlugin, Capacitor } from "@capacitor/core";
 
-export const PRODUCT_ID = "com.kingofmadnes.lifeintheuk.path.annual";
+export const PRODUCT_ID = "com.kingofmadnes.lifeintheuk.unlock";
 
 const isNative = Capacitor.isNativePlatform();
 
@@ -53,21 +45,20 @@ function withTimeout(promise, ms, fallback) {
 
 const STORE_TIMEOUT_MS = 4000;
 
-const NONE = { owned: false, trialing: false };
+const NONE = { owned: false };
 
 /**
- * Does this Apple ID have a live entitlement, and is it currently the
- * free trial or a converted, paid period?
- *   { owned: false, trialing: false }  no subscription at all
- *   { owned: true,  trialing: true  }  inside the 3-day free trial
- *   { owned: true,  trialing: false }  paid; ads off
+ * Has this Apple ID bought the unlock? StoreKit keeps the record, so
+ * this is also the check on every launch — no separate restore needed.
+ *   { owned: false }  not bought (or the store did not answer)
+ *   { owned: true }   bought; path open, ads off
  */
 export async function status() {
   if (!isNative) return NONE;
   try {
     const res = await withTimeout(StoreKit.entitlement(), STORE_TIMEOUT_MS, null);
     if (!res) return NONE;
-    return { owned: Boolean(res.owned), trialing: Boolean(res.trialing) };
+    return { owned: Boolean(res.owned) };
   } catch {
     return NONE;
   }
@@ -75,9 +66,8 @@ export async function status() {
 
 /**
  * The product as the App Store describes it right now — localised
- * title and a renewal price string already in the viewer's currency,
- * plus whether this Apple ID still qualifies for the free trial and
- * how long it is. Resolves to null if the store didn't answer.
+ * title and price already in the viewer's currency. Resolves to null
+ * if the store didn't answer.
  */
 export async function product() {
   if (!isNative) return null;
@@ -90,10 +80,8 @@ export async function product() {
 }
 
 /**
- * Buy — starts the free trial if this Apple ID is still eligible for
- * one, otherwise charges the renewal price immediately. Resolves to
- * one of:
- *   "owned"     — trial started, or purchased outright, or already owned
+ * Buy the unlock. Resolves to one of:
+ *   "owned"     — purchased, or already owned
  *   "cancelled" — the person backed out
  *   "pending"   — Ask to Buy / SCA, Apple will finish it later
  *   "failed"    — anything else
@@ -110,27 +98,13 @@ export async function purchase() {
   }
 }
 
-/** Restore. Apple requires this path on any subscription. */
+/** Restore. Apple requires this path for non-consumables too. */
 export async function restore() {
   if (!isNative) return NONE;
   try {
     const res = await StoreKit.restore();
-    return { owned: Boolean(res && res.owned), trialing: Boolean(res && res.trialing) };
+    return { owned: Boolean(res && res.owned) };
   } catch {
     return NONE;
-  }
-}
-
-/**
- * Opens Apple's native "Manage Subscription" sheet — the built-in way
- * to cancel during the trial or afterwards. Apple requires this to be
- * reachable from inside the app on any auto-renewable subscription.
- */
-export async function manage() {
-  if (!isNative) return;
-  try {
-    await StoreKit.manage();
-  } catch {
-    /* Best effort — nothing sensible to show if the sheet won't open. */
   }
 }

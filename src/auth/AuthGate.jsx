@@ -117,13 +117,10 @@ function AccountButton({ user }) {
     setErr("");
     const uid = user.uid;
     try {
-      // Nothing to unwind on the entitlement side: the subscription
-      // belongs to the Apple ID via StoreKit, not to this Firebase
-      // account, so deleting the account correctly leaves it untouched.
-      // Someone who wants to stop paying cancels it from Settings ›
-      // Manage subscription (or Apple's own subscriptions page) —
-      // deleting their study progress here should not silently do that
-      // for them.
+      // Nothing to unwind on the entitlement side: the unlock belongs to
+      // the Apple ID via StoreKit, not to this Firebase account, so
+      // deleting the account correctly leaves it untouched. It can be
+      // restored at any time with Settings › Restore purchase.
       await deleteUser(user);
       try {
         localStorage.removeItem("uk2:all::" + uid);

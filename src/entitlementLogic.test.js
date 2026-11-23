@@ -7,30 +7,23 @@ import {
   adsOnFor,
 } from './entitlementLogic.js';
 
-test('no entitlement at all is the free state', () => {
-  assert.equal(stateFor(false, false), 'free');
-  // trialing is meaningless without owned; still reads as free.
-  assert.equal(stateFor(false, true), 'free');
+test('not owned is the free state', () => {
+  assert.equal(stateFor(false), 'free');
 });
 
-test('an owned entitlement inside the introductory offer is trialing', () => {
-  assert.equal(stateFor(true, true), 'trialing');
-});
-
-test('an owned entitlement outside the introductory offer is paid', () => {
-  assert.equal(stateFor(true, false), 'paid');
+test('owned is the paid state', () => {
+  assert.equal(stateFor(true), 'paid');
 });
 
 test('only a bare free state locks the path', () => {
   assert.equal(pathOpenFor('free'), false);
-  ['web', 'trialing', 'paid', 'loading'].forEach((s) => {
+  ['web', 'paid', 'loading'].forEach((s) => {
     assert.equal(pathOpenFor(s), true, `${s} should have the path open`);
   });
 });
 
-test('free and trialing both see ads; paid does not', () => {
+test('only the free tier sees ads', () => {
   assert.equal(adsOnFor('free'), true);
-  assert.equal(adsOnFor('trialing'), true);
   assert.equal(adsOnFor('paid'), false);
 });
 

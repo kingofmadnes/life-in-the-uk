@@ -412,47 +412,41 @@ Full console walkthrough is in **`MONETISATION.md`**. The short version:
 
 | | |
 |---|---|
-| Product | `com.kingofmadnes.lifeintheuk.path.annual` |
-| Type | Auto-renewable subscription, 1 year |
+| Product | `com.kingofmadnes.lifeintheuk.unlock` |
+| Type | Non-Consumable — bought once, kept for good |
 | Price | £3.99 |
-| Trial | 3 days free, card taken up front |
+| Trial | None |
 
-**Why a subscription and not a one-time purchase:** a free trial in Apple's
-world *is* an "introductory offer", and introductory offers only exist on
-auto-renewable subscriptions. A one-time purchase that expires after a year is a
-*non-renewing subscription*, and that type has no trial option at all. A
-card-gated trial and a one-time purchase are mutually exclusive. This was
-rebuilt three times before landing there.
+**Why a one-time purchase and no trial:** a free trial that takes a card up front
+only exists as an introductory offer on an auto-renewable subscription. The unlock
+is not a subscription, so it has no trial. The earlier design — a yearly subscription
+with a 3-day trial — was replaced on 16 October 2026.
 
-**The trial is Apple's, not ours.** There is no trial clock in this codebase —
-no Firestore document, no device timestamp, no storage key. StoreKit reports
-whether the current entitlement is the introductory period or a real charge.
-That is why it is not farmable: reinstalling, signing out, deleting the account
-or changing the device date gives nobody a second trial, because none of those
-is where the trial lives.
+**The unlock belongs to the Apple ID.** There is no trial clock and no purchase record
+kept by the app or in Firebase. `Transaction.currentEntitlements` is read on every
+launch, so reinstalling, signing out or deleting the account does not lose it.
 
-Five states, resolved in `entitlement.js`:
+Four states, resolved in `entitlement.js`; the decision itself is `stateFor()` in
+`entitlementLogic.js`:
 
 | State | Path | Ads |
 |---|---|---|
 | `loading` | open | off |
 | `web` | open | off |
 | `free` | **locked** | **on** |
-| `trialing` | open | **on** |
 | `paid` | open | off |
 
 Only the path locks. Mock tests, quick quiz, chapter practice, mistakes, saved
-questions, notes, flashcards and progress are free forever, with ads in the free
-tier. Ads stay on during the trial deliberately — it gives the trial somewhere
-to improve to.
+questions, notes, flashcards and progress are free forever, with ads in the free tier.
 
-`cccvhmd2001@gmail.com` is hard-coded as the owner and always resolves to
-`paid`, checked before StoreKit runs. Confirmed as the owner's own address.
+`cccvhmd2001@gmail.com` is hard-coded as the owner and always resolves to `paid`,
+checked before StoreKit runs. Confirmed as the owner's own address.
 
 Ads are on Google's test units with `LIVE = false`. Banners on home, study,
 progress, path and test-day; interstitials on navigation throttled to one per
-three minutes; **never on a screen with a question on it**. UMP consent form
-first (UK GDPR), then ATT, then `initialize()` — asking for an ad before consent
+three minutes; **never on a screen with a question on it**. Order: UMP consent form
+first (UK GDPR), then App Tracking Transparency, then `initialize()`. If ATT is not
+`authorized`, every ad request carries `npa: true`. Asking for an ad before consent
 resolves is what gets an AdMob account limited.
 
 ---
@@ -514,11 +508,9 @@ Console work I cannot do:
 1. **Paid Applications Agreement** — App Store Connect → Business. Sign it, add
    UK banking, complete the W-8BEN. Must read **Active**. Nothing else works
    until it does, and in-app purchases will not load even in sandbox.
-2. **Create the subscription** — the product above, then add the 3-day free
-   trial as a *separate* step under Subscription Prices → Introductory Offers.
-   It is easy to miss and the subscription looks finished without it. Check the
-   product ID character by character: `kingofmadnes`, one `s`. It can never be
-   changed or reused once created.
+2. **Create the unlock** — a Non-Consumable at £3.99 with the product ID above.
+   Check the product ID character by character: `kingofmadnes`, one `s`. It can
+   never be changed or reused once created.
 3. **AdMob** — account, payments profile (the address PIN arrives by physical
    postcard and takes 2–4 weeks — start it now), app, banner unit, interstitial
    unit. Then the App ID into `Info.plist` and the two unit IDs into

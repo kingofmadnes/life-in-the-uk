@@ -1,315 +1,129 @@
 # Life in the UK: Test Prep — Monetisation Setup
 
-What is built, and the console work still left to you. Rewritten 20 September 2026
-to match the code that actually ships — the earlier version of this file described
-a design that was replaced and would have walked you into creating the wrong
-product type.
+What is built, and the console work still left to you. Rewritten 16 October 2026
+to match the code that ships: one non-consumable unlock, no subscription, no trial.
+The earlier version sold a yearly subscription with a 3-day trial; that was replaced
+and the trial went with it.
 
-The web app is untouched by all of this: free, ad-free, no paywall, no trial.
+The web app is untouched by all of this: free, ad-free, no paywall.
 Everything below is native iOS only.
 
 ---
 
-## Read this first: the product type
+## What is sold
 
-You described what you want as **a one-time purchase that expires after a year,
-with a 3-day free trial that takes card details up front.**
-
-Apple does not allow those two things on the same product. This is worth
-understanding before you open App Store Connect, because the console will not
-explain it to you — it will just quietly not offer you the option.
-
-| What you want | Apple's product type | Can it take a card before a free trial? |
-|---|---|---|
-| One payment, access expires after 1 year, never auto-charges again | **Non-Renewing Subscription** | **No.** Introductory offers do not exist on this type. |
-| One payment, access forever | **Non-Consumable** | **No.** Same reason. |
-| Charged yearly until cancelled, 3-day free trial first | **Auto-Renewable Subscription** | **Yes.** This is the only type with introductory offers. |
-
-A free trial in Apple's world *is* an "introductory offer", and introductory
-offers only exist on auto-renewable subscriptions. The card requirement comes
-free with that: Apple takes the payment method when the trial starts, precisely
-because something is scheduled to be charged when it ends.
-
-So a card-gated 3-day trial and a non-renewing purchase are mutually exclusive.
-You can have either one, not both.
-
-**What the app currently ships** is the auto-renewable route — it was the only
-way to get the card-gated trial you asked for:
-
-| Thing | Value |
+| | |
 |---|---|
-| Product ID | `com.kingofmadnes.lifeintheuk.path.annual` |
-| Type | Auto-renewable subscription, 1 year |
-| Price | £3.99 |
-| Introductory offer | 3-day free trial |
+| Product ID | `com.kingofmadnes.lifeintheuk.unlock` |
+| Reference name | `Path Unlock` |
+| Type | Non-Consumable — bought once, kept for good |
+| Price | £3.99 (GB). Other territories: let Apple generate them |
+| Unlocks | All eight path levels, and removes ads |
 
-In practice this behaves very close to what you described. The person pays £3.99,
-gets a year, and can cancel at any point in that year — cancelling still leaves
-them the full year they paid for. The single difference from a non-renewing
-purchase is that if they do nothing, year two is charged automatically.
+**Check the Product ID character by character.** It is `kingofmadnes`, one `s`.
+It can never be changed or reused once created.
 
-**If you would rather have the non-renewing version**, that is a legitimate choice
-and the trade is simple: you lose the card-gated trial. You would either drop the
-trial entirely, or run the 3 days on your own clock inside the app with no card
-taken (which people can reset by reinstalling — an earlier version of this app did
-exactly that, and it is why the design was changed). Say the word and I will make
-the change; it touches `StoreKitPlugin.swift`, `storekit.js`, `entitlementLogic.js`
-and the paywall copy. **Nothing below assumes you will.**
+**Do not create `com.kingofmadnes.lifeintheuk.path.annual`.** That was the old
+subscription. Nothing in the code refers to it any more.
+
+Why a non-consumable and not a subscription: a free trial that takes a card up front
+only exists as an introductory offer on an auto-renewable subscription. The unlock
+has no trial, so the paywall offers none.
 
 ---
 
 ## How it works
 
-**User journey**
-1. Install → path locked, everything else free, ads on
-2. Start the trial → card taken by Apple, **3 days** of path access, ads still on
-3. Don't cancel → charged £3.99, path stays open, **ads off**
-4. Cancel inside 3 days → nothing charged, path locks again
+**Free:** the path is locked, ads are on. Everything else (mock tests, quick quiz,
+chapter practice, mistakes, saved questions, notes, flashcards, progress) is free
+forever, with ads.
 
-**What locks:** the eight path levels, and nothing else.
+**Paid:** the path is open, ads are off. Permanent, tied to the Apple ID.
 
-**What stays free, always:** mock test, quick quiz, chapter practice, mistakes
-list, saved questions, study notes, flashcards, progress, booking and test-day
-guidance. All of it with ads in the free tier.
+### Persistence and restore
 
-Note that ads stay on *during* the trial. Only a converted, paid subscription
-turns them off — that is deliberate, it gives the trial somewhere to improve to.
+`Transaction.currentEntitlements` is read on every launch and every return to the
+app. Nothing about the unlock is stored by the app or in Firebase, so reinstalling,
+signing out, or deleting the account does not lose it. A purchase made on another
+device appears the next time the app comes to the front.
 
----
-
-## Architecture
-
-### The trial is Apple's, not ours
-
-There is no trial clock in this codebase. No Firestore document, no device
-timestamp, no `localStorage` key. StoreKit reports whether the current entitlement
-is the introductory period or a real charge, and that is the whole source of
-truth.
-
-This matters because it is not farmable. Reinstalling, signing out of the app,
-deleting the account, clearing storage, changing the device date — none of it
-gives anyone a second trial, because none of it is where the trial lives. Apple
-ties the introductory offer to the Apple ID.
+Settings → Restore purchase calls `AppStore.sync()`, which asks for the Apple ID
+password. It is for a new device or a wiped one; ordinary launches do not need it.
 
 ### Entitlement states
 
-Five, resolved in `src/entitlement.js`:
+| State | Path | Ads |
+|---|---|---|
+| `loading` | open | off |
+| `web` | open | off |
+| `free` | **locked** | **on** |
+| `paid` | open | off |
 
-| State | Meaning | Path | Ads |
-|---|---|---|---|
-| `loading` | still resolving | open | off |
-| `web` | not the native app | open | off |
-| `free` | no subscription | **locked** | **on** |
-| `trialing` | inside the 3-day trial | open | **on** |
-| `paid` | trial converted to a charge | open | off |
+Resolved in `entitlement.js`; the decision itself is `stateFor()` in
+`entitlementLogic.js`, tested by `entitlementLogic.test.js`.
 
-The decisions themselves are in `src/entitlementLogic.js` — no imports, fully
-unit-tested:
-
-```js
-export function stateFor(owned, trialing) {
-  if (!owned) return "free";
-  return trialing ? "trialing" : "paid";
-}
-export function pathOpenFor(state) { return state !== "free"; }
-export function adsOnFor(state)    { return state === "free" || state === "trialing"; }
-```
-
-`loading` deliberately leaves the path open. Resolving hits the store, and gating
-the app behind a spinner to save three seconds of path access is the worse trade.
+`cccvhmd2001@gmail.com` is hard-coded as the owner and always resolves to `paid`,
+checked before StoreKit runs. Confirmed as the owner's own address.
 
 ### Purchases — StoreKit 2, no third-party SDK
 
-`ios/App/App/StoreKitPlugin.swift` is a local Capacitor plugin. StoreKit 2 hands
-back a `VerificationResult` that Apple has already checked cryptographically, so
-there is no receipt to validate and therefore no receipt server to get wrong or
-to pay for.
-
-It listens to `Transaction.updates`, which is how the trial converting to a charge,
-a renewal, an Ask to Buy approval, a purchase on another device, or a refund all
-reach the app without the app asking.
-
-Every method resolves. A store that cannot be reached reports "not owned" and the
-app carries on in its free tier — it never strands anyone on a spinner.
-
-### The owner account
-
-`cccvhmd2001@gmail.com` is hard-coded in `src/entitlement.js` and always resolves
-to `paid`, checked before StoreKit runs at all.
-
-**If that is not an address you control, change it.** It is a permanent free
-account that no purchase check can ever see.
+`ios/App/App/StoreKitPlugin.swift` is a local Capacitor plugin. `StoreKit 2` is used
+because `Transaction` arrives already verified by Apple, so there is no receipt to
+validate. It listens to `Transaction.updates` so a purchase made elsewhere, an Ask to
+Buy approval, or a refund is picked up without a restart.
 
 ### Ads — Google AdMob
 
-- Banners on: home, study, progress, path, test-day
-- Interstitials on navigation, throttled to one per 3 minutes
-- **Never on a screen with a question on it**
-- UMP consent form first (UK GDPR), then the ATT prompt, then `initialize()`
-
-Currently on Google's official test units with `LIVE = false` in `src/ads/ads.js`.
-Test units serve real-looking ads that pay nothing and cannot get an account
-flagged.
+Order of operations, and it is not optional: UMP consent form (UK GDPR) → App Tracking
+Transparency → `initialize()` → ads. ATT is asked in `src/ads/ads.js` by
+`trackingAllowed()`, through the AdMob plugin's `trackingAuthorizationStatus()` and
+`requestTrackingAuthorization()`. Only an answer of `authorized` allows personalised
+ads: every banner and interstitial request otherwise carries `npa: true`. Nothing
+requests an ad before the ATT answer is in.
 
 ---
 
 ## Step 1 — Paid Applications Agreement (do this first)
 
-Nothing can be sold until this is signed, and it gates the other steps.
-
-1. **appstoreconnect.apple.com → Business**
-2. Sign the **Paid Applications Agreement**
-3. Add **banking details** (a UK account for GBP payouts)
-4. Complete **tax forms** — UK residents need the US W-8BEN, which is in the
-   same flow
-
-Status must read **Active**, not "Pending". Until it does, in-app purchases will
-not load even in sandbox, and the paywall will show the product as unavailable.
-
-This can take a few days if the bank details need verifying. Start it before
-anything else.
+App Store Connect → Business. Sign it, add UK banking, complete the W-8BEN. It must
+read **Active**. In-app purchases will not load, even in sandbox, until it does.
 
 ---
 
-## Step 2 — Create the subscription
+## Step 2 — Create the unlock
 
-**appstoreconnect.apple.com → Apps → Life in the UK: Test Prep → Monetization →
-Subscriptions**
+1. My Apps → Life in the UK → **In-App Purchases** → **+** → **Non-Consumable**.
+2. Reference Name `Path Unlock`. Product ID `com.kingofmadnes.lifeintheuk.unlock`.
+3. Price £3.99 (GB). Let Apple generate the other territories.
+4. Localisation, English (U.K.):
+   - Display Name: `Path Unlock`
+   - Description: `Unlocks all eight path levels and removes ads. One payment, yours to keep.`
+5. Review screenshot: the paywall.
+6. Review notes: "One-time non-consumable unlock. Restore is in Settings → Restore purchase."
 
-### 2a. Create the subscription group
-
-Groups exist so people can move between tiers. You have one tier, but the group
-is still required.
-
-- **Reference Name:** `Path Access`
-
-### 2b. Create the subscription
-
-Inside that group, **＋**:
-
-| Field | Value |
-|---|---|
-| Reference Name | `Path Annual` |
-| Product ID | `com.kingofmadnes.lifeintheuk.path.annual` |
-
-**Check the Product ID character by character.** It is `kingofmadnes` — one `s`,
-not two. It must match `StoreKitPlugin.swift` exactly, it is case-sensitive, and
-**it can never be changed or reused once created.** A typo here means creating a
-second product and abandoning the first forever.
-
-Then:
-
-- **Subscription Duration:** 1 Year
-- **Price:** £3.99 (GB) — set the UK price and let Apple generate the rest
-- **Localization (English UK):**
-  - Display Name: `Path Access`
-  - Description: `Unlocks all eight path levels and removes ads. 3 days free, then £3.99 a year.`
-- **Review Information:** a screenshot of the paywall screen
-
-### 2c. Add the 3-day free trial
-
-This is the part that matters, and it is a *separate* step from creating the
-subscription. It is easy to miss and the subscription looks finished without it.
-
-Still inside the subscription → **Subscription Prices → Introductory Offers → ＋**
-
-| Field | Value |
-|---|---|
-| Countries | All (or at least United Kingdom) |
-| Start Date | today |
-| End Date | leave empty (runs indefinitely) |
-| Type | **Free** |
-| Duration | **3 Days** |
-
-Save. The subscription should now show a "Free trial, 3 days" row under its price.
-
-**If the Type dropdown offers you no "Free" option**, the Paid Applications
-Agreement is not Active yet. Go back to Step 1.
-
-### 2d. Review notes
-
-Reviewers need to be able to reach the locked state, or they will reject for
-"cannot locate the in-app purchase":
-
-```
-The eight-level Path is the only locked feature. Everything else in the app
-is free.
-
-To see the paywall: open the app, tap Path in the bottom navigation, and tap
-any level. The subscription sheet appears with the 3-day free trial.
-
-Restore Purchase is on that same screen and in Settings.
-
-All other features (mock test, quick quiz, chapter practice, study notes,
-flashcards, progress) are free and need no purchase.
-```
+The product stays in *Waiting for Review* until a build containing it is submitted.
 
 ---
 
-## Step 3 — Check the trial is legitimate
+## Step 3 — Check it locally
 
-You asked for this to be verified rather than assumed. Two different things are
-worth confirming, and they are confirmed in different places.
+`ios/App/LifeInTheUK.storekit` holds the product for local testing: one non-consumable,
+`com.kingofmadnes.lifeintheuk.unlock`, £3.99, storefront GBR.
 
-### 3a. That a card is genuinely required
+It only applies when the app is run from Xcode. An app installed with `devicectl`
+talks to the real store and ignores it.
 
-This is Apple's behaviour, not the app's, and it is not configurable — but you
-should see it once with your own eyes.
+Run from Xcode with the `LifeInTheUK.storekit` configuration selected, then use
+**Debug → StoreKit → Manage Transactions** to approve, decline, or refund. Check:
 
-1. **Users and Access → Sandbox → Test Accounts → ＋** — create a tester with an
-   email address you control that has **never** been used as an Apple ID
-2. On the iPhone: **Settings → Developer → Sandbox Apple Account** → sign in as
-   that tester
-3. Open the app, tap Path, tap a level
-4. The sheet should read **"3 days free, then £3.99/year"**
-
-In sandbox no real card is charged, so what you are checking is the *wording and
-the flow*: Apple presents it as a subscription with a trial that converts, and
-confirming requires an authenticated Apple ID. In production that Apple ID must
-have a valid payment method on file or the purchase fails — which is exactly the
-gate you wanted.
-
-Sandbox runs on an accelerated clock: a 1-year subscription renews every hour,
-and the 3-day trial passes in minutes. That is how you watch `trialing` become
-`paid` without waiting three days.
-
-### 3b. That the app enforces it
-
-This is our code, and it is the part that could actually be wrong.
-
-| Check | Expected |
+| Action | Expect |
 |---|---|
-| Fresh install, no purchase | Path locked, ads showing |
-| Start trial | Path opens, **ads still showing** |
-| Let the sandbox trial convert | Path open, **ads stop** |
-| Cancel during trial | Path locks again |
-| Delete app, reinstall, do not repurchase | Path still open if subscription live — the entitlement is on the Apple ID, not the device |
-| Sign out of the Firebase account entirely | No change to path or ads — the subscription is not tied to it |
-| Aeroplane mode, cold start | Free tier, no spinner, no crash |
-
-That last row is the one people forget. The store being unreachable must degrade
-to the free tier, not to a hang.
-
-### 3c. Testing against the local StoreKit file
-
-`ios/App/LifeInTheUK.storekit` describes the subscription for local testing, and
-the App scheme loads it (`App.xcscheme` → Run → Options → StoreKit Configuration).
-It now matches the code: one subscription group, `Path Access`, holding
-`com.kingofmadnes.lifeintheuk.path.annual` at £3.99/year with a 3-day free
-introductory offer, storefront GBR.
-
-This is the fastest way to exercise the paywall, because it needs no sandbox
-tester and no App Store Connect record — the whole product is simulated locally.
-**Run from Xcode** (⌘R) for it to apply; an app installed any other way ignores it
-and talks to the real store.
-
-With it selected you can drive the trial from Xcode's **Debug → StoreKit** menu:
-approve or decline purchases, expire a subscription, force a refund, and change
-the subscription renewal rate so the 3-day trial passes in seconds.
-
-Note this file is *only* for local testing. It has no bearing on what you create
-in App Store Connect in Step 2, and the two do not sync — if you change the price
-or trial length in one, change it in the other by hand.
+| Buy | Path opens, ads stop |
+| Quit and relaunch | Path still open |
+| Refund the purchase in Manage Transactions | Path locks again |
+| Settings → Restore purchase, after clearing transactions | Path opens if the Apple ID owns it |
+| Delete the app, reinstall | Path still open if the Apple ID owns it |
+| Sign out of the Firebase account | No change — the unlock is not tied to it |
 
 ---
 
@@ -468,8 +282,8 @@ point in `ads.js` already waits on `ready()` — do not add one that does not.
 |---|---|
 | Code | **Done.** Entitlement, StoreKit plugin, paywall, ads, consent, ATT. |
 | Paid Applications Agreement | **Yours.** Step 1. |
-| Subscription + 3-day trial | **Yours.** Step 2. |
-| `LifeInTheUK.storekit` | **Done.** Matches the code — see 3c. |
+| Non-Consumable unlock, £3.99 | **Yours.** Step 2. |
+| `LifeInTheUK.storekit` | **Done.** Matches the code — see Step 3. |
 | AdMob account, units, IDs | **Yours.** Step 4. |
 | `OWNER_EMAIL` | **Confirmed yours.** Leave as is. |
 

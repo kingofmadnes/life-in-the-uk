@@ -9,25 +9,26 @@ import * as store from "../storekit.js";
    languages the person chose, like every other screen. */
 export default function Paywall({ t, onClose, onUnlocked }) {
   const [price, setPrice] = useState("");
-  const [introDays, setIntroDays] = useState(null);
-  const [introEligible, setIntroEligible] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Ask the App Store what this costs where the viewer lives, and
-  // whether this Apple ID still qualifies for the free trial. Until it
-  // answers, the button falls back to the plain title rather than
-  // showing a trial offer to someone who may not get one.
+  // Ask the App Store what this costs where the viewer lives. The button
+  // stays disabled until it answers, so the price is never a guess. If the
+  // store has no product, say so and offer a retry rather than sit blank.
   useEffect(() => {
     let live = true;
+    setLoading(true);
     store.product().then((p) => {
-      if (!live || !p) return;
-      if (p.price) setPrice(p.price);
-      if (typeof p.introDays === "number") setIntroDays(p.introDays);
-      if (typeof p.introEligible === "boolean") setIntroEligible(p.introEligible);
+      if (!live) return;
+      setPrice(p && p.price ? p.price : "");
+      setUnavailable(!(p && p.price));
+      setLoading(false);
     });
     return () => { live = false; };
-  }, []);
+  }, [attempt]);
 
   const buy = async () => {
     setBusy("buy");
@@ -56,14 +57,14 @@ export default function Paywall({ t, onClose, onUnlocked }) {
   };
 
   const working = busy !== "";
-  const showTrial = introEligible && Number.isFinite(introDays) && introDays > 0;
+  const retry = () => setAttempt((n) => n + 1);
 
   return (
     <div className="pw" role="dialog" aria-modal="true" aria-label={t("pwTitle")}>
       <div className="pw-card">
         <div className="pw-mark" aria-hidden="true">★</div>
         <h2 className="pw-title">{t("pwTitle")}</h2>
-        <p className="pw-lead">{showTrial ? t("pwLeadTrial", { n: introDays }) : t("pwLeadNoTrial")}</p>
+        <p className="pw-lead">{t("pwLead")}</p>
 
         <ul className="pw-list">
           {[t("pwOne"), t("pwTwo"), t("pwThree")].map((line) => (
@@ -74,24 +75,25 @@ export default function Paywall({ t, onClose, onUnlocked }) {
           ))}
         </ul>
 
-        {msg && <p className="pw-msg">{msg}</p>}
+        {(msg || unavailable) && !loading && <p className="pw-msg">{msg || t("pwNoPrice")}</p>}
 
-        <button type="button" className="pw-buy" disabled={working} onClick={buy}>
-          {busy === "buy"
+        <button
+          type="button"
+          className="pw-buy"
+          disabled={working || loading}
+          onClick={unavailable ? retry : buy}
+        >
+          {busy === "buy" || loading
             ? t("pwBuying")
-            : showTrial
-              ? t("pwStartTrial", { n: introDays })
-              : price
-                ? t("pwBuy", { p: price })
-                : t("pwTitle")}
+            : unavailable
+              ? t("pwRetry")
+              : t("pwBuy", { p: price })}
         </button>
-        {/* The mandatory bit: what this actually charges and when, and
-            that it renews unless cancelled. Apple requires this text be
-            visible before the purchase, not just in a linked policy. */}
+        {/* What this charges and that it is a single payment. Apple requires
+            the price be visible before the purchase, not just in a linked
+            policy. */}
         <p className="pw-once">
-          {price
-            ? (showTrial ? t("pwTrialTerms", { n: introDays, p: price }) : t("pwRenewTerms", { p: price }))
-            : ""}
+          {price ? t("pwTerms", { p: price }) : ""}
         </p>
 
         <button type="button" className="pw-alt" disabled={working} onClick={restore}>

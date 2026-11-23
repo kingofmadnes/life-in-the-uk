@@ -125,10 +125,10 @@
 		<dict><key>SKAdNetworkIdentifier</key><string>3qcr597p9d.skadnetwork</string></dict>
 	</array>
 
-	<!-- Shown in the system App Tracking Transparency prompt. Apple
-	     rejects vague wording here, and it must match what we actually
-	     do: the identifier is used for ad relevance and nothing else. -->
+	<!-- Shown in the system App Tracking Transparency prompt. Must match
+	     what we actually do: the identifier is used for ad relevance and
+	     nothing else. -->
 	<key>NSUserTrackingUsageDescription</key>
-	<string>This lets us show ads that are more relevant to you. The free version of the app is paid for by advertising. You can say no and still use everything — the ads will just be less relevant.</string>
+	<string>We use this to show you relevant ads and keep the free version running.</string>
 </dict>
 </plist>

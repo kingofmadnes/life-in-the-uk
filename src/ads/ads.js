@@ -2,8 +2,8 @@
    ADS
 
    Only ever reached in the free tier of the native app — the web
-   build has no ads at all, and neither does the trial or a paid
-   unlock. See entitlement.js; this file assumes that decision has
+   build has no ads at all, and neither does a paid unlock. See
+   entitlement.js; this file assumes that decision has
    already been made by the time it is called.
 
    Order of operations on iOS matters and is not optional:
@@ -55,11 +55,32 @@ let lastInterstitial = Date.now(); // start the clock now, not at zero —
                                    // nobody should meet an ad on tap one
 let interstitialLoaded = false;
 
+// Whether the person let us use the advertising identifier. Set once
+// ready() has the App Tracking Transparency answer; false until then,
+// so anything that runs early gets non-personalised ads, never the
+// identifier by accident.
+let personalised = false;
+
 async function load() {
   if (plugin) return plugin;
   const mod = await import("@capacitor-community/admob");
   plugin = mod;
   return plugin;
+}
+
+/**
+ * Ask App Tracking Transparency, if the system has not already been
+ * answered. The prompt can only be shown once per install — after
+ * that iOS returns the stored answer, so asking again is a no-op.
+ * Resolves true only for "authorized".
+ */
+async function trackingAllowed(AdMob) {
+  let { status } = await AdMob.trackingAuthorizationStatus();
+  if (status === "notDetermined") {
+    await AdMob.requestTrackingAuthorization(); // the system prompt
+    ({ status } = await AdMob.trackingAuthorizationStatus());
+  }
+  return status === "authorized";
 }
 
 /**
@@ -90,12 +111,18 @@ function ready() {
         // with non-personalised ads rather than losing the tier.
       }
 
-      // 2. ATT. initialize() raises the system prompt for us; asking
-      //    twice is what causes the prompt to never appear.
-      await AdMob.initialize({
-        requestTrackingAuthorization: true,
-        initializeForTesting: isTesting,
-      });
+      // 2. ATT. Asked here, before the SDK starts and before any ad is
+      //    requested. A failure or an unanswered prompt leaves
+      //    `personalised` false, so ads still load — just not targeted.
+      try {
+        personalised = await trackingAllowed(AdMob);
+      } catch {
+        personalised = false;
+      }
+
+      // 3. Start the SDK. ATT is already answered above, so it is not
+      //    asked again here.
+      await AdMob.initialize({ initializeForTesting: isTesting });
 
       return true;
     } catch {
@@ -105,6 +132,15 @@ function ready() {
   })();
 
   return readyPromise;
+}
+
+/**
+ * Run consent and the App Tracking Transparency prompt now, rather than
+ * waiting for the first ad screen. Called on launch for free-tier users
+ * so the prompt appears before any ad or tracking can happen.
+ */
+export function requestTracking() {
+  return ready();
 }
 
 /** Banner along the bottom. Resolves to the height in px, or 0. */
@@ -118,6 +154,7 @@ export async function showBanner() {
       position: BannerAdPosition.BOTTOM_CENTER,
       margin: 0,
       isTesting,
+      npa: !personalised,
     });
     return 1; // real height arrives on the bannerAdSizeChanged event
   } catch {
@@ -186,7 +223,11 @@ export async function prepareInterstitial() {
   if (!(await ready())) return;
   try {
     const { AdMob } = await load();
-    await AdMob.prepareInterstitial({ adId: UNITS.interstitial, isTesting });
+    await AdMob.prepareInterstitial({
+      adId: UNITS.interstitial,
+      isTesting,
+      npa: !personalised,
+    });
     interstitialLoaded = true;
   } catch {
     interstitialLoaded = false;

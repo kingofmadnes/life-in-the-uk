@@ -41,7 +41,7 @@ export default function PrivacyPolicy({ onBack }) {
           <h3>Payments (Apple StoreKit)</h3>
           <ul>
             <li>Purchase history</li>
-            <li>Subscription status</li>
+            <li>Purchase status (whether the one-off unlock is owned)</li>
           </ul>
         </section>
 
@@ -50,7 +50,7 @@ export default function PrivacyPolicy({ onBack }) {
           <ul>
             <li><strong>App Functionality</strong> — authenticate users, track progress, save preferences</li>
             <li><strong>Advertising</strong> — serve personalized ads via Google AdMob</li>
-            <li><strong>Subscriptions</strong> — manage yearly subscription access to the Path</li>
+            <li><strong>Purchases</strong> — unlock the Path and remove ads, once</li>
             <li><strong>Service Improvement</strong> — understand which features are used</li>
           </ul>
         </section>

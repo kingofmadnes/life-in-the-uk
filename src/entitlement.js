@@ -5,24 +5,20 @@
 
      loading   still working it out — show the app, gate nothing
      web       not the native app: everything, no ads, forever
-     free      no subscription: path locked, ads on
-     trialing  inside the 3-day free trial: path open, ads still on
-     paid      trial converted to a real charge: path open, ads off
+     free      not bought: path locked, ads on
+     paid      bought once, kept for good: path open, ads off
 
    Two derived booleans are what callers should actually branch on:
 
      pathOpen  may open the path (anything but a bare "free")
-     adsOn     should be shown ads (free and trialing; not paid)
+     adsOn     should be shown ads (free only)
 
-   There is no trial clock to keep here — Firestore, a guest device
-   clock, all of it. Apple only allows a free trial to require a card
-   on an auto-renewable subscription, so the trial itself lives inside
-   StoreKit: `entitlement()` on the native side reports both whether
-   the Apple ID has a live subscription and whether it is currently the
-   introductory (trial) period or a paid one. stateFor() in
-   entitlementLogic.js is the entire translation from that pair into
-   what this app shows — see there for why nothing here is farmable by
-   reinstalling or signing out.
+   There is no clock to keep here. The unlock is a non-consumable
+   purchase, so StoreKit's record of it is the whole answer:
+   `entitlement()` on the native side reports whether the Apple ID owns
+   it. stateFor() in entitlementLogic.js is the entire translation from
+   that into what this app shows — see there for why nothing here is
+   farmable by reinstalling or signing out.
 
    One exception: a single hard-coded owner account always resolves to
    "paid", checked before StoreKit runs at all. See isOwner() below.
@@ -58,23 +54,22 @@ function isOwner() {
 /**
  * Work out the current state. The owner account outranks the store
  * entirely — checked first so it never waits on a network call — and
- * everyone else is whatever StoreKit says. A subscription otherwise
- * belongs to the Apple ID, not to a Firebase account, so signing in
- * and out changes nothing for anyone but the owner.
+ * everyone else is whatever StoreKit says. The unlock belongs to the
+ * Apple ID, not to a Firebase account, so signing in and out changes
+ * nothing for anyone but the owner.
  */
 export async function resolve() {
   if (!isNative) return "web";
   if (isOwner()) return "paid";
-  const { owned, trialing } = await storeStatus();
-  return stateFor(owned, trialing);
+  const { owned } = await storeStatus();
+  return stateFor(owned);
 }
 
 /**
- * React binding. Re-resolves on a timer while the app is visible — a
- * trial can convert to a charge, or a subscription can lapse, without
- * any action inside this app to hang a listener off — and exposes
- * refresh() for the moments that can change the answer immediately:
- * finishing a purchase, restoring one.
+ * React binding. Re-resolves whenever the app comes back to the front,
+ * so a purchase made on another device shows up without a restart, and
+ * exposes refresh() for the moments that can change the answer
+ * immediately: finishing a purchase, restoring one.
  */
 export function useEntitlement() {
   const [state, setState] = useState("loading");
@@ -112,9 +107,9 @@ export function useEntitlement() {
     const stop = auth ? onAuthStateChanged(auth, run) : null;
     if (!auth) run();
 
-    // A trial can convert, a subscription can lapse, or — for the one
-    // owner account — who's signed in can change, while the app sits
-    // in the background.
+    // A purchase can land on another device, or — for the one owner
+    // account — who's signed in can change, while the app sits in the
+    // background.
     const onShow = () => {
       if (document.visibilityState === "visible") run();
     };

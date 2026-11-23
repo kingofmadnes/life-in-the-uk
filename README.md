@@ -50,6 +50,26 @@ bundle is finished, because a half-translated bank looks broken in a way plain E
 The interface itself (menus, buttons, the path, results) is fully translated into all fourteen
 languages in `src/LifeInTheUK.jsx`.
 
+## Testing the unlock locally (StoreKit)
+
+The iOS app sells one non-consumable unlock, product ID `com.kingofmadnes.lifeintheuk.unlock`. The
+paywall shows the price only once the App Store has returned that product, so an unlisted or
+mistyped product shows "Price unavailable, please try again later." instead of a blank screen.
+
+To test without App Store Connect:
+
+1. Run `npm run build && npx cap sync ios`, then open `ios/App/App.xcodeproj` in Xcode.
+2. Select the `App` scheme and run it on a simulator or device from Xcode. The scheme already
+   points at `ios/App/LifeInTheUK.storekit`, which lists the product above at £3.99.
+   Installing with `devicectl` or TestFlight ignores that file and talks to the real store.
+3. Tap Unlock the path, then approve the purchase in the sheet. Use **Debug → StoreKit → Manage
+   Transactions** in Xcode to approve, decline, refund, or clear transactions.
+4. Relaunch the app to confirm the unlock persists. Settings → Restore purchase re-checks it.
+
+If the price never appears in a Xcode run, check that the scheme's StoreKit Configuration is set
+to `LifeInTheUK.storekit` (Product → Scheme → Edit Scheme → Run → Options) and that the
+`productID` in that file matches `PRODUCT_ID` in `src/storekit.js`.
+
 ## Deploying
 
 `npm run build` produces a fully static `dist/` — any static host serves it as-is.
