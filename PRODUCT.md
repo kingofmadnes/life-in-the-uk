@@ -73,8 +73,9 @@ connection, in a test-centre car park.
 - Study notes for all five handbook chapters in all 14 languages; 73 flashcards.
 - **No backend.** Progress lives in `localStorage` on the device. Firebase is
   auth only; there is no database.
-- Monetisation: the path locks behind a £3.99 annual subscription with a 3-day
-  card-gated trial. Everything else is free with ads. Web is free and ad-free.
+- Monetisation: the path locks behind a one-time £3.99 purchase, "Unlock the
+  path", which also removes ads. Everything else is free with ads. Web is free
+  and ad-free.
 - **Font constraint, non-negotiable:** `system-ui` must never enter the font
   stack. In the iOS WKWebView it claims every character then draws `.notdef`
   for anything outside Latin, turning all fourteen non-English languages into
