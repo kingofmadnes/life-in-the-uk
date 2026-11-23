@@ -442,7 +442,7 @@ questions, notes, flashcards and progress are free forever, with ads in the free
 `cccvhmd2001@gmail.com` is hard-coded as the owner and always resolves to `paid`,
 checked before StoreKit runs. Confirmed as the owner's own address.
 
-Ads are live (`LIVE = true`, real AdMob app and unit IDs). Banners on home, study,
+Ads use the real AdMob app and unit IDs in Release builds and Google's test units in Debug builds (`LIVE = !Capacitor.DEBUG`). Banners on home, study,
 progress, path and test-day; interstitials on navigation throttled to one per
 three minutes; **never on a screen with a question on it**. Order: UMP consent form
 first (UK GDPR), then App Tracking Transparency, both on launch before the login

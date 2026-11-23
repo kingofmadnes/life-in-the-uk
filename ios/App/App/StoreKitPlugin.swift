@@ -3,8 +3,8 @@ import Capacitor
 import StoreKit
 
 /// The purchase side of the app: one non-consumable unlock, bought once
-/// and kept for good. Nothing renews and nothing expires, so there is no
-/// trial clock, no manage-subscription sheet, and no introductory offer.
+/// and kept for good. Nothing expires, so the only states are "owned" and
+/// "not owned".
 ///
 /// StoreKit 2 rather than a third-party SDK, because `Transaction` arrives
 /// as a `VerificationResult` that Apple has already checked — there is no

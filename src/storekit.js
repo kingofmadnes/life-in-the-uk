@@ -3,8 +3,7 @@
 
    Thin JS side of the local Swift plugin in
    ios/App/App/StoreKitPlugin.swift. One non-consumable unlock:
-   bought once for £3.99, kept for good. No trial, no renewal, no
-   subscription management.
+   bought once for £3.99, kept for good.
 
    Every method resolves rather than throws: a study app should never
    lose a screen because the store was unreachable. The caller decides

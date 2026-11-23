@@ -21,15 +21,16 @@ import { Capacitor } from "@capacitor/core";
 const isNative = Capacitor.isNativePlatform();
 
 /* ─────────────  AD UNIT IDS  ─────────────
-   LIVE serves the real units below. The app id that goes with them is
-   in ios/App/App/Info.plist under GADApplicationIdentifier; keep the
-   three in step.
+   Release builds serve the real units below; Debug builds serve
+   Google's official test units, which pay nothing and cannot get the
+   account flagged. Capacitor.DEBUG comes from CAPACITOR_DEBUG, which
+   ios/debug.xcconfig sets for the Debug configuration only, so an
+   Archive (Release) is always live and an Xcode run is always test.
 
-   Setting LIVE to false switches to Google's official test units,
-   which pay nothing and cannot get the account flagged. Simulators
-   always get test ads either way. Never tap a live ad on your own
-   device. */
-const LIVE = true;
+   The app id that goes with the real units is in
+   ios/App/App/Info.plist under GADApplicationIdentifier; keep the
+   three in step. Never tap a live ad on your own device. */
+const LIVE = !Capacitor.DEBUG;
 
 const TEST = {
   banner: "ca-app-pub-3940256099942544/2934735716",
@@ -75,18 +76,19 @@ const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 /* iOS drops a tracking request made while the app is not active — still
    launching, or while a consent form is being dismissed — and leaves the
    status "notDetermined" without showing anything. That is how a
-   reviewer ends up never seeing the prompt. So wait until the app is in
-   the foreground, give it a moment to settle, and if the status is still
+   reviewer ends up never seeing the prompt. So wait until UIKit reports
+   the app active, give it a moment to settle, and if the status is still
    undecided after asking, ask once more. */
-function whenVisible() {
-  if (document.visibilityState === "visible") return Promise.resolve();
-  return new Promise((res) => {
-    const on = () => {
-      if (document.visibilityState !== "visible") return;
-      document.removeEventListener("visibilitychange", on);
+async function whenActive() {
+  const { App } = await import("@capacitor/app");
+  const { isActive } = await App.getState();
+  if (isActive) return;
+  await new Promise((res) => {
+    const handle = App.addListener("appStateChange", ({ isActive: now }) => {
+      if (!now) return;
+      handle.then((h) => h.remove());
       res();
-    };
-    document.addEventListener("visibilitychange", on);
+    });
   });
 }
 
@@ -99,7 +101,7 @@ function whenVisible() {
 async function trackingAllowed(AdMob) {
   let { status } = await AdMob.trackingAuthorizationStatus();
   for (let attempt = 0; status === "notDetermined" && attempt < 2; attempt++) {
-    await whenVisible();
+    await whenActive();
     await wait(attempt === 0 ? 500 : 1000);
     await AdMob.requestTrackingAuthorization(); // the system prompt
     ({ status } = await AdMob.trackingAuthorizationStatus());

@@ -7,17 +7,17 @@ Xcode project at `ios/App/App.xcodeproj` (SPM, no workspace).
 
 ## 1. App Store status and rejection reasons
 
-- [x] **Rejected.** Per the owner, Apple flagged **"references to subscriptions"**
-      in the app. The app sells a one-time non-consumable, so any subscription
-      wording is wrong for it.
+- [x] **Rejected: version 1.0 (build 1) under Guideline 2.1(b)**, covering the
+      in-app purchase and App Tracking Transparency. Per the owner, Apple also
+      flagged **"references to subscriptions"** and could not find the ATT prompt
+      on iPad. App Store Connect side is done (owner, 2026-11-23).
 - [x] **History:** around 2026-10-16 the app was moved from a yearly
       auto-renewable subscription with a 3-day free trial
       (`com.kingofmadnes.lifeintheuk.path.annual`) to a single non-consumable,
       following App Store feedback. The leftover subscription wording dates from
       that model. Apple's exact text from that round was not saved either.
-- [ ] **Paste Apple's exact message here** (guideline number and wording) from
-      App Store Connect → the app → **App Review**. Only the owner's summary is
-      recorded, so other points in that message may be missing below.
+- [ ] **Paste Apple's full wording here** from App Store Connect → the app →
+      **App Review**, so the reply can answer it point by point.
 
 ---
 
@@ -62,7 +62,10 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
 ## 3. Still left before resubmitting
 
 ### Code (can be done in a session)
-- [x] **Real AdMob IDs, `LIVE = true`:** app ID
+- [x] **Real AdMob IDs in Release builds only.** `LIVE` follows the build: an
+      Xcode run (Debug) serves Google's test units, an Archive (Release) serves the
+      real ones. Verified from the built Info.plists (`CAPACITOR_DEBUG` is `true`
+      in Debug, empty in Release). App ID
       `ca-app-pub-3527173535512943~9103327684` in `Info.plist`; banner
       `…/7972536850` and interstitial `…/5269070634` in `src/ads/ads.js`.
 - [x] **`SESSION-NOTES.md` refreshed** to the one-time unlock.
@@ -94,11 +97,11 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
 - [x] **ATT moved to launch (Apple could not find it on iPad).** It used to wait
       until after sign-in and the free-tier check. Now `native.js` runs consent
       and the ATT prompt straight after the splash, before the login screen; the
-      request waits for the app to be in the foreground and retries once if iOS
-      drops it. The Google Mobile Ads SDK only starts afterwards, in `ready()`.
+      request waits until UIKit reports the app active (`@capacitor/app`) and
+      retries once if iOS drops it. The Google Mobile Ads SDK only starts afterwards, in `ready()`.
 - [x] **Verified on a fresh install, iOS 26.3 simulators:** with the app
       uninstalled and permissions reset, the ATT prompt appears by itself over
-      the login screen on both iPhone 17 Pro and iPad Air 11", with no ad or SDK
+      the login screen on iPhone 17 Pro, iPhone 17 Pro Max and iPad Air 11", with no ad or SDK
       requests made before it (only the UMP consent check).
 - [ ] **ATT on iOS 27 (iPhone and iPad): not tested.** This Mac only has Xcode
       26.3 (iOS 26.2 SDK, iOS 26.3 simulators). Needs Xcode 27 or a real device

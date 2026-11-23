@@ -14,7 +14,8 @@ exists on an auto-renewable subscription. That shipped first as a yearly
 subscription (`com.kingofmadnes.lifeintheuk.path.annual`).
 
 **Where it landed:** App Store feedback moved it to a single non-consumable
-around 16 October 2026, with no trial. A later rejection flagged leftover
+around 16 October 2026, with no trial. Version 1.0 build 1 was then rejected
+under Guideline 2.1(b) for the in-app purchase and ATT, including leftover
 "references to subscriptions", so every mention of subscriptions, trials and
 renewal is now gone from the app, its 15 languages and the public pages.
 
@@ -63,11 +64,13 @@ after the user has passed a level, and from Settings → Unlock the path.
 
 ### Ads and tracking
 
-AdMob is live (`LIVE = true`, real app ID and banner/interstitial units). On
-launch, straight after the splash and before the login screen, the app runs the
+AdMob uses the real app ID and banner/interstitial units in Release builds and
+Google's test units in Debug builds (`LIVE = !Capacitor.DEBUG`, driven by
+`CAPACITOR_DEBUG` in `ios/debug.xcconfig`). On launch, straight after the splash and before the login screen, the app runs the
 UMP consent check and then the App Tracking Transparency prompt; the Google
 Mobile Ads SDK only starts afterwards, and only for the free tier. The prompt
-waits for the app to be in the foreground and retries once if iOS drops it —
+waits until UIKit reports the app active (`@capacitor/app`) and retries once if
+iOS drops it —
 App Review could not find it on iPad when it sat behind sign-in.
 
 ### Two older bugs worth remembering

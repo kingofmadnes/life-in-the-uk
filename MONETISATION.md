@@ -284,7 +284,7 @@ point in `ads.js` already waits on `ready()` — do not add one that does not.
 | Paid Applications Agreement | **Yours.** Step 1. |
 | Non-Consumable unlock, £3.99 | **Yours.** Step 2. |
 | `LifeInTheUK.storekit` | **Done.** Matches the code — see Step 3. |
-| AdMob account, units, IDs | **Done.** Real IDs in the code, `LIVE = true`. |
+| AdMob account, units, IDs | **Done.** Real IDs in Release builds, test units in Debug. |
 | `OWNER_EMAIL` | **Confirmed yours.** Leave as is. |
 
 For the wider picture of what was built and why, see `SESSION-NOTES.md`.
