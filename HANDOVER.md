@@ -119,6 +119,16 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
 
 ## 5. Blockers and open questions
 
+- [ ] **The App Review demo account is the owner account.** `cccvhmd2001@gmail.com`
+      signs in (checked 2026-11-23), but `OWNER_EMAIL` in `src/entitlement.js`
+      makes it always "paid": no paywall, no price, no purchase button, no ads.
+      A reviewer signed in with it cannot review the IAP. Either give Apple a
+      separate demo account, or tell them in the review notes to use "Continue
+      without an account", which is the free tier and shows the paywall.
+- [x] **Website wording fixed and live** (2026-11-23): support, privacy and
+      marketing pages, plus the stray `/public/` copies on GitHub Pages, contain
+      no subscription, trial, yearly, annual or renewal wording.
+
 - [ ] **Apple's exact rejection text** — only "references to subscriptions" is known.
 - [ ] **iOS 27 testing** needs Xcode 27 or an iOS 27 device.
 - [ ] **Store listing, screenshots and privacy labels:** checked for subscription
