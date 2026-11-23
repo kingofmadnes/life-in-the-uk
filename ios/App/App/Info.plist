@@ -68,11 +68,9 @@
 	<true/>
 
 	<!-- ── Ads ──────────────────────────────────────────────────────
-	     GADApplicationIdentifier is Google's PUBLIC TEST app id. It
-	     serves test ads that earn nothing and cannot get an account
-	     flagged. Replace it with the real id from the AdMob console
-	     (AdMob > Apps > App settings > App ID) at the same time as the
-	     unit ids in src/ads/ads.js, and flip LIVE to true there.
+	     GADApplicationIdentifier is the real AdMob app id for Life in
+	     the UK: Test Prep (AdMob > Apps > App settings > App ID). It
+	     must stay in step with the unit ids and LIVE in src/ads/ads.js.
 
 	     SKAdNetworkItems lets ad networks attribute installs without
 	     tracking the user. The entries below are the ones we can state
@@ -81,7 +79,7 @@
 	     paste the full list in before launch, as a short list only
 	     costs attribution revenue, it does not break anything. -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-3527173535512943~9103327684</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict><key>SKAdNetworkIdentifier</key><string>cstr6suwn9.skadnetwork</string></dict>

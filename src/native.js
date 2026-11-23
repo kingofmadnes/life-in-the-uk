@@ -70,8 +70,14 @@ async function bootNative() {
     true,
   );
 
-  /* ---- Drop the splash once the app has painted ----------------------- */
-  const hide = () => SplashScreen.hide().catch(() => {});
+  /* ---- Drop the splash once the app has painted, then ask ------------- */
+  /* Consent and the App Tracking Transparency prompt come straight after
+     the splash, before the login screen, so every new install sees them
+     before AdMob starts. Asking later, behind sign-in, is how App Review
+     missed the prompt on iPad. */
+  const askTracking = () =>
+    import('./ads/ads.js').then((m) => m.requestTracking()).catch(() => {});
+  const hide = () => SplashScreen.hide().catch(() => {}).then(askTracking);
   if (document.readyState === 'complete') setTimeout(hide, 300);
   else window.addEventListener('load', () => setTimeout(hide, 300), { once: true });
 }

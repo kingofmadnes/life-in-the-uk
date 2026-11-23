@@ -1,96 +1,82 @@
 # Life in the UK — Session Notes
 
-A record of what was built, why, and what's left. Written 19 September 2026,
-updated 20 September 2026 when the last language landed.
+A record of what was built, why, and what's left. Written 19 September 2026;
+monetisation, App Review and build state refreshed 23 November 2026. For the
+resubmission checklist see `HANDOVER.md`; for the console walkthrough see
+`MONETISATION.md`.
 
 ---
 
-## 1. Monetisation — rebuilt three times to land on something Apple allows
+## 1. Monetisation — a one-time unlock
 
-**What you wanted:** a 3-day free trial that requires a payment method upfront. If the
-user doesn't cancel, they get charged and receive full access with no ads. During the
-trial, only the path unlocks — ads still show.
+**Where it started:** a 3-day free trial with a card up front, which on Apple only
+exists on an auto-renewable subscription. That shipped first as a yearly
+subscription (`com.kingofmadnes.lifeintheuk.path.annual`).
 
-**The constraint I hit:** Apple only permits card-gated trials on *auto-renewable
-subscriptions*. A one-time purchase cannot have a trial that auto-charges. So this
-shipped as:
+**Where it landed:** App Store feedback moved it to a single non-consumable
+around 16 October 2026, with no trial. A later rejection flagged leftover
+"references to subscriptions", so every mention of subscriptions, trials and
+renewal is now gone from the app, its 15 languages and the public pages.
 
 | Thing | Value |
 |---|---|
-| Product ID | `com.kingofmadnes.lifeintheuk.path.annual` |
-| Type | Auto-renewable subscription, 1 year |
+| Product ID | `com.kingofmadnes.lifeintheuk.unlock` (exists in App Store Connect, permanent) |
+| Type | Non-Consumable — bought once, kept for good |
 | Price | £3.99 |
-| Intro offer | 3-day free trial |
+| Unlocks | All eight path levels, and removes ads |
 
 ### Files
 
 - **`src/entitlement.js`** — single source of truth. Resolves to
-  `loading | web | free | trialing | paid`.
-- **`src/entitlementLogic.js`** — pure logic, no imports, fully unit-tested:
-  ```js
-  export function stateFor(owned, trialing) {
-    if (!owned) return "free";
-    return trialing ? "trialing" : "paid";
-  }
-  export function pathOpenFor(state) { return state !== "free"; }
-  export function adsOnFor(state)    { return state === "free" || state === "trialing"; }
-  ```
-- **`src/storekit.js`** — `status()` returns `{owned, trialing}`, `manage()` opens
-  Apple's subscription sheet.
+  `loading | web | free | paid`, re-checked on launch and whenever the app
+  returns to the foreground, so the unlock survives relaunches and reinstalls.
+- **`src/entitlementLogic.js`** — pure logic, unit-tested: owned means `paid`;
+  only `free` has the path locked and ads on.
+- **`src/storekit.js`** — `status()`, `product()`, `purchase()`, `restore()`. Every
+  call resolves rather than throws, and store calls are capped at 4 seconds.
 - **`ios/App/App/StoreKitPlugin.swift`** — local Capacitor plugin, StoreKit 2. No
   third-party SDK, no receipt server — Apple does the cryptographic verification.
+- **`src/paywall/Paywall.jsx`** — shows the App Store's localised price once the
+  product loads, or "Price unavailable, please try again later." with a retry.
+
+### Two native gotchas, both fixed
+
+- **Capacitor does not find local Swift plugins by itself.** `StoreKitViewController`
+  (bottom of `StoreKitPlugin.swift`) registers the plugin, and `SceneDelegate.swift`
+  must create that controller, because it builds the root view controller in code
+  and ignores the storyboard. Symptom if broken: "StoreKit plugin is not
+  implemented on ios" and no price on the paywall.
+- **Local purchase testing** uses `ios/App/LifeInTheUK.storekit`, referenced from
+  the scheme as `../../LifeInTheUK.storekit`, and only when the app is run from
+  Xcode.
 
 ### Owner account
 
-`cccvhmd2001@gmail.com` is hard-coded as the owner and always resolves to `paid`:
-
-```js
-const OWNER_EMAIL = "cccvhmd2001@gmail.com";
-```
-
-`onAuthStateChanged` is wired up, so signing into that account unlocks immediately.
-Your study progress on that account is preserved across all future changes.
-
-**A caveat I raised and you accepted:** an email allowlist can be shared. Anyone with
-those credentials gets free access. It's fine for a single owner account; it would not
-be fine as a general access-control mechanism.
+`cccvhmd2001@gmail.com` is hard-coded as the owner and always resolves to `paid`,
+checked before StoreKit runs. An email allowlist can be shared; fine for one owner
+account, not as general access control.
 
 ### Where the paywall appears
 
-Free path map + free Level 1. The trial paywall appears when reaching for **Level 2** —
-after the user has actually used the path and passed a level. This was your call and
-it's the right one: people pay more readily once they've felt the product work.
+Free path map + free Level 1. The paywall appears when reaching for **Level 2**,
+after the user has passed a level, and from Settings → Unlock the path.
 
-```js
-const FREE_LEVEL = 1;
-const startLevel = (n) => {
-  if (!isUnlocked(n, levelProgress)) return;
-  if (n > FREE_LEVEL && !ent.pathOpen) { setPending({ level: n }); return; }
-  openLevel(n);
-};
-```
+### Ads and tracking
 
-### Two bugs worth remembering
+AdMob is live (`LIVE = true`, real app ID and banner/interstitial units). On
+launch, straight after the splash and before the login screen, the app runs the
+UMP consent check and then the App Tracking Transparency prompt; the Google
+Mobile Ads SDK only starts afterwards, and only for the free tier. The prompt
+waits for the app to be in the foreground and retries once if iOS drops it —
+App Review could not find it on iPad when it sat behind sign-in.
 
-**1. Variable shadowing froze the entire entitlement layer.**
-`const [pathTrialStart, setPathTrialStart] = useState(null)` shadowed a module-level
-`async function pathTrialStart(uid)`. So `await pathTrialStart(user.uid)` called
-`null(...)`, the resolver rejected, `settle()` never ran, and state stayed `"loading"`
-forever — which shows no ads, gates nothing, and hides the buy button. It looked
-*exactly* like the feature had never been built. Fixed by renaming the state to
-`trialStartMs`, with a comment explaining why the name matters.
+### Two older bugs worth remembering
 
-**2. A StoreKit call could hang forever.**
-`try/catch` catches errors but not a promise that never settles. Fixed with a 4-second
-race that reads silence as "not owned":
-
-```js
-function withTimeout(promise, ms, fallback) {
-  let timer;
-  const clock = new Promise((res) => { timer = setTimeout(() => res(fallback), ms); });
-  return Promise.race([promise, clock]).finally(() => clearTimeout(timer));
-}
-```
+- **Variable shadowing froze the entitlement layer:** a `useState` name shadowed a
+  module-level function, so the resolver rejected and state stayed `"loading"`
+  forever — which looked exactly like the feature had never been built.
+- **A StoreKit call could hang forever:** `try/catch` does not catch a promise that
+  never settles, hence the 4-second race that reads silence as "not owned".
 
 ---
 
@@ -231,31 +217,24 @@ language falls back to English rather than showing a half-translated quiz.
 
 ## 5. Still on your plate (I can't do these)
 
-1. **App Store Connect** — create the auto-renewable subscription:
-   `com.kingofmadnes.lifeintheuk.path.annual`, 1 year, £3.99, 3-day free-trial
-   introductory offer, new subscription group.
-2. **AdMob** — create the account, an app, a banner unit and an interstitial unit.
-   The code currently uses Google's official test IDs with `LIVE = false`; real IDs
-   swap in at the end.
-3. **App Review surface** — this submission carries IAP, ads, ATT, consent and a
-   privacy-label change all at once. A first submission carrying all of it is more
-   likely to bounce than a clean build would be. Worth expecting a round-trip.
+See `HANDOVER.md` for the full checklist. In short: paste Apple's exact rejection
+text into it, check the App Store listing and IAP text for subscription wording,
+confirm privacy labels and screenshots, attach the IAP to the version, archive
+build 2 and resubmit with review notes. iOS 27 testing needs Xcode 27 or an iOS 27
+device; this Mac only has Xcode 26.3.
 
 ---
 
 ## 6. Build state
 
-- Question pool: **506** (253 core + 253 doubles).
-- iOS Xcode project committed (`ios/`), SPM not CocoaPods, builds and runs on device.
-- `npm test` — 96/96 passing.
-- `npm run build` — clean. `npx cap sync ios` run, so `ios/App/App/public` carries the
-  506-question bundle.
-- Translations: **all 14 languages at 506/506**, all registered in `LOADERS`.
-- Verified in a real browser, not just in tests: guest mode past the Firebase gate,
-  into the path, through a complete 15-question level in Hindi — 15/15 distinct
-  questions, 15/15 with Hindi subtitles, every option 4-way, zero console errors —
-  and the same run in Arabic to confirm RTL (`direction: rtl` computed on subtitles).
-- All work committed to `main`.
+- Version **1.0**, build **2**.
+- Question pool: **506** (253 core + 253 doubles); all 14 languages at 506/506.
+- iOS Xcode project committed (`ios/`), SPM not CocoaPods.
+- `npm test` — 109/109 passing. `npm run build` clean; `npx cap sync ios` run.
+- Verified in the iOS 26.3 simulators: the paywall shows "Path Unlock, £3.99"
+  from the local StoreKit file when run from Xcode; on a fresh install the ATT
+  prompt appears over the login screen on both iPhone 17 Pro and iPad Air, with
+  no ad or SDK requests made before it.
 
 A note for whoever reads this next: `optSub()` in `LifeInTheUK.jsx` deliberately
 returns null when a translated option is identical to the English, so proper nouns

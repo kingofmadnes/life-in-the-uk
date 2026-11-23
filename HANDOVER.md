@@ -62,12 +62,10 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
 ## 3. Still left before resubmitting
 
 ### Code (can be done in a session)
-- [ ] **Real AdMob IDs.** The app still uses Google's public *test* IDs (app ID
-      in `ios/App/App/Info.plist`, both ad units in `src/ads/ads.js`,
-      `LIVE = false`). Shipping test ads is not acceptable. Needs the three real
-      IDs, or a decision to ship this release with ads off.
-- [ ] **Refresh `SESSION-NOTES.md`**, which still describes the old yearly
-      subscription. It is an internal note, not shipped, but it misleads.
+- [x] **Real AdMob IDs, `LIVE = true`:** app ID
+      `ca-app-pub-3527173535512943~9103327684` in `Info.plist`; banner
+      `…/7972536850` and interstitial `…/5269070634` in `src/ads/ads.js`.
+- [x] **`SESSION-NOTES.md` refreshed** to the one-time unlock.
 
 ### App Store Connect (owner only)
 - [ ] **Check the store listing for subscription wording too:** description,
@@ -82,7 +80,8 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
       identifier for advertising, and usage/advertising data from AdMob.
 - [ ] **Screenshots:** none may show the old subscription paywall. Required for
       iPhone 6.9" and iPad 13".
-- [ ] **Review notes:** a one-time non-consumable with no subscription; Restore
+- [ ] **Review notes:** a one-time non-consumable; the ATT prompt appears on
+      first launch over the login screen on iPhone and iPad; Restore
       is in Settings → Restore purchase; unofficial, not affiliated with the Home
       Office; guest mode works without an account. Reply to the rejection in
       App Review saying the subscription references were removed.
@@ -91,17 +90,16 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
 - [ ] **Archive** build 2 in Xcode → upload → select it on the version → submit.
 
 ### AdMob / ATT
-- [ ] **Register the app in AdMob** (account exists; only "MOdelivr" was listed
-      on 2026-10-28) and create a Banner and an Interstitial unit. Send the three
-      IDs to wire in.
-- [x] **ATT before AdMob, in code:** `ads.js` runs consent, then the ATT prompt,
-      then `AdMob.initialize()`; the native plugin only starts the Google SDK
-      inside `initialize()`. The prompt is triggered once the app knows the user
-      is on the free tier (after login or "Continue without an account").
-- [ ] **ATT on a fresh install, iOS 26.3 iPhone and iPad simulators:** fresh
-      build 2 installed with permissions reset; the login screen shows no prompt
-      and no AdMob start, as expected. Waiting on someone to tap "Continue
-      without an account" so the log order can be confirmed.
+- [x] **App registered in AdMob** with a Banner and an Interstitial unit.
+- [x] **ATT moved to launch (Apple could not find it on iPad).** It used to wait
+      until after sign-in and the free-tier check. Now `native.js` runs consent
+      and the ATT prompt straight after the splash, before the login screen; the
+      request waits for the app to be in the foreground and retries once if iOS
+      drops it. The Google Mobile Ads SDK only starts afterwards, in `ready()`.
+- [x] **Verified on a fresh install, iOS 26.3 simulators:** with the app
+      uninstalled and permissions reset, the ATT prompt appears by itself over
+      the login screen on both iPhone 17 Pro and iPad Air 11", with no ad or SDK
+      requests made before it (only the UMP consent check).
 - [ ] **ATT on iOS 27 (iPhone and iPad): not tested.** This Mac only has Xcode
       26.3 (iOS 26.2 SDK, iOS 26.3 simulators). Needs Xcode 27 or a real device
       on iOS 27.
@@ -120,6 +118,5 @@ All 109 tests, the web build, the iOS build and `npx cap sync ios` pass.
 
 - [ ] **Apple's exact rejection text** — only "references to subscriptions" is known.
 - [ ] **iOS 27 testing** needs Xcode 27 or an iOS 27 device.
-- [ ] **AdMob:** real IDs, or ship this release with ads off?
 - [ ] **Store listing, screenshots and privacy labels:** checked for subscription
       wording and complete? Not visible from the repo.

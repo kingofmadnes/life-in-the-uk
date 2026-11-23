@@ -1,10 +1,10 @@
 /* ============================================================
    ADS
 
-   Only ever reached in the free tier of the native app — the web
-   build has no ads at all, and neither does a paid unlock. See
-   entitlement.js; this file assumes that decision has
-   already been made by the time it is called.
+   Native app only — the web build has no ads at all. Consent and the
+   tracking prompt run for everyone on launch (see native.js and
+   requestTracking below); the SDK itself, and every ad, are only
+   reached in the free tier. See entitlement.js.
 
    Order of operations on iOS matters and is not optional:
 
@@ -21,14 +21,15 @@ import { Capacitor } from "@capacitor/core";
 const isNative = Capacitor.isNativePlatform();
 
 /* ─────────────  AD UNIT IDS  ─────────────
-   Google's official test units. They serve real-looking ads that
-   pay nothing and cannot get the account flagged, which is what we
-   want until the AdMob account exists.
+   LIVE serves the real units below. The app id that goes with them is
+   in ios/App/App/Info.plist under GADApplicationIdentifier; keep the
+   three in step.
 
-   TO GO LIVE: replace these three with the real ids from the AdMob
-   console, and set LIVE to true. The app id also has to be set in
-   ios/App/App/Info.plist under GADApplicationIdentifier. */
-const LIVE = false;
+   Setting LIVE to false switches to Google's official test units,
+   which pay nothing and cannot get the account flagged. Simulators
+   always get test ads either way. Never tap a live ad on your own
+   device. */
+const LIVE = true;
 
 const TEST = {
   banner: "ca-app-pub-3940256099942544/2934735716",
@@ -36,8 +37,8 @@ const TEST = {
 };
 
 const REAL = {
-  banner: "",        // ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX
-  interstitial: "",  // ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX
+  banner: "ca-app-pub-3527173535512943/7972536850",
+  interstitial: "ca-app-pub-3527173535512943/5269070634",
 };
 
 const UNITS = LIVE && REAL.banner ? REAL : TEST;
@@ -50,6 +51,7 @@ const isTesting = !LIVE;
 const INTERSTITIAL_GAP_MS = 3 * 60 * 1000;
 
 let plugin = null;
+let consentPromise = null;
 let readyPromise = null;
 let lastInterstitial = Date.now(); // start the clock now, not at zero —
                                    // nobody should meet an ad on tap one
@@ -68,6 +70,26 @@ async function load() {
   return plugin;
 }
 
+const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+
+/* iOS drops a tracking request made while the app is not active — still
+   launching, or while a consent form is being dismissed — and leaves the
+   status "notDetermined" without showing anything. That is how a
+   reviewer ends up never seeing the prompt. So wait until the app is in
+   the foreground, give it a moment to settle, and if the status is still
+   undecided after asking, ask once more. */
+function whenVisible() {
+  if (document.visibilityState === "visible") return Promise.resolve();
+  return new Promise((res) => {
+    const on = () => {
+      if (document.visibilityState !== "visible") return;
+      document.removeEventListener("visibilitychange", on);
+      res();
+    };
+    document.addEventListener("visibilitychange", on);
+  });
+}
+
 /**
  * Ask App Tracking Transparency, if the system has not already been
  * answered. The prompt can only be shown once per install — after
@@ -76,11 +98,53 @@ async function load() {
  */
 async function trackingAllowed(AdMob) {
   let { status } = await AdMob.trackingAuthorizationStatus();
-  if (status === "notDetermined") {
+  for (let attempt = 0; status === "notDetermined" && attempt < 2; attempt++) {
+    await whenVisible();
+    await wait(attempt === 0 ? 500 : 1000);
     await AdMob.requestTrackingAuthorization(); // the system prompt
     ({ status } = await AdMob.trackingAuthorizationStatus());
   }
   return status === "authorized";
+}
+
+/**
+ * Consent and the tracking prompt, done once — and never the SDK.
+ * Run on launch from native.js, ahead of the login screen, so the
+ * prompt is the first thing a new install sees, on iPhone and iPad
+ * alike, whatever the account or tier turns out to be.
+ */
+function consentAndTracking() {
+  if (!isNative) return Promise.resolve();
+  if (consentPromise) return consentPromise;
+
+  consentPromise = (async () => {
+    const { AdMob, AdmobConsentStatus } = await load();
+
+    // 1. UMP. The form is only shown when Google says one is
+    //    required for this person's region.
+    try {
+      const info = await AdMob.requestConsentInfo();
+      if (
+        info.isConsentFormAvailable &&
+        info.status === AdmobConsentStatus.REQUIRED
+      ) {
+        await AdMob.showConsentForm();
+      }
+    } catch {
+      // No form, no network, or the person dismissed it. Carry on
+      // with non-personalised ads rather than losing the tier.
+    }
+
+    // 2. ATT. A failure or an unanswered prompt leaves `personalised`
+    //    false, so ads still load — just not targeted.
+    try {
+      personalised = await trackingAllowed(AdMob);
+    } catch {
+      personalised = false;
+    }
+  })();
+
+  return consentPromise;
 }
 
 /**
@@ -94,34 +158,10 @@ function ready() {
 
   readyPromise = (async () => {
     try {
-      const { AdMob, AdmobConsentStatus } = await load();
+      await consentAndTracking();
 
-      // 1. UMP. The form is only shown when Google says one is
-      //    required for this person's region.
-      try {
-        const info = await AdMob.requestConsentInfo();
-        if (
-          info.isConsentFormAvailable &&
-          info.status === AdmobConsentStatus.REQUIRED
-        ) {
-          await AdMob.showConsentForm();
-        }
-      } catch {
-        // No form, no network, or the person dismissed it. Carry on
-        // with non-personalised ads rather than losing the tier.
-      }
-
-      // 2. ATT. Asked here, before the SDK starts and before any ad is
-      //    requested. A failure or an unanswered prompt leaves
-      //    `personalised` false, so ads still load — just not targeted.
-      try {
-        personalised = await trackingAllowed(AdMob);
-      } catch {
-        personalised = false;
-      }
-
-      // 3. Start the SDK. ATT is already answered above, so it is not
-      //    asked again here.
+      // 3. Start the SDK, only once consent and ATT are answered.
+      const { AdMob } = await load();
       await AdMob.initialize({ initializeForTesting: isTesting });
 
       return true;
@@ -135,12 +175,12 @@ function ready() {
 }
 
 /**
- * Run consent and the App Tracking Transparency prompt now, rather than
- * waiting for the first ad screen. Called on launch for free-tier users
- * so the prompt appears before any ad or tracking can happen.
+ * Run consent and the App Tracking Transparency prompt now, without
+ * starting the SDK. Called on launch so the prompt appears before any
+ * ad, sign-in or tracking can happen.
  */
 export function requestTracking() {
-  return ready();
+  return consentAndTracking();
 }
 
 /** Banner along the bottom. Resolves to the height in px, or 0. */
